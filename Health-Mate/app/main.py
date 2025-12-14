@@ -1,5 +1,11 @@
+import logging
 from fastapi import FastAPI
 from app.core.database import connect_to_mongo,close_mongo_connection
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s | %(message)s"
+)
 app=FastAPI()
 
 # Register the every routes

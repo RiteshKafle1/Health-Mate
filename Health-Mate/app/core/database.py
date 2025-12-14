@@ -20,12 +20,13 @@ async def connect_to_mongo():
             MONGO_URI,
             serverSelectionTimeoutMS=5000  # fail fast
         )
+        await client.admin.command("ping")
 
         db = client["health_mate_db"]
         logging.info("✅ MongoDB connected successfully")
 
     except Exception as e:
-        logging.error("❌ MongoDB connection failed")
+        logging.error("❌ MongoDB connection failed :{e}")
         raise e
 
 

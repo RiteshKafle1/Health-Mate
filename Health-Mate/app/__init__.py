@@ -1,1 +1,1 @@
-# FastAPI Appointy Backend
+# FastAPI Backend

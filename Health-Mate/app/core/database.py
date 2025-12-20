@@ -34,3 +34,16 @@ async def close_mongo_connection():
     if client:
         client.close()
         logging.info("🛑 MongoDB connection closed")
+
+
+# Collection helpers
+def get_users_collection():
+    return db.users
+
+
+def get_doctors_collection():
+    return db.doctors
+
+
+def get_appointments_collection():
+    return db.appointments

@@ -13,6 +13,7 @@ app=FastAPI()
 # Register the every routes
 app.inlcude_router(user_router,prefix="/api/v1/users")
 
+ 
 # connecting to mongodb when the server starts
 @app.on_event("startup")
 async def startup_event():

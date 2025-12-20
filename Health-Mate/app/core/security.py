@@ -23,4 +23,4 @@ def create_access_token(user_id: str):
         "exp": datetime.utcnow() + timedelta(days=7)
     }
 
-     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)

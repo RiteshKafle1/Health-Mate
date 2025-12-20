@@ -15,7 +15,6 @@ app=FastAPI()
 app.inlcude_router(user_router,prefix="/api/v1/users")
 app.inlcude_router(doctor_router,prefix="/api/v1/doctors")
 
-
  
 # connecting to mongodb when the server starts
 @app.on_event("startup")

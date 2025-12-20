@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.models.user_model import User
-from app.services.user_service import register_user
+from app.services.user_services import register_user
 router=APIRouter()
 
 @router.post('/register')

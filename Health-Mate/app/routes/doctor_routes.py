@@ -65,3 +65,4 @@ async def update_profile(data: DoctorUpdate, doc_id: str = Depends(get_current_d
         available=data.available,
         about=data.about
     )
+

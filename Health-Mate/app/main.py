@@ -2,6 +2,7 @@ import logging
 from fastapi import FastAPI
 from app.core.database import connect_to_mongo,close_mongo_connection
 from app.routes.user_routes import router as user_router
+from app.routes.doctor_routes import router as doctor_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -12,6 +13,7 @@ app=FastAPI()
 
 # Register the every routes
 app.inlcude_router(user_router,prefix="/api/v1/users")
+app.inlcude_router(doctor_router,prefix="/api/v1/doctors")
 
  
 # connecting to mongodb when the server starts

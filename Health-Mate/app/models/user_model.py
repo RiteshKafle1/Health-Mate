@@ -1,27 +1,35 @@
-from pydantic import BaseModel, Field, EmailStr
-from typing import Optional
+ from typing import Optional
+from bson import ObjectId
+from app.core.database import db
 
-class RegisterUser(BaseModel):
-    name: str = Field(..., min_length=3, max_length=20)
-    email: EmailStr
-    password: str = Field(..., min_length=8)
+user_collection = db.get_collection("users")
 
-class LoginUser(BaseModel):
-    email: EmailStr
-    password: str
+def user_serializer(user: dict) -> dict:
+    return {
+        "id": str(user["_id"]),
+        "name": user.get("name"),
+        "email": user.get("email"),
+        "image": user.get("image"),
+        "phone": user.get("phone"),
+        "address": user.get("address"),
+        "dob": user.get("dob"),
+        "gender": user.get("gender"),
+    }
 
-class UpdateProfile(BaseModel):
-    name: str
-    phone: str
-    address: Optional[str]
-    dob: str
-    gender: str
+def user_db_serializer(user: dict) -> dict:
+    return {
+        "id": str(user["_id"]),
+        "name": user.get("name"),
+        "email": user.get("email"),
+        "password": user.get("password"),
+        "image": user.get("image"),
+        "phone": user.get("phone"),
+        "address": user.get("address"),
+        "dob": user.get("dob"),
+        "gender": user.get("gender"),
+    }
+    
+def get_object_id(id: str) -> ObjectId:
+    return ObjectId(id)
 
-class UserResponse(BaseModel):
-    id: str
-    name: str
-    email: str
-    image: Optional[str]
-    phone: Optional[str]
-    address: Optional[str]
-    dob: Optional[str]
+# Model = “How we interact with the database”

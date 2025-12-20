@@ -9,11 +9,14 @@ logging.basicConfig(
     format="%(levelname)s | %(message)s"
 )
 #creating the instance of fastapi
-app=FastAPI()
+app=FastAPI(
+     title="Health Mate API",
+    version="1.0.0"
+)
 
 # Register the every routes
-app.inlcude_router(user_router,prefix="/api/v1/users")
-app.inlcude_router(doctor_router,prefix="/api/v1/doctors")
+app.inlcude_router(user_router,prefix="/api/v1")
+app.inlcude_router(doctor_router,prefix="/api/v1")
 
  
 # connecting to mongodb when the server starts

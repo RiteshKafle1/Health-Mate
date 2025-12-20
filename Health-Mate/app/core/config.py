@@ -10,3 +10,10 @@ cloudinary.config(
   api_key=os.getenv('CLOUD_API_KEY'),
   api_secret=os.getenv('CLOUD_API_SECRET')
 )
+
+def upload_to_cloudinary(file, folder: str):
+    return cloudinary.uploader.upload(
+        file,
+        folder=folder,
+        resource_type="auto"
+    )

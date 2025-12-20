@@ -1,85 +1,88 @@
-from app.core.database import db
+from fastapi import HTTPException, UploadFile
+from bson import ObjectId
+from app.models.user_model import user_collection, user_serializer
+from app.schemas.user_schema import UserRegister, UserLogin, UserUpdate
 from app.core.security import hash_password, verify_password, create_access_token
-from fastapi import HTTPException,UploadFile, File, Form
-from app.core.config import cloudinary
+from app.core.cloudinary import upload_to_cloudinary
 
-async def register_user(data: RegisterUser):
 
-    existing_user = await db.find_one({"email": data.email})
-    if existing_user:
-        raise HTTPException(status_code=400, detail="User already exists")
+async def register_user(data: UserRegister):
+    existing = await user_collection.find_one({"email": data.email})
+    if existing:
+        raise HTTPException(400, "User already exists")
 
-    hashed_password = hash_password(data.password)
-
-    user_data = {
+    user = {
         "name": data.name,
         "email": data.email,
-        "password": hashed_password
+        "password": hash_password(data.password),
+        "image": None
     }
 
-    result = await db.insert_one(user_data)
+    result = await user_collection.insert_one(user)
     token = create_access_token(str(result.inserted_id))
 
     return {"success": True, "token": token}
 
-async def login_user(data: LoginUser):
 
-    user = await db.find_one({"email": data.email})
+async def login_user(data: UserLogin):
+    user = await user_collection.find_one({"email": data.email})
     if not user:
-        raise HTTPException(status_code=400, detail="User does not exist")
+        raise HTTPException(400, "Invalid credentials")
 
     if not verify_password(data.password, user["password"]):
-        raise HTTPException(status_code=400, detail="Invalid credentials")
+        raise HTTPException(400, "Invalid credentials")
 
     token = create_access_token(str(user["_id"]))
     return {"success": True, "token": token}
 
-async def get_profile(user_id: str):
 
-    user = await db.find_one(
-        {"_id": ObjectId(user_id)},
-        {"password": 0}
+async def get_profile(user_id: str):
+    user = await user_collection.find_one(
+        {"_id": ObjectId(user_id)}, {"password": 0}
     )
 
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(404, "User not found")
 
-    user["id"] = str(user["_id"])
-    del user["_id"]
+    return {"success": True, "user": user_serializer(user)}
 
-    return {"success": True, "userData": user}
 
 async def update_profile(
-    user_id: str = Form(...),
-    name: str = Form(...),
-    phone: str = Form(...),
-    address: str = Form(None),
-    dob: str = Form(...),
-    gender: str = Form(...),
-    image: UploadFile = File(None)
-    ):
+    user_id: str,
+    data: UserUpdate,
+    image: UploadFile = None
+ ):
+    update_data = {k: v for k, v in data.dict().items() if v is not None}
 
-    update_data = {
-        "name": name,
-        "phone": phone,
-        "dob": dob,
-        "gender": gender,
-        "address": json.loads(address) if address else None
-    }
+    if image:
+        upload = upload_to_cloudinary(image.file, f"users/{user_id}")
+        update_data["image"] = upload["secure_url"]
+
+    if not update_data:
+        raise HTTPException(400, "Nothing to update")
 
     await user_collection.update_one(
         {"_id": ObjectId(user_id)},
         {"$set": update_data}
     )
 
-    if image:
-        upload = cloudinary.uploader.upload(image.file, resource_type="image")
-        await user_collection.update_one(
-            {"_id": ObjectId(user_id)},
-            {"$set": {"image": upload["secure_url"]}}
-        )
+    return {"success": True, "message": "Profile updated"}
 
-    return {"success": True, "message": "Profile Updated"}
+async def upload_user_file(user_id: str, file: UploadFile):
+    if not file:
+        raise HTTPException(400, "File required")
+
+    upload = upload_to_cloudinary(file.file, f"users/{user_id}")
+    url = upload["secure_url"]
+
+    await user_collection.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": {"file": url}}
+    )
+
+    return {"success": True, "file_url": url}
+
+
 
 async def book_appointment(
     user_id: str,
@@ -158,3 +161,30 @@ async def list_appointments(user_id: str):
     ).to_list(length=100)
 
     return {"success": True, "appointments": appointments}
+
+
+async def upload_user_file(
+    file: UploadFile = File(...),
+    user_id: str = Depends(get_current_user)
+    ):
+    if not file:
+        raise HTTPException(status_code=400, detail="File is required")
+
+    # Upload to Cloudinary
+    upload_result = upload_to_cloudinary(
+        file.file,
+        folder=f"users/{user_id}"
+    )
+
+    file_url = upload_result["secure_url"]
+
+    # Save file URL in user document
+    await user_collection.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": {"file": file_url}}
+    )
+
+    return {
+        "success": True,
+        "file_url": file_url
+    }

@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from app.models.user_model import User
+
 from app.services.user_service import register_user,login_user,get_profile,book_appointment
 router=APIRouter()
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.models.user_model import User
-from app.services.user_service import register_user,login_user,get_profile
+from app.services.user_service import register_user,login_user,get_profile,book_appointment
 router=APIRouter()
 
 @router.post('/register')
@@ -17,4 +17,16 @@ async def getProfile():
 
 @router.put("/update-profile")
 async def updateProfile():
+  return await update_profile()
+
+@router.post("/book-appointment")
+async def bookAppointment():
+  return await update_profile()
+
+@router.post("/cancel-appointment")
+async def cancelAppointment():
+  return await update_profile()
+
+@router.get("/appointments/{user_id}")
+async def listAppointment():
   return await update_profile()

@@ -1,0 +1,86 @@
+# Dependencies
+node_modules/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.eggs/
+*.egg-info/
+*.egg
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# API Keys and secrets
+*.key
+*.pem
+secrets/
+
+# Test files (as requested)
+test_workflow.py
+test_*.py
+
+# Documentation and changelogs (as requested)
+CHANGELOG.md
+CHANGELOG
+*.changelog
+.agent/
+workflows/
+
+# Database files
+*.db
+*.sqlite3
+chat_db/
+medical_db/
+
+# Vector database
+chroma/
+*.chroma
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+*.log
+
+# Frontend build
+frontend/dist/
+frontend/build/
+frontend/.next/
+
+# Coverage
+coverage/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data files
+*.pdf
+data/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# MediGenius standalone (separate project)
+MediGenius/

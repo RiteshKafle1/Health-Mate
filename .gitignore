@@ -34,16 +34,6 @@ CHANGELOG
 .agent/
 workflows/
 
-# Database files
-*.db
-*.sqlite3
-chat_db/
-medical_db/
-
-# Vector database
-chroma/
-*.chroma
-
 # IDE
 .idea/
 .vscode/
@@ -73,10 +63,6 @@ htmlcov/
 # Jupyter
 .ipynb_checkpoints/
 
-# Data files
-*.pdf
-data/
-
 # Temporary files
 tmp/
 temp/
@@ -84,3 +70,6 @@ temp/
 
 # MediGenius standalone (separate project)
 MediGenius/
+
+# Gemini artifacts (system generated)
+.gemini/

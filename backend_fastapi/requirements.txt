@@ -1,0 +1,42 @@
+# Core Backend Dependencies
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+motor>=3.3.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+bcrypt>=4.0.0,<4.2.0  # Pinned for passlib 1.7.4 compatibility
+python-multipart>=0.0.6
+cloudinary>=1.36.0
+razorpay>=1.4.1
+redis>=5.0.0
+email-validator>=2.1.0
+
+# MediGenius Chatbot Dependencies
+python-dotenv
+itsdangerous
+aiofiles
+jinja2
+
+# AI/ML Dependencies
+huggingface-hub
+langchain-core>=0.3.34,<1.0.0
+langchain>=0.3.0,<1.0.0
+langchain-community>=0.3.0,<1.0.0
+langchain-groq>=0.2.0,<1.0.0
+langchain-huggingface>=0.1.0,<1.0.0
+langgraph>=0.2.0,<1.0.0
+sentence-transformers
+pypdf
+langchain-chroma>=0.1.0,<1.0.0
+wikipedia
+duckduckgo-search
+
+# Vector Database
+chromadb
+
+# ML Frameworks (heavy dependencies)
+torch
+transformers
+tf-keras

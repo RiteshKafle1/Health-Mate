@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getUserProfile, getUserAppointments } from '../../api/user';
 import type { User, Appointment } from '../../types';
-import { Calendar, Clock, Stethoscope, ArrowRight, Loader2 } from 'lucide-react';
+import { Calendar, Clock, Stethoscope, ArrowRight, Loader2, Pill } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { TodaysDoses } from '../../components/TodaysDoses';
 
 export function UserDashboard() {
     const { setUser } = useAuth();
@@ -122,59 +123,80 @@ export function UserDashboard() {
                 </div>
             </div>
 
-            {/* Upcoming Appointments */}
-            <div className="glass-card p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-semibold text-dark-50">Upcoming Appointments</h2>
-                    <Link
-                        to="/user/appointments"
-                        className="text-primary-400 hover:text-primary-300 flex items-center gap-1 text-sm"
-                    >
-                        View all <ArrowRight size={16} />
-                    </Link>
-                </div>
-
-                {upcomingAppointments.length === 0 ? (
-                    <div className="text-center py-12">
-                        <Calendar className="mx-auto text-dark-500 mb-4" size={48} />
-                        <p className="text-dark-400">No upcoming appointments</p>
-                        <Link to="/user/doctors" className="btn-primary mt-4 inline-flex items-center gap-2">
-                            Book an Appointment
+            {/* Two Column Layout for Dashboard Widgets */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Today's Doses Widget */}
+                <div>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-semibold text-dark-50 flex items-center gap-2">
+                            <Pill size={20} className="text-primary-400" />
+                            Medication Schedule
+                        </h2>
+                        <Link
+                            to="/user/medications"
+                            className="text-primary-400 hover:text-primary-300 flex items-center gap-1 text-sm"
+                        >
+                            Manage <ArrowRight size={16} />
                         </Link>
                     </div>
-                ) : (
-                    <div className="space-y-4">
-                        {upcomingAppointments.map((apt) => (
-                            <div key={apt._id} className="flex items-center gap-4 p-4 rounded-xl bg-dark-700/50 hover:bg-dark-700/70 transition-colors">
-                                <div className="w-14 h-14 rounded-xl overflow-hidden bg-dark-600 flex-shrink-0">
-                                    {apt.docData?.image ? (
-                                        <img src={apt.docData.image} alt={apt.docData.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            <Stethoscope className="text-dark-400" size={24} />
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-dark-100 truncate">Dr. {apt.docData?.name}</p>
-                                    <p className="text-sm text-dark-400">{apt.docData?.speciality}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-sm font-medium text-dark-200">{apt.slotDate}</p>
-                                    <p className="text-sm text-dark-400">{apt.slotTime}</p>
-                                </div>
-                                <div>
-                                    {apt.payment ? (
-                                        <span className="badge-success">Paid</span>
-                                    ) : (
-                                        <span className="badge-warning">Pending</span>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
+                    <TodaysDoses />
+                </div>
+
+                {/* Upcoming Appointments */}
+                <div className="glass-card p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-semibold text-dark-50">Upcoming Appointments</h2>
+                        <Link
+                            to="/user/appointments"
+                            className="text-primary-400 hover:text-primary-300 flex items-center gap-1 text-sm"
+                        >
+                            View all <ArrowRight size={16} />
+                        </Link>
                     </div>
-                )}
+
+                    {upcomingAppointments.length === 0 ? (
+                        <div className="text-center py-12">
+                            <Calendar className="mx-auto text-dark-500 mb-4" size={48} />
+                            <p className="text-dark-400">No upcoming appointments</p>
+                            <Link to="/user/doctors" className="btn-primary mt-4 inline-flex items-center gap-2">
+                                Book an Appointment
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {upcomingAppointments.map((apt) => (
+                                <div key={apt._id} className="flex items-center gap-4 p-4 rounded-xl bg-dark-700/50 hover:bg-dark-700/70 transition-colors">
+                                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-dark-600 flex-shrink-0">
+                                        {apt.docData?.image ? (
+                                            <img src={apt.docData.image} alt={apt.docData.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center">
+                                                <Stethoscope className="text-dark-400" size={24} />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-dark-100 truncate">Dr. {apt.docData?.name}</p>
+                                        <p className="text-sm text-dark-400">{apt.docData?.speciality}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm font-medium text-dark-200">{apt.slotDate}</p>
+                                        <p className="text-sm text-dark-400">{apt.slotTime}</p>
+                                    </div>
+                                    <div>
+                                        {apt.payment ? (
+                                            <span className="badge-success">Paid</span>
+                                        ) : (
+                                            <span className="badge-warning">Pending</span>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
 }
+

@@ -6,8 +6,9 @@ from app.core.database import connect_to_mongo, close_mongo_connection
 from app.core.redis import connect_to_redis, close_redis_connection
 from app.core.cloudinary_config import configure_cloudinary
 from app.core.config import settings
-from app.routers import user, doctor, admin, chatbot, chatbot_doctor, chatbot_admin
+from app.routers import user, doctor, admin, chatbot, chatbot_doctor, chatbot_admin, medication, healthmate_assist, dose
 from app.services.chatbot_service import init_chatbot_service
+from app.healthmate_assist.chatbot_manager import initialize_assist
 
 
 @asynccontextmanager
@@ -24,6 +25,12 @@ async def lifespan(app: FastAPI):
         print("MediGenius Chatbot initialized")
     except Exception as e:
         print(f"Warning: Chatbot initialization deferred: {e}")
+    
+    # Initialize HealthMate Assist
+    try:
+        initialize_assist()
+    except Exception as e:
+        print(f"Warning: HealthMate Assist initialization deferred: {e}")
     
     print(f"Server started on PORT:{settings.PORT}")
     yield
@@ -55,6 +62,9 @@ app.include_router(admin.router)
 app.include_router(chatbot.router)  # MediGenius medical chatbot (User-only)
 app.include_router(chatbot_doctor.router)  # MediGenius chatbot for Doctors
 app.include_router(chatbot_admin.router)  # MediGenius chatbot for Admin
+app.include_router(medication.router)  # Medication management
+app.include_router(healthmate_assist.router)  # HealthMate Assist chatbot
+app.include_router(dose.router)  # Dose scheduling and tracking
 
 
 @app.get("/")

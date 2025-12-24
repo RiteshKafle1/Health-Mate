@@ -46,3 +46,18 @@ def get_doctors_collection():
 
 def get_appointments_collection():
     return db.appointments
+
+
+def get_medications_collection():
+    """Get medications collection."""
+    return db.medications
+
+
+def get_dose_schedules_collection():
+    """Get dose schedules collection."""
+    return db.dose_schedules
+
+
+def get_dose_logs_collection():
+    """Get dose logs collection."""
+    return db.dose_logs

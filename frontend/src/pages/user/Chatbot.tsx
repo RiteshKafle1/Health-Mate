@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Send, Plus, Trash2, History, X, Bot, User, Loader2 } from 'lucide-react';
+import { MessageCircle, Send, Plus, Trash2, History, X, Bot, User, Loader2, Activity } from 'lucide-react';
 import {
     sendChatMessage,
     getChatSessions,
@@ -9,6 +9,7 @@ import {
     type ChatMessage,
     type ChatSession
 } from '../../api/chatbot';
+import { SymptomChecker } from '../../components/SymptomChecker';
 import toast from 'react-hot-toast';
 
 export function Chatbot() {
@@ -18,6 +19,7 @@ export function Chatbot() {
     const [sessionId, setSessionId] = useState<string | null>(null);
     const [sessions, setSessions] = useState<ChatSession[]>([]);
     const [showSidebar, setShowSidebar] = useState(false);
+    const [symptomCheckerMode, setSymptomCheckerMode] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -200,131 +202,163 @@ export function Chatbot() {
                                 <History className="w-5 h-5" />
                             </button>
                             <div className="flex items-center gap-2">
-                                <div className="p-2 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600">
-                                    <Bot className="w-5 h-5 text-white" />
+                                <div className={`p-2 rounded-full bg-gradient-to-br ${symptomCheckerMode ? 'from-purple-500 to-purple-700' : 'from-emerald-500 to-teal-600'}`}>
+                                    {symptomCheckerMode ? <Activity className="w-5 h-5 text-white" /> : <Bot className="w-5 h-5 text-white" />}
                                 </div>
                                 <div>
-                                    <h2 className="text-white font-semibold">HealthMate Clinician</h2>
-                                    <p className="text-xs text-slate-400">AI Medical Assistant</p>
+                                    <h2 className="text-white font-semibold">
+                                        {symptomCheckerMode ? 'Symptom Checker' : 'HealthMate Clinician'}
+                                    </h2>
+                                    <p className="text-xs text-slate-400">
+                                        {symptomCheckerMode ? 'Guided Assessment' : 'AI Medical Assistant'}
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                        <button
-                            onClick={handleNewChat}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors"
-                        >
-                            <Plus className="w-4 h-4" />
-                            New Chat
-                        </button>
-                    </div>
-                </div>
-
-                {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {messages.length === 0 && (
-                        <div className="h-full flex flex-col items-center justify-center text-center">
-                            <div className="p-4 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-600/20 mb-4">
-                                <MessageCircle className="w-12 h-12 text-emerald-400" />
-                            </div>
-                            <h3 className="text-xl font-semibold text-white mb-2">Welcome to HealthMate Clinician</h3>
-                            <p className="text-slate-400 max-w-md">
-                                Your AI-powered medical assistant. Ask me anything about health, symptoms,
-                                medications, or general wellness advice.
-                            </p>
-                            <div className="mt-6 grid grid-cols-2 gap-3 max-w-lg">
-                                {[
-                                    'What are symptoms of flu?',
-                                    'How to reduce fever naturally?',
-                                    'Tips for better sleep',
-                                    'Common cold remedies'
-                                ].map((suggestion, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => setInputMessage(suggestion)}
-                                        className="p-3 text-sm text-left rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors"
-                                    >
-                                        {suggestion}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {messages.map((message, index) => (
-                        <div
-                            key={index}
-                            className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                        >
-                            {message.role === 'assistant' && (
-                                <div className="p-2 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 h-fit">
-                                    <Bot className="w-4 h-4 text-white" />
-                                </div>
-                            )}
-                            <div
-                                className={`max-w-[70%] rounded-2xl p-4 ${message.role === 'user'
-                                    ? 'bg-emerald-500 text-white'
-                                    : 'bg-slate-800 text-slate-200 border border-slate-700/50'
+                        <div className="flex items-center gap-2">
+                            {/* Symptom Checker Toggle */}
+                            <button
+                                onClick={() => setSymptomCheckerMode(!symptomCheckerMode)}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${symptomCheckerMode
+                                    ? 'bg-purple-500/30 text-purple-300 border border-purple-500/50 hover:bg-purple-500/40'
+                                    : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700 hover:text-white'
                                     }`}
                             >
-                                <p className="whitespace-pre-wrap">{message.content}</p>
-                                <div className={`flex items-center gap-2 mt-2 text-xs ${message.role === 'user' ? 'text-emerald-200' : 'text-slate-500'
-                                    }`}>
-                                    {message.timestamp && <span>{message.timestamp}</span>}
-                                    {message.source && message.role === 'assistant' && (
-                                        <>
-                                            <span>•</span>
-                                            <span>{message.source}</span>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                            {message.role === 'user' && (
-                                <div className="p-2 rounded-full bg-slate-700 h-fit">
-                                    <User className="w-4 h-4 text-slate-300" />
-                                </div>
-                            )}
+                                <Activity className="w-4 h-4" />
+                                Symptom Checker
+                            </button>
+                            <button
+                                onClick={handleNewChat}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors"
+                            >
+                                <Plus className="w-4 h-4" />
+                                New Chat
+                            </button>
                         </div>
-                    ))}
-
-                    {isLoading && (
-                        <div className="flex gap-3 justify-start">
-                            <div className="p-2 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 h-fit">
-                                <Bot className="w-4 h-4 text-white" />
-                            </div>
-                            <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700/50">
-                                <div className="flex items-center gap-2 text-slate-400">
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                    <span>Thinking...</span>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    <div ref={messagesEndRef} />
+                    </div>
                 </div>
 
-                {/* Input */}
-                <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-700/50 bg-slate-800/30">
-                    <div className="flex gap-3">
-                        <input
-                            type="text"
-                            value={inputMessage}
-                            onChange={(e) => setInputMessage(e.target.value)}
-                            placeholder="Ask about health, symptoms, medications..."
-                            className="flex-1 px-4 py-3 rounded-xl bg-slate-700/50 border border-slate-600/50 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50"
-                            disabled={isLoading}
-                        />
-                        <button
-                            type="submit"
-                            disabled={!inputMessage.trim() || isLoading}
-                            className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium hover:from-emerald-600 hover:to-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
-                        >
-                            <Send className="w-5 h-5" />
-                        </button>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-2 text-center">
-                        HealthMate Clinician provides general health information only. Please consult a healthcare professional for medical advice.
-                    </p>
-                </form>
+                {/* Conditional Content: Symptom Checker or Normal Chat */}
+                {symptomCheckerMode ? (
+                    <SymptomChecker
+                        sessionId={sessionId}
+                        onSessionUpdate={(id) => {
+                            setSessionId(id);
+                            loadSessions();
+                        }}
+                        onClose={() => setSymptomCheckerMode(false)}
+                    />
+                ) : (
+                    <>
+
+                        {/* Messages */}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                            {messages.length === 0 && (
+                                <div className="h-full flex flex-col items-center justify-center text-center">
+                                    <div className="p-4 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-600/20 mb-4">
+                                        <MessageCircle className="w-12 h-12 text-emerald-400" />
+                                    </div>
+                                    <h3 className="text-xl font-semibold text-white mb-2">Welcome to HealthMate Clinician</h3>
+                                    <p className="text-slate-400 max-w-md">
+                                        Your AI-powered medical assistant. Ask me anything about health, symptoms,
+                                        medications, or general wellness advice.
+                                    </p>
+                                    <div className="mt-6 grid grid-cols-2 gap-3 max-w-lg">
+                                        {[
+                                            'What are symptoms of flu?',
+                                            'How to reduce fever naturally?',
+                                            'Tips for better sleep',
+                                            'Common cold remedies'
+                                        ].map((suggestion, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => setInputMessage(suggestion)}
+                                                className="p-3 text-sm text-left rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors"
+                                            >
+                                                {suggestion}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {messages.map((message, index) => (
+                                <div
+                                    key={index}
+                                    className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                >
+                                    {message.role === 'assistant' && (
+                                        <div className="p-2 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 h-fit">
+                                            <Bot className="w-4 h-4 text-white" />
+                                        </div>
+                                    )}
+                                    <div
+                                        className={`max-w-[70%] rounded-2xl p-4 ${message.role === 'user'
+                                            ? 'bg-emerald-500 text-white'
+                                            : 'bg-slate-800 text-slate-200 border border-slate-700/50'
+                                            }`}
+                                    >
+                                        <p className="whitespace-pre-wrap">{message.content}</p>
+                                        <div className={`flex items-center gap-2 mt-2 text-xs ${message.role === 'user' ? 'text-emerald-200' : 'text-slate-500'
+                                            }`}>
+                                            {message.timestamp && <span>{message.timestamp}</span>}
+                                            {message.source && message.role === 'assistant' && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span>{message.source}</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {message.role === 'user' && (
+                                        <div className="p-2 rounded-full bg-slate-700 h-fit">
+                                            <User className="w-4 h-4 text-slate-300" />
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+
+                            {isLoading && (
+                                <div className="flex gap-3 justify-start">
+                                    <div className="p-2 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 h-fit">
+                                        <Bot className="w-4 h-4 text-white" />
+                                    </div>
+                                    <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700/50">
+                                        <div className="flex items-center gap-2 text-slate-400">
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <span>Thinking...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            <div ref={messagesEndRef} />
+                        </div>
+
+                        {/* Input */}
+                        <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-700/50 bg-slate-800/30">
+                            <div className="flex gap-3">
+                                <input
+                                    type="text"
+                                    value={inputMessage}
+                                    onChange={(e) => setInputMessage(e.target.value)}
+                                    placeholder="Ask about health, symptoms, medications..."
+                                    className="flex-1 px-4 py-3 rounded-xl bg-slate-700/50 border border-slate-600/50 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50"
+                                    disabled={isLoading}
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={!inputMessage.trim() || isLoading}
+                                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium hover:from-emerald-600 hover:to-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                                >
+                                    <Send className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-2 text-center">
+                                HealthMate Clinician provides general health information only. Please consult a healthcare professional for medical advice.
+                            </p>
+                        </form>
+                    </>
+                )}
             </div>
         </div>
     );

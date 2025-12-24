@@ -8,10 +8,22 @@ async def init_chatbot_service():
     initialize_chatbot()
 
 
-async def process_chat_message(user_id: str, session_id: str, message: str) -> Dict[str, Any]:
+async def process_chat_message(
+    user_id: str, 
+    session_id: str, 
+    message: str,
+    symptom_checker_mode: bool = False,
+    selected_option: str = None
+) -> Dict[str, Any]:
     """Process a chat message and return the AI response."""
     manager = get_chatbot_manager()
-    return manager.process_chat(user_id, session_id, message)
+    return manager.process_chat(
+        user_id, 
+        session_id, 
+        message,
+        symptom_checker_mode=symptom_checker_mode,
+        selected_option=selected_option
+    )
 
 
 async def get_chat_history(user_id: str, session_id: str) -> List[Dict[str, Any]]:

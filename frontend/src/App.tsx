@@ -16,6 +16,7 @@ import { Doctors } from './pages/user/Doctors';
 import { BookAppointment } from './pages/user/BookAppointment';
 import { UserAppointments } from './pages/user/Appointments';
 import { Chatbot } from './pages/user/Chatbot';
+import { Medications } from './pages/user/Medications';
 
 // Doctor Pages
 import { DoctorDashboard } from './pages/doctor/Dashboard';
@@ -64,6 +65,7 @@ function App() {
               <Route path="/user/doctors" element={<Doctors />} />
               <Route path="/user/book/:doctorId" element={<BookAppointment />} />
               <Route path="/user/appointments" element={<UserAppointments />} />
+              <Route path="/user/medications" element={<Medications />} />
               <Route path="/user/chatbot" element={<Chatbot />} />
             </Route>
 

@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     MEDIGENIUS_VECTOR_DIR: str = "./medical_db/"
     MEDIGENIUS_PDF_PATH: str = "./data/medical_book.pdf"
     
+    # HealthMate Assist (Gemini 2.0 Flash)
+    GEMINI_API_KEY: str = ""
+    HEALTHMATE_ASSIST_DB_PATH: str = "./chat_db/healthmate_assist.db"
+    
     class Config:
         env_file = ".env"
         extra = "allow"

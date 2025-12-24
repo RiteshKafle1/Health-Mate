@@ -12,7 +12,7 @@ from .database import ChatDatabase
 
 
 class ChatbotManager:
-    """Manages the MediGenius chatbot workflow and state."""
+    """Manages the HealthMate Clinician chatbot workflow and state."""
     
     def __init__(self, db_path: str = './chat_db/medigenius_chats.db',
                  vector_dir: str = './medical_db/',
@@ -50,7 +50,14 @@ class ChatbotManager:
         """Get the unique key for user+session combination."""
         return f"{user_id}:{session_id}"
     
-    def process_chat(self, user_id: str, session_id: str, message: str) -> Dict[str, Any]:
+    def process_chat(
+        self, 
+        user_id: str, 
+        session_id: str, 
+        message: str,
+        symptom_checker_mode: bool = False,
+        selected_option: str = None
+    ) -> Dict[str, Any]:
         """Process a chat message and return the response."""
         if not self._initialized:
             self.initialize()
@@ -60,11 +67,12 @@ class ChatbotManager:
                 'response': 'Chatbot service is not available.',
                 'source': 'System Error',
                 'timestamp': datetime.now().strftime("%I:%M %p"),
-                'success': False
+                'success': False,
+                'is_follow_up': False,
+                'options': None,
+                'symptom_step': None,
+                'total_steps': None
             }
-        
-        # Save user message to database
-        self.database.save_message(session_id, user_id, 'user', message)
         
         # Initialize or get conversation state
         state_key = self._get_user_session_key(user_id, session_id)
@@ -72,8 +80,85 @@ class ChatbotManager:
             self.conversation_states[state_key] = initialize_conversation_state()
         
         conversation_state = self.conversation_states[state_key]
-        conversation_state = reset_query_state(conversation_state)
-        conversation_state["question"] = message
+        
+        # Handle Symptom Checker Mode
+        if symptom_checker_mode:
+            from .agents.symptom_checker_agent import SymptomCheckerAgent, start_symptom_checker
+            
+            # Use selected option if provided, otherwise use message
+            actual_message = selected_option if selected_option else message
+            
+            # Check if this is starting symptom checker or continuing
+            if conversation_state.get("symptom_checker_step", 0) == 0:
+                # Starting fresh - initialize symptom checker
+                conversation_state["symptom_checker_mode"] = True
+                conversation_state["question"] = actual_message
+                result = start_symptom_checker(conversation_state)
+            else:
+                # Continuing flow - process response and get next question
+                conversation_state["question"] = actual_message
+                result = SymptomCheckerAgent(conversation_state)
+            
+            self.conversation_states[state_key].update(result)
+            
+            # Get current timestamp
+            timestamp = datetime.now().strftime("%I:%M %p")
+            
+            # Check if symptom checker generated a response or needs to route to normal flow
+            if result.get("is_follow_up_question", False):
+                # Still collecting symptoms - return follow-up question with options
+                response = result.get('generation', 'Please answer the question above.')
+                
+                # Save messages to database
+                if actual_message and conversation_state.get("symptom_checker_step", 0) > 1:
+                    self.database.save_message(session_id, user_id, 'user', actual_message)
+                self.database.save_message(session_id, user_id, 'assistant', response, 'Symptom Checker')
+                
+                return {
+                    'response': response,
+                    'source': 'Symptom Checker',
+                    'timestamp': timestamp,
+                    'success': True,
+                    'is_follow_up': True,
+                    'options': result.get('symptom_options', []),
+                    'symptom_step': result.get('symptom_checker_step', 0),
+                    'total_steps': result.get('total_symptom_steps', 5)
+                }
+            else:
+                # Symptom collection complete - use specialized assessment agent
+                from .agents.symptom_assessment_agent import SymptomAssessmentAgent
+                
+                # Run symptom assessment
+                assessment_result = SymptomAssessmentAgent(result)
+                self.conversation_states[state_key].update(assessment_result)
+                
+                response = assessment_result.get('generation', 'Unable to generate assessment.')
+                source = assessment_result.get('source', 'Symptom Assessment')
+                
+                # Save to database
+                self.database.save_message(session_id, user_id, 'user', actual_message)
+                self.database.save_message(session_id, user_id, 'assistant', response, source)
+                
+                # Reset symptom checker state
+                conversation_state["symptom_checker_mode"] = False
+                conversation_state["symptom_checker_step"] = 0
+                
+                return {
+                    'response': response,
+                    'source': source,
+                    'timestamp': timestamp,
+                    'success': True,
+                    'is_follow_up': False,
+                    'options': None,
+                    'symptom_step': None,
+                    'total_steps': None
+                }
+        else:
+            conversation_state = reset_query_state(conversation_state)
+            conversation_state["question"] = message
+        
+        # Save user message to database
+        self.database.save_message(session_id, user_id, 'user', message)
         
         # Process query through workflow
         result = self.workflow_app.invoke(conversation_state)
@@ -93,7 +178,11 @@ class ChatbotManager:
             'response': response,
             'source': source,
             'timestamp': timestamp,
-            'success': bool(result.get('generation'))
+            'success': bool(result.get('generation')),
+            'is_follow_up': False,
+            'options': None,
+            'symptom_step': None,
+            'total_steps': None
         }
     
     def get_chat_history(self, user_id: str, session_id: str) -> List[Dict[str, Any]]:

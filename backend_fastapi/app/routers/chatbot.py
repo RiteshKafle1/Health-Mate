@@ -14,6 +14,8 @@ class ChatRequest(BaseModel):
     """Request model for chat messages."""
     message: str
     session_id: Optional[str] = None
+    symptom_checker_mode: Optional[bool] = False
+    selected_option: Optional[str] = None
 
 
 class ChatResponse(BaseModel):
@@ -23,6 +25,11 @@ class ChatResponse(BaseModel):
     timestamp: str
     success: bool
     session_id: str
+    # Symptom Checker Mode fields
+    is_follow_up: bool = False
+    options: Optional[List[str]] = None
+    symptom_step: Optional[int] = None
+    total_steps: Optional[int] = None
 
 
 class SessionResponse(BaseModel):
@@ -78,20 +85,25 @@ async def chat(request: ChatRequest, user_id: str = Depends(get_current_user)):
     Send a message to the medical chatbot and get a response.
     
     Requires user authentication via 'token' header.
+    Supports symptom_checker_mode for guided symptom collection.
     """
     session_id = get_or_create_session(user_id, request.session_id)
     
-    if not request.message or not request.message.strip():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"success": False, "message": "Message cannot be empty"}
-        )
+    # For symptom checker mode, allow empty messages when selecting options
+    if not request.symptom_checker_mode:
+        if not request.message or not request.message.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={"success": False, "message": "Message cannot be empty"}
+            )
     
     try:
         result = await chatbot_service.process_chat_message(
             user_id=user_id,
             session_id=session_id,
-            message=request.message.strip()
+            message=request.message.strip() if request.message else "",
+            symptom_checker_mode=request.symptom_checker_mode or False,
+            selected_option=request.selected_option
         )
         
         return ChatResponse(
@@ -99,7 +111,11 @@ async def chat(request: ChatRequest, user_id: str = Depends(get_current_user)):
             source=result['source'],
             timestamp=result['timestamp'],
             success=result['success'],
-            session_id=session_id
+            session_id=session_id,
+            is_follow_up=result.get('is_follow_up', False),
+            options=result.get('options'),
+            symptom_step=result.get('symptom_step'),
+            total_steps=result.get('total_steps')
         )
     except Exception as e:
         raise HTTPException(

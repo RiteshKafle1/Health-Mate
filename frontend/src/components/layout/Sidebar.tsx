@@ -8,6 +8,7 @@ import {
     UserPlus,
     X,
     MessageCircle,
+    Pill,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -25,6 +26,7 @@ const userNavItems: NavItem[] = [
     { label: 'Dashboard', path: '/user/dashboard', icon: <LayoutDashboard size={20} /> },
     { label: 'Find Doctors', path: '/user/doctors', icon: <Users size={20} /> },
     { label: 'My Appointments', path: '/user/appointments', icon: <Calendar size={20} /> },
+    { label: 'Medications', path: '/user/medications', icon: <Pill size={20} /> },
     { label: 'HealthMate', path: '/user/chatbot', icon: <MessageCircle size={20} /> },
     { label: 'Profile', path: '/user/profile', icon: <User size={20} /> },
 ];

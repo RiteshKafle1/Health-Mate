@@ -14,6 +14,11 @@ export interface ChatResponse {
     timestamp: string;
     success: boolean;
     session_id: string;
+    // Symptom Checker Mode fields
+    is_follow_up?: boolean;
+    options?: string[];
+    symptom_step?: number;
+    total_steps?: number;
 }
 
 export interface ChatSession {
@@ -34,10 +39,17 @@ export interface HistoryResponse {
 }
 
 // Send a message to the chatbot
-export const sendChatMessage = async (message: string, sessionId?: string): Promise<ChatResponse> => {
+export const sendChatMessage = async (
+    message: string,
+    sessionId?: string,
+    symptomCheckerMode: boolean = false,
+    selectedOption?: string
+): Promise<ChatResponse> => {
     const response = await api.post('/api/user/chatbot/chat', {
         message,
-        session_id: sessionId
+        session_id: sessionId,
+        symptom_checker_mode: symptomCheckerMode,
+        selected_option: selectedOption
     });
     return response.data;
 };

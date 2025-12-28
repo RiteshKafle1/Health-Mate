@@ -1,24 +1,73 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
+@theme {
+  /* Colors */
+  --color-background: #F8FAFC;
+  --color-surface: #FFFFFF;
+
+  --color-primary: #1d4ed8;
+  /* Strong Royal Blue */
+  --color-primary-hover: #1e3a8a;
+  --color-primary-foreground: #FFFFFF;
+
+  --color-text: #000000;
+  /* Pure Black */
+  --color-text-muted: #333333;
+  /* Dark Gray */
+
+  --color-success: #059669;
+  --color-success-bg: #d1fae5;
+
+  --color-warning: #d97706;
+  --color-warning-bg: #fef3c7;
+
+  --color-error: #dc2626;
+  --color-error-bg: #fee2e2;
+
+  --color-info: #2563eb;
+  --color-info-bg: #dbeafe;
+
+  --color-secondary: #A9B5DF;
+
+  /* Fonts */
+  --font-sans: 'Inter', system-ui, sans-serif;
+
+  /* Border Radius */
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  /* Box Shadows */
+  --shadow-soft: 0 4px 20px -2px rgba(45, 51, 107, 0.05);
+  --shadow-card: 0 10px 30px -5px rgba(45, 51, 107, 0.08);
+  --shadow-hover: 0 20px 40px -5px rgba(45, 51, 107, 0.12);
+}
+
 @layer base {
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply bg-background text-text;
+    background-color: var(--color-background);
+    color: var(--color-text);
     min-height: 100vh;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-semibold tracking-tight;
   }
 }
 
 @layer components {
+
   /* Glass Card - Updated for Light Theme */
   .glass-card {
     background: rgba(255, 255, 255, 0.7);
@@ -50,4 +99,64 @@
 
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-primary/40;
+}
+
+/* Authentication UI Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-4px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes pulse-soft {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-shake {
+  animation: shake 0.6s ease-in-out;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getUserProfile, updateUserProfile } from '../../api/user';
 import type { User } from '../../types';
-import { Camera, Loader2, Save, Edit2, X } from 'lucide-react';
+import { Camera, Loader2, Save, Edit2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';

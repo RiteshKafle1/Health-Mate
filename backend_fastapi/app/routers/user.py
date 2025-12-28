@@ -51,6 +51,17 @@ async def update_profile(
         image_bytes=image_bytes
     )
 
+@router.post("/upload-file/{user_id}")
+async def upload_file(
+    user_id: str,
+    file: UploadFile = File(...)
+):
+    return await user_service.upload_user_file(user_id, file)
+
+@router.get("/me/file")
+async def get_user_file(current_user=Depends(get_current_user)):
+    return await user_service.get_user_file(str(current_user.id))
+
 
 @router.post("/book-appointment")
 async def book_appointment(appointment: AppointmentCreate, user_id: str = Depends(get_current_user)):
@@ -85,3 +96,4 @@ async def payment_razorpay(data: PaymentRequest, user_id: str = Depends(get_curr
 async def verify_razorpay(data: RazorpayVerify, user_id: str = Depends(get_current_user)):
     """Verify Razorpay payment."""
     return await payment_service.verify_razorpay_payment(data.razorpay_order_id)
+

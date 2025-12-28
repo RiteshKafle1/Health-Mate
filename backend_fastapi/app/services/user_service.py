@@ -6,6 +6,7 @@ from ..core.redis import store_session
 from ..core.cloudinary_config import upload_image_from_bytes
 import json
 import time
+from fastapi import UploadFile,HTTPException
 
 
 async def register_user(name: str, email: str, password: str) -> dict:
@@ -244,3 +245,86 @@ async def cancel_user_appointment(user_id: str, appointment_id: str) -> dict:
             )
     
     return {"success": True, "message": "Appointment Cancelled"}
+
+
+
+
+
+ALLOWED_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"]
+
+async def upload_user_file(user_id: str, file: UploadFile):
+    users = get_users_collection()
+
+    # 1️⃣ Validate ObjectId
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user id")
+
+    # 2️⃣ Validate file
+    if not file:
+        raise HTTPException(status_code=400, detail="File required")
+
+    if file.content_type not in ALLOWED_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail="Only image files are allowed"
+        )
+
+    # 3️⃣ Read file bytes
+    file_bytes = await file.read()
+
+    if not file_bytes:
+        raise HTTPException(status_code=400, detail="Empty file")
+
+    # 4️⃣ Upload to Cloudinary
+    try:
+        upload = upload_image_from_bytes(
+            file_bytes,
+            folder=f"users/{user_id}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail="Cloudinary upload failed"
+        )
+
+    file_url = upload.get("secure_url")
+
+    # 5️⃣ Save URL to DB
+    await users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": {"file": file_url}}
+    )
+
+    return {
+        "success": True,
+        "file_url": file_url
+    }
+
+
+
+
+
+async def get_user_file(user_id: str):
+    users = get_users_collection()
+
+    # Validate ObjectId
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user id")
+
+    user = await users.find_one(
+        {"_id": ObjectId(user_id)},
+        {"file": 1}
+    )
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    file_url = user.get("file")
+
+    if not file_url:
+        raise HTTPException(status_code=404, detail="No file uploaded")
+
+    return {
+        "success": True,
+        "file_url": file_url
+    }

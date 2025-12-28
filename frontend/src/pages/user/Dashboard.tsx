@@ -6,6 +6,9 @@ import type { User, Appointment } from '../../types';
 import { Calendar, Clock, Stethoscope, ArrowRight, Loader2, Pill } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { TodaysDoses } from '../../components/TodaysDoses';
+import { Card } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
+import { Badge } from '../../components/ui/Badge';
 
 export function UserDashboard() {
     const { setUser } = useAuth();
@@ -46,7 +49,7 @@ export function UserDashboard() {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
-                <Loader2 className="animate-spin text-primary-500" size={48} />
+                <Loader2 className="animate-spin text-primary" size={48} />
             </div>
         );
     }
@@ -54,147 +57,144 @@ export function UserDashboard() {
     return (
         <div className="space-y-8">
             {/* Welcome Section */}
-            <div className="glass-card p-8">
-                <div className="flex flex-col md:flex-row md:items-center gap-6">
-                    <div className="w-20 h-20 rounded-2xl overflow-hidden bg-dark-700 flex-shrink-0">
-                        {profile?.image ? (
-                            <img src={profile.image} alt={profile.name} className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-500 to-secondary-500">
-                                <span className="text-2xl font-bold text-white">
-                                    {profile?.name?.charAt(0) || 'U'}
-                                </span>
-                            </div>
-                        )}
-                    </div>
-                    <div className="flex-1">
-                        <h1 className="text-2xl md:text-3xl font-bold text-dark-50">
-                            Welcome back, {profile?.name || 'User'}!
-                        </h1>
-                        <p className="text-dark-400 mt-1">
-                            Manage your appointments and health records from your dashboard.
-                        </p>
-                    </div>
-                    <Link to="/user/doctors" className="btn-primary flex items-center gap-2">
+            <Card variant="glass" className="flex flex-col md:flex-row md:items-center gap-6">
+                <div className="w-20 h-20 rounded-2xl overflow-hidden bg-surface flex-shrink-0 ring-4 ring-white shadow-sm">
+                    {profile?.image ? (
+                        <img src={profile.image} alt={profile.name} className="w-full h-full object-cover" />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                            <span className="text-2xl font-bold text-primary">
+                                {profile?.name?.charAt(0) || 'U'}
+                            </span>
+                        </div>
+                    )}
+                </div>
+                <div className="flex-1">
+                    <h1 className="text-2xl md:text-3xl font-bold text-text">
+                        Welcome back, {profile?.name || 'User'}!
+                    </h1>
+                    <p className="text-text-muted mt-1">
+                        Manage your appointments and health records from your dashboard.
+                    </p>
+                </div>
+                <Link to="/user/doctors">
+                    <Button className="w-full md:w-auto gap-2">
                         <Stethoscope size={20} />
                         Find a Doctor
-                    </Link>
-                </div>
-            </div>
+                    </Button>
+                </Link>
+            </Card>
 
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="stat-card">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 rounded-xl bg-blue-500/20">
-                            <Calendar className="text-blue-400" size={24} />
-                        </div>
-                        <div>
-                            <p className="stat-value">{appointments.length}</p>
-                            <p className="stat-label">Total Appointments</p>
-                        </div>
+                <Card className="flex items-center gap-4">
+                    <div className="p-3 rounded-xl bg-info-bg text-info">
+                        <Calendar size={24} />
                     </div>
-                </div>
+                    <div>
+                        <p className="text-2xl font-bold text-text">{appointments.length}</p>
+                        <p className="text-sm text-text-muted">Total Appointments</p>
+                    </div>
+                </Card>
 
-                <div className="stat-card">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 rounded-xl bg-emerald-500/20">
-                            <Clock className="text-emerald-400" size={24} />
-                        </div>
-                        <div>
-                            <p className="stat-value">{upcomingAppointments.length}</p>
-                            <p className="stat-label">Upcoming</p>
-                        </div>
+                <Card className="flex items-center gap-4">
+                    <div className="p-3 rounded-xl bg-success-bg text-success">
+                        <Clock size={24} />
                     </div>
-                </div>
+                    <div>
+                        <p className="text-2xl font-bold text-text">{upcomingAppointments.length}</p>
+                        <p className="text-sm text-text-muted">Upcoming</p>
+                    </div>
+                </Card>
 
-                <div className="stat-card">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 rounded-xl bg-purple-500/20">
-                            <Stethoscope className="text-purple-400" size={24} />
-                        </div>
-                        <div>
-                            <p className="stat-value">
-                                {appointments.filter(a => a.isCompleted).length}
-                            </p>
-                            <p className="stat-label">Completed</p>
-                        </div>
+                <Card className="flex items-center gap-4">
+                    <div className="p-3 rounded-xl bg-primary/10 text-primary">
+                        <Stethoscope size={24} />
                     </div>
-                </div>
+                    <div>
+                        <p className="text-2xl font-bold text-text">
+                            {appointments.filter(a => a.isCompleted).length}
+                        </p>
+                        <p className="text-sm text-text-muted">Completed</p>
+                    </div>
+                </Card>
             </div>
 
             {/* Two Column Layout for Dashboard Widgets */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Today's Doses Widget */}
-                <div>
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-semibold text-dark-50 flex items-center gap-2">
-                            <Pill size={20} className="text-primary-400" />
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-semibold text-text flex items-center gap-2">
+                            <Pill size={20} className="text-primary" />
                             Medication Schedule
                         </h2>
-                        <Link
-                            to="/user/medications"
-                            className="text-primary-400 hover:text-primary-300 flex items-center gap-1 text-sm"
-                        >
-                            Manage <ArrowRight size={16} />
+                        <Link to="/user/medications">
+                            <Button variant="ghost" size="sm" className="gap-1">
+                                Manage <ArrowRight size={16} />
+                            </Button>
                         </Link>
                     </div>
+                    {/* Assuming TodaysDoses handles its own styling well enough for now, 
+                        or I might need to check it separately. 
+                        It likely uses container queries or simple flex. */}
                     <TodaysDoses />
                 </div>
 
                 {/* Upcoming Appointments */}
-                <div className="glass-card p-6">
+                <Card>
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-semibold text-dark-50">Upcoming Appointments</h2>
-                        <Link
-                            to="/user/appointments"
-                            className="text-primary-400 hover:text-primary-300 flex items-center gap-1 text-sm"
-                        >
-                            View all <ArrowRight size={16} />
+                        <h2 className="text-xl font-semibold text-text">Upcoming Appointments</h2>
+                        <Link to="/user/appointments">
+                            <Button variant="ghost" size="sm" className="gap-1">
+                                View all <ArrowRight size={16} />
+                            </Button>
                         </Link>
                     </div>
 
                     {upcomingAppointments.length === 0 ? (
                         <div className="text-center py-12">
-                            <Calendar className="mx-auto text-dark-500 mb-4" size={48} />
-                            <p className="text-dark-400">No upcoming appointments</p>
-                            <Link to="/user/doctors" className="btn-primary mt-4 inline-flex items-center gap-2">
-                                Book an Appointment
+                            <Calendar className="mx-auto text-text-muted mb-4" size={48} />
+                            <p className="text-text-muted">No upcoming appointments</p>
+                            <Link to="/user/doctors">
+                                <Button className="mt-4 gap-2">
+                                    Book an Appointment
+                                </Button>
                             </Link>
                         </div>
                     ) : (
                         <div className="space-y-4">
                             {upcomingAppointments.map((apt) => (
-                                <div key={apt._id} className="flex items-center gap-4 p-4 rounded-xl bg-dark-700/50 hover:bg-dark-700/70 transition-colors">
-                                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-dark-600 flex-shrink-0">
+                                <div key={apt._id} className="flex items-center gap-4 p-4 rounded-xl bg-surface/30 hover:bg-surface/50 transition-colors border border-transparent hover:border-surface/50">
+                                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-surface flex-shrink-0">
                                         {apt.docData?.image ? (
                                             <img src={apt.docData.image} alt={apt.docData.name} className="w-full h-full object-cover" />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center">
-                                                <Stethoscope className="text-dark-400" size={24} />
+                                                <Stethoscope className="text-text-muted" size={24} />
                                             </div>
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="font-medium text-dark-100 truncate">Dr. {apt.docData?.name}</p>
-                                        <p className="text-sm text-dark-400">{apt.docData?.speciality}</p>
+                                        <p className="font-medium text-text truncate">Dr. {apt.docData?.name}</p>
+                                        <p className="text-sm text-text-muted">{apt.docData?.speciality}</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-sm font-medium text-dark-200">{apt.slotDate}</p>
-                                        <p className="text-sm text-dark-400">{apt.slotTime}</p>
+                                        <p className="text-sm font-medium text-text">{apt.slotDate}</p>
+                                        <p className="text-sm text-text-muted">{apt.slotTime}</p>
                                     </div>
                                     <div>
                                         {apt.payment ? (
-                                            <span className="badge-success">Paid</span>
+                                            <Badge variant="success">Paid</Badge>
                                         ) : (
-                                            <span className="badge-warning">Pending</span>
+                                            <Badge variant="warning">Pending</Badge>
                                         )}
                                     </div>
                                 </div>
                             ))}
                         </div>
                     )}
-                </div>
+                </Card>
             </div>
         </div>
     );

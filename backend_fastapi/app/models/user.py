@@ -18,6 +18,8 @@ class UserBase(BaseModel):
     address: Address = Field(default_factory=Address)
     gender: str = "Not Selected"
     dob: str = "Not Selected"
+    weight: str = "Not Set"
+    height: str = "Not Set"
     image: str = DEFAULT_USER_IMAGE
     file:str
 
@@ -39,6 +41,8 @@ class UserUpdate(BaseModel):
     address: Optional[str] = None  # JSON string from frontend
     dob: Optional[str] = None
     gender: Optional[str] = None
+    weight: Optional[str] = None
+    height: Optional[str] = None
 
 
 class UserInDB(UserBase):
@@ -57,6 +61,8 @@ class UserResponse(BaseModel):
     address: dict
     gender: str
     dob: str
+    weight: str
+    height: str
     image: str
     file:str
     class Config:

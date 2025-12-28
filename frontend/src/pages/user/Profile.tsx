@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { getUserProfile, updateUserProfile, uploadMyFile, getMyFile } from '../../api/user';
+import { getUserProfile, updateUserProfile } from '../../api/user';
 import type { User } from '../../types';
-import { Camera, Loader2, Save, Edit2, Upload, FileText } from 'lucide-react';
+import { Camera, Loader2, Save, Edit2, Mail, Phone, Calendar, MapPin, User as UserIcon, Shield, X, Activity } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
-import { Badge } from '../../components/ui/Badge';
 
 export function UserProfile() {
     const { setUser } = useAuth();
@@ -24,18 +21,15 @@ export function UserProfile() {
     const [addressLine2, setAddressLine2] = useState('');
     const [dob, setDob] = useState('');
     const [gender, setGender] = useState('');
+    const [weight, setWeight] = useState('');
+    const [height, setHeight] = useState('');
 
     // Profile image
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-    // Lab Report file (NEW from friend)
-    const [reportFile, setReportFile] = useState<File | null>(null);
-    const [reportUrl, setReportUrl] = useState<string | null>(null);
-    const [isUploadingReport, setIsUploadingReport] = useState(false);
-
     // ===============================
-    // FETCH PROFILE + REPORT FILE
+    // FETCH PROFILE
     // ===============================
     useEffect(() => {
         const fetchAll = async () => {
@@ -52,16 +46,8 @@ export function UserProfile() {
                     setAddressLine2(userData.address?.line2 || '');
                     setDob(userData.dob || '');
                     setGender(userData.gender || '');
-                }
-
-                // Fetch uploaded report
-                try {
-                    const fileRes = await getMyFile();
-                    if (fileRes.success && fileRes.data?.fileUrl) {
-                        setReportUrl(fileRes.data.fileUrl);
-                    }
-                } catch {
-                    // Report not found, that's okay
+                    setWeight(userData.weight || '');
+                    setHeight(userData.height || '');
                 }
             } catch {
                 toast.error('Failed to load profile');
@@ -87,28 +73,6 @@ export function UserProfile() {
     };
 
     // ===============================
-    // REPORT FILE HANDLER (NEW)
-    // ===============================
-    const handleReportUpload = async () => {
-        if (!reportFile) return;
-
-        setIsUploadingReport(true);
-        try {
-            const res = await uploadMyFile(reportFile);
-            if (res.success && res.data?.fileUrl) {
-                setReportUrl(res.data.fileUrl);
-                toast.success('Lab report uploaded successfully');
-            } else {
-                toast.error(res.message || 'Upload failed');
-            }
-        } catch {
-            toast.error('Failed to upload report');
-        } finally {
-            setIsUploadingReport(false);
-        }
-    };
-
-    // ===============================
     // PROFILE UPDATE
     // ===============================
     const handleSubmit = async (e: React.FormEvent) => {
@@ -125,6 +89,8 @@ export function UserProfile() {
             }));
             formData.append('dob', dob);
             formData.append('gender', gender);
+            formData.append('weight', weight);
+            formData.append('height', height);
 
             if (imageFile) {
                 formData.append('image', imageFile);
@@ -133,7 +99,7 @@ export function UserProfile() {
             const response = await updateUserProfile(formData);
 
             if (response.success) {
-                toast.success('Profile updated');
+                toast.success('Profile updated successfully');
                 setIsEditing(false);
 
                 const refreshed = await getUserProfile();
@@ -151,218 +117,320 @@ export function UserProfile() {
         }
     };
 
-    // ===============================
-    // LOADER
-    // ===============================
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <Loader2 className="animate-spin text-primary" size={48} />
+            <div className="flex items-center justify-center min-h-[60vh] bg-[#EEF2FF]">
+                <Loader2 className="animate-spin text-[#7886C7]" size={48} />
             </div>
         );
     }
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-text">My Profile</h1>
-                    <p className="text-text-muted mt-1">Manage your personal information and account settings</p>
-                </div>
-                {!isEditing && (
-                    <Button onClick={() => setIsEditing(true)} className="gap-2">
-                        <Edit2 size={16} />
-                        Edit Profile
-                    </Button>
-                )}
-            </div>
+        <div className="min-h-screen bg-[#EEF2FF] p-4 lg:p-6 flex items-center justify-center">
+            <div className={`w-full max-w-6xl transition-all duration-500 ${isEditing ? 'scale-[1.01]' : ''}`}>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Profile Header Card */}
-                <Card className="p-8">
-                    <div className="flex flex-col md:flex-row items-center gap-8">
-                        <div className="relative">
-                            <div className="w-32 h-32 rounded-full overflow-hidden bg-surface ring-4 ring-white shadow-soft">
-                                {imagePreview || profile?.image ? (
-                                    <img
-                                        src={imagePreview || profile?.image}
-                                        alt={name}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                                        <span className="text-4xl font-bold text-primary">{name.charAt(0) || 'U'}</span>
-                                    </div>
-                                )}
-                            </div>
-                            {isEditing && (
-                                <label className="absolute bottom-1 right-1 p-2.5 rounded-full bg-primary text-white cursor-pointer hover:bg-primary-hover transition-all shadow-md">
-                                    <Camera size={18} />
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageChange}
-                                        className="hidden"
-                                    />
-                                </label>
-                            )}
-                        </div>
-
-                        <div className="text-center md:text-left flex-1">
-                            <h2 className="text-2xl font-bold text-text">{profile?.name || 'User'}</h2>
-                            <p className="text-text-muted mb-4">{profile?.email}</p>
-                            <div className="flex flex-wrap justify-center md:justify-start gap-2">
-                                <Badge variant="neutral">Patient ID: #{profile?._id?.slice(-6).toUpperCase()}</Badge>
-                                <Badge variant="info">Active Member</Badge>
-                            </div>
-                        </div>
+                {/* Header Actions */}
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h1 className="text-2xl font-bold text-[#2D336B] tracking-tight flex items-center gap-2">
+                            <UserIcon className="text-[#7886C7]" size={28} />
+                            My Profile
+                        </h1>
+                        <p className="text-[#2D336B]/60 text-sm font-medium ml-9">Manage your personal information</p>
                     </div>
-                </Card>
-
-                {/* Personal Information */}
-                <Card className="p-6">
-                    <h3 className="text-lg font-semibold text-text mb-6 pb-2 border-b border-surface/50">
-                        Personal Information
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Input
-                            label="Full Name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            disabled={!isEditing}
-                        />
-
-                        <Input
-                            label="Email"
-                            type="email"
-                            value={profile?.email || ''}
-                            disabled
-                            helperText="Email cannot be changed"
-                        />
-
-                        <Input
-                            label="Phone Number"
-                            type="tel"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            disabled={!isEditing}
-                        />
-
-                        <Input
-                            label="Date of Birth"
-                            type="date"
-                            value={dob}
-                            onChange={(e) => setDob(e.target.value)}
-                            disabled={!isEditing}
-                        />
-
-                        <div>
-                            <label className="mb-2 block text-sm font-medium text-text-muted">Gender</label>
-                            <select
-                                value={gender}
-                                onChange={(e) => setGender(e.target.value)}
-                                disabled={!isEditing}
-                                className="flex h-11 w-full rounded-lg border border-surface bg-white/50 px-4 py-2 text-sm text-text focus:border-primary focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200"
+                    {!isEditing ? (
+                        <Button
+                            onClick={() => setIsEditing(true)}
+                            className="bg-[#2D336B] text-white hover:bg-[#2D336B]/90 shadow-lg shadow-[#2D336B]/20 transition-all hover:scale-105 rounded-xl"
+                        >
+                            <Edit2 size={16} className="mr-2" />
+                            Edit Details
+                        </Button>
+                    ) : (
+                        <div className="flex items-center gap-3">
+                            <Button
+                                variant="secondary"
+                                onClick={() => setIsEditing(false)}
+                                disabled={isSaving}
+                                className="bg-white text-[#2D336B] hover:bg-red-50 hover:text-red-500 border border-[#A9B5DF]/30 rounded-xl"
                             >
-                                <option value="">Select Gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
-                            </select>
+                                <X size={16} className="mr-2" />
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleSubmit}
+                                isLoading={isSaving}
+                                className="bg-[#7886C7] text-white hover:bg-[#6876bf] shadow-lg shadow-[#7886C7]/30 rounded-xl"
+                            >
+                                <Save size={16} className="mr-2" />
+                                Save Changes
+                            </Button>
+                        </div>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                    {/* Left Column: ID Card style */}
+                    <div className="lg:col-span-4 flex flex-col gap-6">
+                        <div className="relative overflow-hidden bg-white/70 backdrop-blur-xl border border-[#A9B5DF]/40 rounded-[2rem] p-8 shadow-xl shadow-[#2D336B]/5 text-center group hover:shadow-2xl hover:shadow-[#7886C7]/10 transition-all duration-300">
+                            <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-[#7886C7] to-[#2D336B] opacity-10" />
+
+                            <div className="relative z-10 mx-auto w-40 h-40 mb-4">
+                                <div className="w-full h-full rounded-full p-1 bg-white ring-4 ring-[#A9B5DF]/30 shadow-lg overflow-hidden relative">
+                                    {imagePreview || profile?.image ? (
+                                        <img
+                                            src={imagePreview || profile?.image}
+                                            alt={name}
+                                            className="w-full h-full rounded-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full rounded-full bg-[#EEF2FF] flex items-center justify-center text-[#7886C7] text-5xl font-bold">
+                                            {name.charAt(0) || 'U'}
+                                        </div>
+                                    )}
+                                    {isEditing && (
+                                        <label className="absolute bottom-1 right-3 p-3 rounded-full bg-[#7886C7] text-white cursor-pointer hover:bg-[#2D336B] transition-all shadow-lg hover:scale-110 z-20">
+                                            <Camera size={20} />
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageChange}
+                                                className="hidden"
+                                            />
+                                        </label>
+                                    )}
+                                </div>
+                            </div>
+
+                            <h2 className="text-2xl font-bold text-[#2D336B] mb-1">{profile?.name || 'User'}</h2>
+                            <p className="text-[#2D336B]/60 text-sm mb-4 font-medium">{profile?.email}</p>
+
+                            <div className="flex flex-wrap justify-center gap-2 mb-6">
+                                <span className="px-3 py-1 bg-[#7886C7]/10 text-[#7886C7] text-xs font-bold rounded-full border border-[#7886C7]/20">
+                                    PATIENT
+                                </span>
+                                <span className="px-3 py-1 bg-[#2D336B]/5 text-[#2D336B] text-xs font-bold rounded-full border border-[#2D336B]/10">
+                                    ID: {profile?._id?.slice(-6).toUpperCase()}
+                                </span>
+                            </div>
+
+                            {/* Stat items */}
+                            <div className="grid grid-cols-2 gap-3 pt-6 border-t border-[#A9B5DF]/20">
+                                <div className="text-center">
+                                    <p className="text-xs text-[#2D336B]/50 font-semibold uppercase tracking-wider mb-1">Status</p>
+                                    <p className="text-[#2D336B] font-bold flex items-center justify-center gap-1">
+                                        <Shield size={14} className="text-green-500" /> Active
+                                    </p>
+                                </div>
+                                <div className="text-center border-l border-[#A9B5DF]/20">
+                                    <p className="text-xs text-[#2D336B]/50 font-semibold uppercase tracking-wider mb-1">Joined</p>
+                                    <p className="text-[#2D336B] font-bold">2024</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Quick Contact Card (Left column part 2) w/ Map aesthetic */}
+                        <div className="relative overflow-hidden bg-[#2D336B] text-white rounded-[2rem] p-6 shadow-xl shadow-[#2D336B]/10">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-16 -mt-16" />
+                            <div className="relative z-10">
+                                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                    <MapPin size={18} className="text-[#A9B5DF]" />
+                                    Location
+                                </h3>
+                                <div className="space-y-4 text-sm text-[#A9B5DF]">
+                                    <p>
+                                        <span className="block text-xs uppercase opacity-50 mb-0.5">Primary Address</span>
+                                        <span className="text-white font-medium text-base">
+                                            {addressLine1 || "Not set"}
+                                        </span>
+                                    </p>
+                                    <p>
+                                        <span className="block text-xs uppercase opacity-50 mb-0.5">City / State</span>
+                                        <span className="text-white font-medium text-base">
+                                            {addressLine2 || "Not set"}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </Card>
 
-                {/* Address Information */}
-                <Card className="p-6">
-                    <h3 className="text-lg font-semibold text-text mb-6 pb-2 border-b border-surface/50">
-                        Address Details
-                    </h3>
+                    {/* Right Column: Editable Details Form */}
+                    <div className="lg:col-span-8">
+                        <div className="bg-white/70 backdrop-blur-xl border border-[#A9B5DF]/40 rounded-[2rem] p-8 shadow-xl shadow-[#2D336B]/5 h-full relative overflow-hidden">
+                            {/* Form Section Header */}
+                            <div className="flex items-center gap-3 mb-8 pb-4 border-b border-[#A9B5DF]/20">
+                                <div className="p-3 bg-[#EEF2FF] rounded-xl text-[#7886C7]">
+                                    <UserIcon size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-[#2D336B]">Personal Details</h3>
+                                    <p className="text-sm text-[#2D336B]/50 font-medium">Update your information to keep your profile current</p>
+                                </div>
+                            </div>
 
-                    <div className="grid grid-cols-1 gap-6">
-                        <Input
-                            label="Address Line 1"
-                            value={addressLine1}
-                            onChange={(e) => setAddressLine1(e.target.value)}
-                            disabled={!isEditing}
-                            placeholder="Street address"
-                        />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                {/* Name Input */}
+                                <div className="space-y-2 group">
+                                    <label className="text-xs font-bold text-[#2D336B] ml-1 uppercase tracking-wider group-focus-within:text-[#7886C7] transition-colors">
+                                        Full Name
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                            disabled={!isEditing}
+                                            className="w-full h-14 rounded-xl border border-[#A9B5DF]/50 bg-white/50 px-4 text-[#2D336B] text-lg font-semibold focus:border-[#7886C7] focus:ring-4 focus:ring-[#7886C7]/10 outline-none transition-all disabled:opacity-70 disabled:bg-transparent disabled:border-transparent disabled:px-0 disabled:text-[#2D336B]/80"
+                                        />
+                                        {isEditing && <Edit2 size={16} className="absolute right-4 top-4.5 text-[#A9B5DF]" />}
+                                    </div>
+                                </div>
 
-                        <Input
-                            label="Address Line 2"
-                            value={addressLine2}
-                            onChange={(e) => setAddressLine2(e.target.value)}
-                            disabled={!isEditing}
-                            placeholder="City, State, ZIP"
-                        />
+                                {/* Email Input (Read Only) */}
+                                <div className="space-y-2 group">
+                                    <label className="text-xs font-bold text-[#2D336B] ml-1 uppercase tracking-wider opacity-60">
+                                        Email Address
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="email"
+                                            value={profile?.email || ''}
+                                            disabled
+                                            className="w-full h-14 rounded-xl border-dashed border-[#A9B5DF]/40 bg-[#EEF2FF]/30 px-4 text-[#2D336B]/60 text-lg font-medium outline-none cursor-not-allowed"
+                                        />
+                                        <Mail size={16} className="absolute right-4 top-4.5 text-[#2D336B]/20" />
+                                    </div>
+                                </div>
+
+                                {/* Phone Input */}
+                                <div className="space-y-2 group">
+                                    <label className="text-xs font-bold text-[#2D336B] ml-1 uppercase tracking-wider group-focus-within:text-[#7886C7] transition-colors">
+                                        Phone Number
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="tel"
+                                            value={phone}
+                                            onChange={(e) => setPhone(e.target.value)}
+                                            disabled={!isEditing}
+                                            placeholder={isEditing ? "+1 234 567 890" : "• • •"}
+                                            className="w-full h-14 rounded-xl border border-[#A9B5DF]/50 bg-white/50 px-4 text-[#2D336B] text-lg font-semibold focus:border-[#7886C7] focus:ring-4 focus:ring-[#7886C7]/10 outline-none transition-all disabled:opacity-70 disabled:bg-transparent disabled:border-transparent disabled:px-0 disabled:text-[#2D336B]/80"
+                                        />
+                                        {isEditing && <Phone size={16} className="absolute right-4 top-4.5 text-[#A9B5DF]" />}
+                                    </div>
+                                </div>
+
+                                {/* DOB Input */}
+                                <div className="space-y-2 group">
+                                    <label className="text-xs font-bold text-[#2D336B] ml-1 uppercase tracking-wider group-focus-within:text-[#7886C7] transition-colors">
+                                        Date of Birth
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="date"
+                                            value={dob}
+                                            onChange={(e) => setDob(e.target.value)}
+                                            disabled={!isEditing}
+                                            className="w-full h-14 rounded-xl border border-[#A9B5DF]/50 bg-white/50 px-4 text-[#2D336B] text-lg font-semibold focus:border-[#7886C7] focus:ring-4 focus:ring-[#7886C7]/10 outline-none transition-all disabled:opacity-70 disabled:bg-transparent disabled:border-transparent disabled:px-0 disabled:text-[#2D336B]/80"
+                                        />
+                                        {isEditing && <Calendar size={16} className="absolute right-4 top-4.5 text-[#A9B5DF] pointer-events-none" />}
+                                    </div>
+                                </div>
+
+                                {/* Gender Select */}
+                                <div className="space-y-2 group">
+                                    <label className="text-xs font-bold text-[#2D336B] ml-1 uppercase tracking-wider group-focus-within:text-[#7886C7] transition-colors">
+                                        Gender
+                                    </label>
+                                    <div className="relative">
+                                        <select
+                                            value={gender}
+                                            onChange={(e) => setGender(e.target.value)}
+                                            disabled={!isEditing}
+                                            className="w-full h-14 rounded-xl border border-[#A9B5DF]/50 bg-white/50 px-4 text-[#2D336B] text-lg font-semibold focus:border-[#7886C7] focus:ring-4 focus:ring-[#7886C7]/10 outline-none transition-all appearance-none disabled:opacity-70 disabled:bg-transparent disabled:border-transparent disabled:px-0 disabled:text-[#2D336B]/80"
+                                        >
+                                            <option value="">Select Gender</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Weight Input */}
+                                <div className="space-y-2 group">
+                                    <label className="text-xs font-bold text-[#2D336B] ml-1 uppercase tracking-wider group-focus-within:text-[#7886C7] transition-colors">
+                                        Weight (kg)
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={weight}
+                                            onChange={(e) => setWeight(e.target.value)}
+                                            disabled={!isEditing}
+                                            placeholder="-- kg"
+                                            className="w-full h-14 rounded-xl border border-[#A9B5DF]/50 bg-white/50 px-4 text-[#2D336B] text-lg font-semibold focus:border-[#7886C7] focus:ring-4 focus:ring-[#7886C7]/10 outline-none transition-all disabled:opacity-70 disabled:bg-transparent disabled:border-transparent disabled:px-0 disabled:text-[#2D336B]/80"
+                                        />
+                                        {isEditing && <Activity size={16} className="absolute right-4 top-4.5 text-[#A9B5DF]" />}
+                                    </div>
+                                </div>
+
+                                {/* Height Input */}
+                                <div className="space-y-2 group">
+                                    <label className="text-xs font-bold text-[#2D336B] ml-1 uppercase tracking-wider group-focus-within:text-[#7886C7] transition-colors">
+                                        Height (cm)
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={height}
+                                            onChange={(e) => setHeight(e.target.value)}
+                                            disabled={!isEditing}
+                                            placeholder="-- cm"
+                                            className="w-full h-14 rounded-xl border border-[#A9B5DF]/50 bg-white/50 px-4 text-[#2D336B] text-lg font-semibold focus:border-[#7886C7] focus:ring-4 focus:ring-[#7886C7]/10 outline-none transition-all disabled:opacity-70 disabled:bg-transparent disabled:border-transparent disabled:px-0 disabled:text-[#2D336B]/80"
+                                        />
+                                        {isEditing && <Activity size={16} className="absolute right-4 top-4.5 text-[#A9B5DF]" />}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Address Section in Form (visible edit mode) or Compact display */}
+                            <div className="mt-8 pt-6 border-t border-[#A9B5DF]/20">
+                                <h4 className="text-sm font-bold text-[#2D336B] uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <MapPin size={16} /> Address Details
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2 group">
+                                        <label className="text-xs font-medium text-[#2D336B]/60 ml-1">Street</label>
+                                        <input
+                                            type="text"
+                                            value={addressLine1}
+                                            onChange={(e) => setAddressLine1(e.target.value)}
+                                            disabled={!isEditing}
+                                            placeholder={isEditing ? "e.g. 123 Main St" : "Not set"}
+                                            className="w-full h-12 rounded-xl border border-[#A9B5DF]/50 bg-white/50 px-4 text-[#2D336B] font-medium focus:border-[#7886C7] focus:ring-4 focus:ring-[#7886C7]/10 outline-none transition-all disabled:bg-transparent disabled:border-transparent disabled:px-0"
+                                        />
+                                    </div>
+                                    <div className="space-y-2 group">
+                                        <label className="text-xs font-medium text-[#2D336B]/60 ml-1">City / State</label>
+                                        <input
+                                            type="text"
+                                            value={addressLine2}
+                                            onChange={(e) => setAddressLine2(e.target.value)}
+                                            disabled={!isEditing}
+                                            placeholder={isEditing ? "e.g. New York, NY" : "Not set"}
+                                            className="w-full h-12 rounded-xl border border-[#A9B5DF]/50 bg-white/50 px-4 text-[#2D336B] font-medium focus:border-[#7886C7] focus:ring-4 focus:ring-[#7886C7]/10 outline-none transition-all disabled:bg-transparent disabled:border-transparent disabled:px-0"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
-                </Card>
-
-                {/* Lab Report Upload (NEW - from friend) */}
-                <Card className="p-6">
-                    <h3 className="text-lg font-semibold text-text mb-6 pb-2 border-b border-surface/50">
-                        Lab Reports & Medical Documents
-                    </h3>
-
-                    {reportUrl && (
-                        <a
-                            href={reportUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-primary hover:text-primary-hover mb-4 transition-colors"
-                        >
-                            <FileText size={18} />
-                            View Uploaded Report
-                        </a>
-                    )}
-
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        <input
-                            type="file"
-                            onChange={(e) => setReportFile(e.target.files?.[0] || null)}
-                            className="flex h-11 w-full rounded-lg border border-surface bg-white/50 px-4 py-2 text-sm text-text file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
-                            accept="image/*,video/*,.pdf,.doc,.docx"
-                        />
-
-                        <Button
-                            type="button"
-                            onClick={handleReportUpload}
-                            disabled={isUploadingReport || !reportFile}
-                            isLoading={isUploadingReport}
-                            className="gap-2 whitespace-nowrap"
-                        >
-                            <Upload size={16} />
-                            Upload Report
-                        </Button>
-                    </div>
-                    <p className="text-xs text-text-muted mt-2">
-                        Supported formats: Images, Videos, PDF, DOC
-                    </p>
-                </Card>
-
-                {/* Action Buttons */}
-                {isEditing && (
-                    <div className="flex items-center justify-end gap-4 sticky bottom-4 bg-white/80 p-4 rounded-xl backdrop-blur-md shadow-lg border border-surface/50">
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={() => setIsEditing(false)}
-                            disabled={isSaving}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="submit"
-                            isLoading={isSaving}
-                            className="gap-2"
-                        >
-                            <Save size={18} />
-                            Save Changes
-                        </Button>
-                    </div>
-                )}
-            </form>
+                </div>
+            </div>
         </div>
     );
 }

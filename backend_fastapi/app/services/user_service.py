@@ -174,6 +174,8 @@ async def update_user_profile(
     address: str = None,
     dob: str = None,
     gender: str = None,
+    weight: str = None,
+    height: str = None,
     image_bytes: bytes = None
 ) -> dict:
     """Update user profile."""
@@ -186,7 +188,9 @@ async def update_user_profile(
         "name": name,
         "phone": phone,
         "dob": dob,
-        "gender": gender
+        "gender": gender,
+        "weight": weight,
+        "height": height
     }
     
     if address:

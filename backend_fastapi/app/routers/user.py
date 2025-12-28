@@ -34,6 +34,8 @@ async def update_profile(
     address: str = Form(...),
     dob: str = Form(...),
     gender: str = Form(...),
+    weight: str = Form(None),
+    height: str = Form(None),
     image: Optional[UploadFile] = File(None),
     user_id: str = Depends(get_current_user)
 ):
@@ -49,6 +51,8 @@ async def update_profile(
         address=address,
         dob=dob,
         gender=gender,
+        weight=weight,
+        height=height,
         image_bytes=image_bytes
     )
 

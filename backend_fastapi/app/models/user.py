@@ -19,6 +19,7 @@ class UserBase(BaseModel):
     gender: str = "Not Selected"
     dob: str = "Not Selected"
     image: str = DEFAULT_USER_IMAGE
+    file:str
 
 
 class UserCreate(BaseModel):
@@ -57,6 +58,6 @@ class UserResponse(BaseModel):
     gender: str
     dob: str
     image: str
-    
+    file:str
     class Config:
         populate_by_name = True

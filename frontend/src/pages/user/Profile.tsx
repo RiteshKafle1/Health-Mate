@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { getUserProfile, updateUserProfile } from '../../api/user';
+import { getUserProfile, updateUserProfile, uploadMyFile, getMyFile } from '../../api/user';
 import type { User } from '../../types';
-import { Camera, Loader2, Save, Edit2 } from 'lucide-react';
+import { Camera, Loader2, Save, Edit2, Upload, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -11,31 +11,41 @@ import { Badge } from '../../components/ui/Badge';
 
 export function UserProfile() {
     const { setUser } = useAuth();
+
     const [profile, setProfile] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
 
-    // Form state
+    // Profile form state
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [addressLine1, setAddressLine1] = useState('');
     const [addressLine2, setAddressLine2] = useState('');
     const [dob, setDob] = useState('');
     const [gender, setGender] = useState('');
+
+    // Profile image
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+    // Lab Report file (NEW from friend)
+    const [reportFile, setReportFile] = useState<File | null>(null);
+    const [reportUrl, setReportUrl] = useState<string | null>(null);
+    const [isUploadingReport, setIsUploadingReport] = useState(false);
+
+    // ===============================
+    // FETCH PROFILE + REPORT FILE
+    // ===============================
     useEffect(() => {
-        const fetchProfile = async () => {
+        const fetchAll = async () => {
             try {
-                const response = await getUserProfile();
-                if (response.success && response.userData) {
-                    const userData = response.userData;
+                const profileRes = await getUserProfile();
+                if (profileRes.success && profileRes.userData) {
+                    const userData = profileRes.userData;
                     setProfile(userData);
                     setUser(userData);
 
-                    // Initialize form values
                     setName(userData.name || '');
                     setPhone(userData.phone || '');
                     setAddressLine1(userData.address?.line1 || '');
@@ -43,28 +53,64 @@ export function UserProfile() {
                     setDob(userData.dob || '');
                     setGender(userData.gender || '');
                 }
-            } catch (error) {
+
+                // Fetch uploaded report
+                try {
+                    const fileRes = await getMyFile();
+                    if (fileRes.success && fileRes.data?.fileUrl) {
+                        setReportUrl(fileRes.data.fileUrl);
+                    }
+                } catch {
+                    // Report not found, that's okay
+                }
+            } catch {
                 toast.error('Failed to load profile');
             } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchProfile();
+        fetchAll();
     }, [setUser]);
 
+    // ===============================
+    // IMAGE HANDLER
+    // ===============================
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            setImageFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+        if (!file) return;
+
+        setImageFile(file);
+        const reader = new FileReader();
+        reader.onloadend = () => setImagePreview(reader.result as string);
+        reader.readAsDataURL(file);
+    };
+
+    // ===============================
+    // REPORT FILE HANDLER (NEW)
+    // ===============================
+    const handleReportUpload = async () => {
+        if (!reportFile) return;
+
+        setIsUploadingReport(true);
+        try {
+            const res = await uploadMyFile(reportFile);
+            if (res.success && res.data?.fileUrl) {
+                setReportUrl(res.data.fileUrl);
+                toast.success('Lab report uploaded successfully');
+            } else {
+                toast.error(res.message || 'Upload failed');
+            }
+        } catch {
+            toast.error('Failed to upload report');
+        } finally {
+            setIsUploadingReport(false);
         }
     };
 
+    // ===============================
+    // PROFILE UPDATE
+    // ===============================
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSaving(true);
@@ -73,7 +119,10 @@ export function UserProfile() {
             const formData = new FormData();
             formData.append('name', name);
             formData.append('phone', phone);
-            formData.append('address', JSON.stringify({ line1: addressLine1, line2: addressLine2 }));
+            formData.append('address', JSON.stringify({
+                line1: addressLine1,
+                line2: addressLine2,
+            }));
             formData.append('dob', dob);
             formData.append('gender', gender);
 
@@ -84,25 +133,27 @@ export function UserProfile() {
             const response = await updateUserProfile(formData);
 
             if (response.success) {
-                toast.success('Profile updated successfully');
+                toast.success('Profile updated');
                 setIsEditing(false);
 
-                // Refresh profile
-                const profileRes = await getUserProfile();
-                if (profileRes.success && profileRes.userData) {
-                    setProfile(profileRes.userData);
-                    setUser(profileRes.userData);
+                const refreshed = await getUserProfile();
+                if (refreshed.success && refreshed.userData) {
+                    setProfile(refreshed.userData);
+                    setUser(refreshed.userData);
                 }
             } else {
-                toast.error(response.message || 'Failed to update profile');
+                toast.error(response.message || 'Update failed');
             }
-        } catch (error: any) {
-            toast.error(error.response?.data?.detail?.message || 'Failed to update profile');
+        } catch {
+            toast.error('Failed to update profile');
         } finally {
             setIsSaving(false);
         }
     };
 
+    // ===============================
+    // LOADER
+    // ===============================
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
@@ -248,9 +299,51 @@ export function UserProfile() {
                     </div>
                 </Card>
 
+                {/* Lab Report Upload (NEW - from friend) */}
+                <Card className="p-6">
+                    <h3 className="text-lg font-semibold text-text mb-6 pb-2 border-b border-surface/50">
+                        Lab Reports & Medical Documents
+                    </h3>
+
+                    {reportUrl && (
+                        <a
+                            href={reportUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-primary hover:text-primary-hover mb-4 transition-colors"
+                        >
+                            <FileText size={18} />
+                            View Uploaded Report
+                        </a>
+                    )}
+
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <input
+                            type="file"
+                            onChange={(e) => setReportFile(e.target.files?.[0] || null)}
+                            className="flex h-11 w-full rounded-lg border border-surface bg-white/50 px-4 py-2 text-sm text-text file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                            accept="image/*,video/*,.pdf,.doc,.docx"
+                        />
+
+                        <Button
+                            type="button"
+                            onClick={handleReportUpload}
+                            disabled={isUploadingReport || !reportFile}
+                            isLoading={isUploadingReport}
+                            className="gap-2 whitespace-nowrap"
+                        >
+                            <Upload size={16} />
+                            Upload Report
+                        </Button>
+                    </div>
+                    <p className="text-xs text-text-muted mt-2">
+                        Supported formats: Images, Videos, PDF, DOC
+                    </p>
+                </Card>
+
                 {/* Action Buttons */}
                 {isEditing && (
-                    <div className="flex items-center justify-end gap-4 sticky bottom-4 bg-white/80 p-4 rounded-xl backdrop-blur-md shadow-lg border border-surface/50 animate-slide-up">
+                    <div className="flex items-center justify-end gap-4 sticky bottom-4 bg-white/80 p-4 rounded-xl backdrop-blur-md shadow-lg border border-surface/50">
                         <Button
                             type="button"
                             variant="secondary"

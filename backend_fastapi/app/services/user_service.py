@@ -9,21 +9,32 @@ import time
 
 
 async def register_user(name: str, email: str, password: str) -> dict:
-    """Register a new user."""
+    """Register a new user with enhanced security validation."""
+    from ..utils.password_validator import validate_password_strength
+    from ..utils.email_validator import validate_email_address
+    
     users = get_users_collection()
     
-    # Validate email
-    try:
-        validate_email(email)
-    except EmailNotValidError:
-        return {"success": False, "message": "Please enter a valid email"}
+    # Enhanced email validation (format + disposable check)
+    email_validation = validate_email_address(email)
+    if not email_validation["valid"]:
+        return {"success": False, "message": email_validation["message"]}
     
-    # Validate password strength
-    if len(password) < 8:
-        return {"success": False, "message": "Please enter a strong password"}
+    normalized_email = email_validation["normalized_email"]
     
-    # Check if user exists
-    existing = await users.find_one({"email": email})
+    # Enhanced password validation (strength + breach check)
+    password_validation = validate_password_strength(password, check_breach=True)
+    if not password_validation["valid"]:
+        # Return detailed feedback for UI
+        suggestions = ", ".join(password_validation["suggestions"])
+        return {
+            "success": False,
+            "message": f"Password does not meet security requirements: {suggestions}",
+            "password_feedback": password_validation
+        }
+    
+    # Check if user exists (use normalized email)
+    existing = await users.find_one({"email": normalized_email})
     if existing:
         return {"success": False, "message": "User already exists"}
     
@@ -36,13 +47,18 @@ async def register_user(name: str, email: str, password: str) -> dict:
     # Create user document
     user_data = {
         "name": name,
-        "email": email,
+        "email": normalized_email,  # Use normalized email
         "password": hashed_password,
         "image": default_image,
         "phone": "000000000",
         "address": {"line1": "", "line2": ""},
         "gender": "Not Selected",
-        "dob": "Not Selected"
+        "dob": "Not Selected",
+        # Security fields
+        "email_verified": False,
+        "failed_login_attempts": 0,
+        "locked_until": None,
+        "created_at": int(time.time() * 1000)
     }
     
     result = await users.insert_one(user_data)
@@ -58,17 +74,75 @@ async def register_user(name: str, email: str, password: str) -> dict:
 
 
 async def login_user(email: str, password: str) -> dict:
-    """Login a user."""
+    """Login a user with account lockout protection."""
+    from ..utils.email_validator import validate_email_address
+    from ..middleware.rate_limiter import AccountLockout
+    
     users = get_users_collection()
     
-    user = await users.find_one({"email": email})
+    # Normalize email
+    email_validation = validate_email_address(email)
+    if email_validation["valid"]:
+        normalized_email = email_validation["normalized_email"]
+    else:
+        normalized_email = email  # Use as is if validation fails
+    
+    user = await users.find_one({"email": normalized_email})
     if not user:
         return {"success": False, "message": "User does not exist"}
     
-    if not verify_password(password, user["password"]):
-        return {"success": False, "message": "Invalid credentials"}
-    
     user_id = str(user["_id"])
+    
+    # Check if account is locked
+    is_locked, remaining_seconds = await AccountLockout.is_account_locked(user_id)
+    if is_locked:
+        minutes = remaining_seconds // 60
+        hours = minutes // 60
+        if hours > 0:
+            time_msg = f"{hours} hour{'s' if hours > 1 else ''}"
+        else:
+            time_msg = f"{minutes} minute{'s' if minutes > 1 else ''}"
+        
+        return {
+            "success": False,
+            "message": f"Account is locked due to too many failed login attempts. Please try again in {time_msg}.",
+            "locked": True,
+            "locked_until": user.get("locked_until")
+        }
+    
+    # Verify password
+    if not verify_password(password, user["password"]):
+        # Record failed login attempt
+        lockout_seconds = await AccountLockout.record_failed_login(user_id)
+        
+        failed_attempts = user.get("failed_login_attempts", 0) + 1
+        
+        if lockout_seconds:
+            minutes = lockout_seconds // 60
+            hours = minutes // 60
+            if hours > 0:
+                time_msg = f"{hours} hour{'s' if hours > 1 else ''}"
+            else:
+                time_msg = f"{minutes} minute{'s' if minutes > 1 else ''}"
+            
+            return {
+                "success": False,
+                "message": f"Too many failed login attempts. Account locked for {time_msg}.",
+                "locked": True
+            }
+        else:
+            remaining_attempts = 5 - failed_attempts
+            if remaining_attempts > 0:
+                return {
+                    "success": False,
+                    "message": f"Invalid credentials. {remaining_attempts} attempt{'s' if remaining_attempts > 1 else ''} remaining before account lockout."
+                }
+            else:
+                return {"success": False, "message": "Invalid credentials"}
+    
+    # Successful login - reset failed attempts
+    await AccountLockout.reset_failed_attempts(user_id)
+    
     token = create_access_token({"id": user_id})
     
     # Store session in Redis

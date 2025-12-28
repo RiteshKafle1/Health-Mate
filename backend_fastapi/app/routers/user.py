@@ -4,19 +4,20 @@ from ..dependencies.auth import get_current_user
 from ..services import user_service, payment_service
 from ..models.user import UserCreate, UserLogin
 from ..models.appointment import AppointmentCreate, AppointmentCancel, PaymentRequest, RazorpayVerify
+from ..middleware.rate_limiter import rate_limit_login, rate_limit_registration
 
 router = APIRouter(prefix="/api/user", tags=["User"])
 
 
-@router.post("/register")
+@router.post("/register", dependencies=[Depends(rate_limit_registration)])
 async def register(user: UserCreate):
-    """Register a new user."""
+    """Register a new user. Rate limited to 3 attempts per hour per IP."""
     return await user_service.register_user(user.name, user.email, user.password)
 
 
-@router.post("/login")
+@router.post("/login", dependencies=[Depends(rate_limit_login)])
 async def login(user: UserLogin):
-    """Login user."""
+    """Login user. Rate limited to 5 attempts per 15 minutes per IP."""
     return await user_service.login_user(user.email, user.password)
 
 

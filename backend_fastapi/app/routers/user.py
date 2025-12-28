@@ -51,16 +51,18 @@ async def update_profile(
         image_bytes=image_bytes
     )
 
-@router.post("/upload-file/{user_id}")
+@router.post("/upload-file")
 async def upload_file(
-    user_id: str,
+
     file: UploadFile = File(...)
+    current_user=Depends(get_current_user)
+
 ):
-    return await user_service.upload_user_file(user_id, file)
+    return await user_service.upload_user_file(user_id=str(current_user.id), file)
 
 @router.get("/me/file")
 async def get_user_file(current_user=Depends(get_current_user)):
-    return await user_service.get_user_file(str(current_user.id))
+    return await user_service.get_user_file(user_id=str(current_user.id))
 
 
 @router.post("/book-appointment")

@@ -1,118 +1,49 @@
-import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { LogOut, User, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { User, Menu, Bell } from 'lucide-react';
 
-export function Navbar() {
-    const { isAuthenticated, role, logout, user } = useAuth();
-    const navigate = useNavigate();
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+interface NavbarProps {
+    onMenuClick?: () => void;
+}
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
-
-    const getDashboardLink = () => {
-        if (role === 'user') return '/user/dashboard';
-        if (role === 'doctor') return '/doctor/dashboard';
-        if (role === 'admin') return '/admin/dashboard';
-        return '/';
-    };
+export function Navbar({ onMenuClick }: NavbarProps) {
+    const { isAuthenticated, role, user } = useAuth();
 
     return (
-        <nav className="bg-dark-800/80 backdrop-blur-xl border-b border-dark-700/50 sticky top-0 z-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16">
-                    {/* Logo */}
-                    <Link to={isAuthenticated ? getDashboardLink() : '/'} className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
-                            <span className="text-white font-bold text-xl">H</span>
+        <nav className="h-16 bg-white/80 backdrop-blur-md border-b border-surface/50 px-4 md:px-8 flex items-center justify-between sticky top-0 z-30 transition-all duration-300">
+            <div className="flex items-center gap-4">
+                <button
+                    onClick={onMenuClick}
+                    className="md:hidden text-text-muted hover:text-primary transition-colors"
+                >
+                    <Menu size={24} />
+                </button>
+
+                {/* Breadcrumb or Page Title Placeholder */}
+                <h2 className="text-lg font-semibold text-text hidden md:block capitalize">
+                    {location.pathname.split('/').pop()?.replace('-', ' ') || 'Dashboard'}
+                </h2>
+            </div>
+
+            <div className="flex items-center gap-4">
+                {isAuthenticated && (
+                    <>
+                        <button className="relative text-text-muted hover:text-primary transition-colors">
+                            <Bell size={20} />
+                            <span className="absolute top-0 right-0 w-2 h-2 bg-error rounded-full ring-2 ring-white"></span>
+                        </button>
+
+                        <div className="h-8 w-px bg-surface/50 mx-2 hidden md:block"></div>
+
+                        <div className="flex items-center gap-3">
+                            <div className="text-right hidden sm:block">
+                                <p className="text-sm font-medium text-text">{user?.name || 'User'}</p>
+                                <p className="text-xs text-text-muted capitalize">{role}</p>
+                            </div>
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold ring-2 ring-white shadow-sm">
+                                {user?.name?.[0]?.toUpperCase() || <User size={20} />}
+                            </div>
                         </div>
-                        <span className="text-xl font-bold text-gradient">HealthMate</span>
-                    </Link>
-
-                    {/* Desktop Navigation */}
-                    <div className="hidden md:flex items-center gap-6">
-                        {!isAuthenticated ? (
-                            <>
-                                <Link to="/doctors" className="text-dark-300 hover:text-dark-100 transition-colors">
-                                    Doctors
-                                </Link>
-                                <Link to="/login" className="btn-primary text-sm">
-                                    Login / Register
-                                </Link>
-                            </>
-                        ) : (
-                            <>
-                                <Link to={getDashboardLink()} className="text-dark-300 hover:text-dark-100 transition-colors">
-                                    Dashboard
-                                </Link>
-                                <div className="flex items-center gap-3">
-                                    <div className="flex items-center gap-2 text-dark-300">
-                                        <User size={18} />
-                                        <span className="text-sm">{user?.name || role}</span>
-                                    </div>
-                                    <button onClick={handleLogout} className="btn-secondary text-sm flex items-center gap-2">
-                                        <LogOut size={16} />
-                                        Logout
-                                    </button>
-                                </div>
-                            </>
-                        )}
-                    </div>
-
-                    {/* Mobile Menu Button */}
-                    <button
-                        className="md:hidden p-2 text-dark-300 hover:text-dark-100"
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    >
-                        {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                    </button>
-                </div>
-
-                {/* Mobile Menu */}
-                {mobileMenuOpen && (
-                    <div className="md:hidden py-4 border-t border-dark-700/50">
-                        {!isAuthenticated ? (
-                            <div className="flex flex-col gap-3">
-                                <Link
-                                    to="/doctors"
-                                    className="text-dark-300 hover:text-dark-100 py-2"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    Doctors
-                                </Link>
-                                <Link
-                                    to="/login"
-                                    className="btn-primary text-center"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    Login / Register
-                                </Link>
-                            </div>
-                        ) : (
-                            <div className="flex flex-col gap-3">
-                                <Link
-                                    to={getDashboardLink()}
-                                    className="text-dark-300 hover:text-dark-100 py-2"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    Dashboard
-                                </Link>
-                                <button
-                                    onClick={() => {
-                                        handleLogout();
-                                        setMobileMenuOpen(false);
-                                    }}
-                                    className="btn-secondary flex items-center justify-center gap-2"
-                                >
-                                    <LogOut size={16} />
-                                    Logout
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                    </>
                 )}
             </div>
         </nav>

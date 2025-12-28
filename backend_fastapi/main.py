@@ -6,7 +6,7 @@ from app.core.database import connect_to_mongo, close_mongo_connection
 from app.core.redis import connect_to_redis, close_redis_connection
 from app.core.cloudinary_config import configure_cloudinary
 from app.core.config import settings
-from app.routers import user, doctor, admin, chatbot, chatbot_doctor, chatbot_admin, medication, healthmate_assist, dose
+from app.routers import user, doctor, admin, chatbot, chatbot_doctor, chatbot_admin, medication, healthmate_assist, dose, auth
 from app.services.chatbot_service import init_chatbot_service
 from app.healthmate_assist.chatbot_manager import initialize_assist
 
@@ -56,6 +56,7 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth.router)  # Authentication endpoints (real-time validation)
 app.include_router(user.router)
 app.include_router(doctor.router)
 app.include_router(admin.router)

@@ -12,6 +12,7 @@ cloudinary>=1.36.0
 razorpay>=1.4.1
 redis>=5.0.0
 email-validator>=2.1.0
+httpx>=0.27.0  # For password breach checking (HaveIBeenPwned API)
 
 # MediGenius Chatbot Dependencies
 python-dotenv

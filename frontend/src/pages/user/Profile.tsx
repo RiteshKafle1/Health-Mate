@@ -2,8 +2,12 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getUserProfile, updateUserProfile } from '../../api/user';
 import type { User } from '../../types';
-import { Camera, Loader2 } from 'lucide-react';
+import { Camera, Loader2, Save, Edit2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Card } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
+import { Input } from '../../components/ui/Input';
+import { Badge } from '../../components/ui/Badge';
 
 export function UserProfile() {
     const { setUser } = useAuth();
@@ -102,167 +106,169 @@ export function UserProfile() {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
-                <Loader2 className="animate-spin text-primary-500" size={48} />
+                <Loader2 className="animate-spin text-primary" size={48} />
             </div>
         );
     }
 
     return (
-        <div className="max-w-2xl mx-auto">
-            <h1 className="text-2xl font-bold text-dark-50 mb-8">My Profile</h1>
+        <div className="max-w-4xl mx-auto space-y-8">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-text">My Profile</h1>
+                    <p className="text-text-muted mt-1">Manage your personal information and account settings</p>
+                </div>
+                {!isEditing && (
+                    <Button onClick={() => setIsEditing(true)} className="gap-2">
+                        <Edit2 size={16} />
+                        Edit Profile
+                    </Button>
+                )}
+            </div>
 
-            <form onSubmit={handleSubmit} className="glass-card p-8">
-                {/* Profile Image */}
-                <div className="flex justify-center mb-8">
-                    <div className="relative">
-                        <div className="w-32 h-32 rounded-2xl overflow-hidden bg-dark-700">
-                            {imagePreview || profile?.image ? (
-                                <img
-                                    src={imagePreview || profile?.image}
-                                    alt={name}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-500 to-secondary-500">
-                                    <span className="text-4xl font-bold text-white">{name.charAt(0) || 'U'}</span>
-                                </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Profile Header Card */}
+                <Card className="p-8">
+                    <div className="flex flex-col md:flex-row items-center gap-8">
+                        <div className="relative">
+                            <div className="w-32 h-32 rounded-full overflow-hidden bg-surface ring-4 ring-white shadow-soft">
+                                {imagePreview || profile?.image ? (
+                                    <img
+                                        src={imagePreview || profile?.image}
+                                        alt={name}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                                        <span className="text-4xl font-bold text-primary">{name.charAt(0) || 'U'}</span>
+                                    </div>
+                                )}
+                            </div>
+                            {isEditing && (
+                                <label className="absolute bottom-1 right-1 p-2.5 rounded-full bg-primary text-white cursor-pointer hover:bg-primary-hover transition-all shadow-md">
+                                    <Camera size={18} />
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                        className="hidden"
+                                    />
+                                </label>
                             )}
                         </div>
-                        {isEditing && (
-                            <label className="absolute bottom-2 right-2 p-2 rounded-lg bg-primary-500 text-white cursor-pointer hover:bg-primary-600 transition-colors">
-                                <Camera size={16} />
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleImageChange}
-                                    className="hidden"
-                                />
-                            </label>
-                        )}
-                    </div>
-                </div>
 
-                {/* Form Fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label className="input-label">Full Name</label>
-                        <input
-                            type="text"
+                        <div className="text-center md:text-left flex-1">
+                            <h2 className="text-2xl font-bold text-text">{profile?.name || 'User'}</h2>
+                            <p className="text-text-muted mb-4">{profile?.email}</p>
+                            <div className="flex flex-wrap justify-center md:justify-start gap-2">
+                                <Badge variant="neutral">Patient ID: #{profile?._id?.slice(-6).toUpperCase()}</Badge>
+                                <Badge variant="info">Active Member</Badge>
+                            </div>
+                        </div>
+                    </div>
+                </Card>
+
+                {/* Personal Information */}
+                <Card className="p-6">
+                    <h3 className="text-lg font-semibold text-text mb-6 pb-2 border-b border-surface/50">
+                        Personal Information
+                    </h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Input
+                            label="Full Name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             disabled={!isEditing}
-                            className="input-field disabled:opacity-60"
                         />
-                    </div>
 
-                    <div>
-                        <label className="input-label">Email</label>
-                        <input
+                        <Input
+                            label="Email"
                             type="email"
                             value={profile?.email || ''}
                             disabled
-                            className="input-field opacity-60"
+                            helperText="Email cannot be changed"
                         />
-                    </div>
 
-                    <div>
-                        <label className="input-label">Phone</label>
-                        <input
+                        <Input
+                            label="Phone Number"
                             type="tel"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
                             disabled={!isEditing}
-                            className="input-field disabled:opacity-60"
                         />
-                    </div>
 
-                    <div>
-                        <label className="input-label">Date of Birth</label>
-                        <input
+                        <Input
+                            label="Date of Birth"
                             type="date"
                             value={dob}
                             onChange={(e) => setDob(e.target.value)}
                             disabled={!isEditing}
-                            className="input-field disabled:opacity-60"
                         />
-                    </div>
 
-                    <div>
-                        <label className="input-label">Gender</label>
-                        <select
-                            value={gender}
-                            onChange={(e) => setGender(e.target.value)}
-                            disabled={!isEditing}
-                            className="input-field disabled:opacity-60"
-                        >
-                            <option value="">Select Gender</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                        </select>
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-text-muted">Gender</label>
+                            <select
+                                value={gender}
+                                onChange={(e) => setGender(e.target.value)}
+                                disabled={!isEditing}
+                                className="flex h-11 w-full rounded-lg border border-surface bg-white/50 px-4 py-2 text-sm text-text focus:border-primary focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200"
+                            >
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
                     </div>
+                </Card>
 
-                    <div className="md:col-span-2">
-                        <label className="input-label">Address Line 1</label>
-                        <input
-                            type="text"
+                {/* Address Information */}
+                <Card className="p-6">
+                    <h3 className="text-lg font-semibold text-text mb-6 pb-2 border-b border-surface/50">
+                        Address Details
+                    </h3>
+
+                    <div className="grid grid-cols-1 gap-6">
+                        <Input
+                            label="Address Line 1"
                             value={addressLine1}
                             onChange={(e) => setAddressLine1(e.target.value)}
                             disabled={!isEditing}
-                            className="input-field disabled:opacity-60"
                             placeholder="Street address"
                         />
-                    </div>
 
-                    <div className="md:col-span-2">
-                        <label className="input-label">Address Line 2</label>
-                        <input
-                            type="text"
+                        <Input
+                            label="Address Line 2"
                             value={addressLine2}
                             onChange={(e) => setAddressLine2(e.target.value)}
                             disabled={!isEditing}
-                            className="input-field disabled:opacity-60"
                             placeholder="City, State, ZIP"
                         />
                     </div>
-                </div>
+                </Card>
 
                 {/* Action Buttons */}
-                <div className="flex justify-end gap-4 mt-8">
-                    {isEditing ? (
-                        <>
-                            <button
-                                type="button"
-                                onClick={() => setIsEditing(false)}
-                                className="btn-secondary"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={isSaving}
-                                className="btn-primary flex items-center gap-2"
-                            >
-                                {isSaving ? (
-                                    <>
-                                        <Loader2 className="animate-spin" size={18} />
-                                        Saving...
-                                    </>
-                                ) : (
-                                    'Save Changes'
-                                )}
-                            </button>
-                        </>
-                    ) : (
-                        <button
+                {isEditing && (
+                    <div className="flex items-center justify-end gap-4 sticky bottom-4 bg-white/80 p-4 rounded-xl backdrop-blur-md shadow-lg border border-surface/50 animate-slide-up">
+                        <Button
                             type="button"
-                            onClick={() => setIsEditing(true)}
-                            className="btn-primary"
+                            variant="secondary"
+                            onClick={() => setIsEditing(false)}
+                            disabled={isSaving}
                         >
-                            Edit Profile
-                        </button>
-                    )}
-                </div>
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            isLoading={isSaving}
+                            className="gap-2"
+                        >
+                            <Save size={18} />
+                            Save Changes
+                        </Button>
+                    </div>
+                )}
             </form>
         </div>
     );

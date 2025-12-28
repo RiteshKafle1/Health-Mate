@@ -1,6 +1,6 @@
 """Medication model and Pydantic schemas."""
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List, Dict
 from datetime import datetime
 
 
@@ -21,6 +21,12 @@ class MedicationBase(BaseModel):
     start_date: Optional[str] = None  # YYYY-MM-DD when medication started
     end_date: Optional[str] = None  # YYYY-MM-DD when medication ends (auto-calculated)
     is_active: bool = True  # Whether medication is currently active
+    
+    # Phase 3: Enhanced Tracking
+    purpose: Optional[str] = None  # Why the medication is prescribed (e.g., "Antibiotic for infection")
+    instructions: Optional[str] = None  # How to take it (e.g., "Take with food")
+    schedule_times: Optional[List[str]] = None  # Specific times like ["08:00", "12:00", "16:00"]
+    doses_taken_today: Optional[Dict[str, bool]] = None  # {"08:00": true, "12:00": false}
 
 
 class MedicationCreate(MedicationBase):
@@ -45,6 +51,12 @@ class MedicationUpdate(BaseModel):
     start_date: Optional[str] = None
     end_date: Optional[str] = None
     is_active: Optional[bool] = None
+    
+    # Enhanced tracking fields
+    purpose: Optional[str] = None
+    instructions: Optional[str] = None
+    schedule_times: Optional[List[str]] = None
+    doses_taken_today: Optional[Dict[str, bool]] = None
 
 
 class StockUpdate(BaseModel):
@@ -56,6 +68,12 @@ class StockRefill(BaseModel):
     """Schema for refilling medication stock."""
     refill_amount: int
     total_stock: Optional[int] = None  # Optionally update total
+
+
+class DoseMarkRequest(BaseModel):
+    """Schema for marking a dose as taken/untaken."""
+    time_slot: str  # e.g., "08:00"
+    taken: bool  # True = taken, False = not taken
 
 
 class MedicationInDB(MedicationBase):
@@ -91,6 +109,12 @@ class MedicationResponse(BaseModel):
     end_date: Optional[str] = None
     is_active: bool = True
     
+    # Enhanced tracking fields
+    purpose: Optional[str] = None
+    instructions: Optional[str] = None
+    schedule_times: Optional[List[str]] = None
+    doses_taken_today: Optional[Dict[str, bool]] = None
+    
     # Calculated fields (added by service)
     days_remaining: Optional[int] = None  # Stock days remaining
     stock_percentage: Optional[float] = None  # Current stock as percentage
@@ -98,6 +122,7 @@ class MedicationResponse(BaseModel):
     days_elapsed: Optional[int] = None  # Days since start
     total_days: Optional[int] = None  # Total duration in days
     stock_status: Optional[str] = None  # "healthy", "medium", "low", "out"
+    next_dose_time: Optional[str] = None  # Next scheduled dose time
     
     class Config:
         populate_by_name = True

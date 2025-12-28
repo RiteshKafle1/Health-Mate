@@ -1,7 +1,7 @@
 """Medication service - CRUD operations for medications with stock tracking."""
 from bson import ObjectId
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import List, Optional, Dict
 import re
 from ..core.database import get_medications_collection
 
@@ -115,6 +115,52 @@ def calculate_duration_progress(start_date: Optional[str], end_date: Optional[st
     return {"progress": 0, "days_elapsed": days_elapsed, "total_days": 0}
 
 
+def generate_schedule_times(frequency: int) -> List[str]:
+    """
+    Generate schedule times based on frequency.
+    Distributes doses evenly throughout the day (8am to 8pm).
+    """
+    if frequency <= 0:
+        return []
+    
+    if frequency == 1:
+        return ["08:00"]
+    elif frequency == 2:
+        return ["08:00", "20:00"]
+    elif frequency == 3:
+        return ["08:00", "14:00", "20:00"]
+    elif frequency == 4:
+        return ["08:00", "12:00", "16:00", "20:00"]
+    else:
+        # For more than 4, distribute evenly
+        times = []
+        start_hour = 8
+        end_hour = 22
+        interval = (end_hour - start_hour) / (frequency - 1) if frequency > 1 else 0
+        for i in range(frequency):
+            hour = int(start_hour + i * interval)
+            times.append(f"{hour:02d}:00")
+        return times
+
+
+def calculate_next_dose_time(schedule_times: Optional[List[str]], doses_taken: Optional[Dict[str, bool]]) -> Optional[str]:
+    """Calculate the next scheduled dose time that hasn't been taken."""
+    if not schedule_times:
+        return None
+    
+    current_time = datetime.now().strftime("%H:%M")
+    doses_taken = doses_taken or {}
+    
+    # Find the next untaken dose
+    for time in sorted(schedule_times):
+        if not doses_taken.get(time, False):
+            # Return this time if it's in the future or is the next one
+            return time
+    
+    # All doses taken for today
+    return None
+
+
 def enrich_medication(med: dict) -> dict:
     """Add calculated fields to medication record."""
     # Calculate stock metrics
@@ -141,7 +187,22 @@ def enrich_medication(med: dict) -> dict:
     med["days_elapsed"] = progress_info["days_elapsed"]
     med["total_days"] = progress_info["total_days"]
     
+    # Generate schedule times if not set
+    if not med.get("schedule_times") and frequency:
+        med["schedule_times"] = generate_schedule_times(frequency)
+    
+    # Initialize doses_taken_today if not present
+    if not med.get("doses_taken_today"):
+        med["doses_taken_today"] = {}
+    
+    # Calculate next dose time
+    med["next_dose_time"] = calculate_next_dose_time(
+        med.get("schedule_times"), 
+        med.get("doses_taken_today")
+    )
+    
     return med
+
 
 
 async def create_medication(
@@ -155,7 +216,10 @@ async def create_medication(
     current_stock: Optional[int] = None,
     dose_per_intake: int = 1,
     start_date: Optional[str] = None,
-    is_active: bool = True
+    is_active: bool = True,
+    purpose: Optional[str] = None,
+    instructions: Optional[str] = None,
+    schedule_times: Optional[List[str]] = None
 ) -> dict:
     """Create a new medication for a user."""
     medications = get_medications_collection()
@@ -181,6 +245,10 @@ async def create_medication(
     if current_stock is None and total_stock is not None:
         current_stock = total_stock
     
+    # Auto-generate schedule times if not provided
+    if schedule_times is None:
+        schedule_times = generate_schedule_times(frequency)
+    
     medication_data = {
         "user_id": user_id,
         "name": name,
@@ -194,6 +262,11 @@ async def create_medication(
         "start_date": start_date,
         "end_date": end_date,
         "is_active": is_active,
+        "purpose": purpose,
+        "instructions": instructions,
+        "schedule_times": schedule_times,
+        "doses_taken_today": {},
+        "doses_taken_date": now.strftime("%Y-%m-%d"),  # Track which date the doses were taken
         "created_at": now,
         "updated_at": now
     }
@@ -486,3 +559,72 @@ async def get_low_stock_medications(user_id: str) -> dict:
         "medications": low_stock,
         "count": len(low_stock)
     }
+
+
+async def mark_dose_taken(user_id: str, medication_id: str, time_slot: str, taken: bool) -> dict:
+    """
+    Mark a specific dose as taken or untaken.
+    Updates doses_taken_today with the time slot status.
+    Also decrements current_stock when marking as taken.
+    """
+    medications = get_medications_collection()
+    
+    # First get the medication to check ownership and current state
+    med_result = await get_medication(user_id, medication_id)
+    if not med_result["success"]:
+        return med_result
+    
+    current_med = med_result["medication"]
+    today = datetime.now().strftime("%Y-%m-%d")
+    
+    # Get current doses_taken_today, reset if it's a new day
+    doses_taken_today = current_med.get("doses_taken_today", {})
+    doses_taken_date = current_med.get("doses_taken_date")
+    
+    if doses_taken_date != today:
+        # New day - reset the doses
+        doses_taken_today = {}
+    
+    # Check if this is a state change
+    was_taken = doses_taken_today.get(time_slot, False)
+    
+    # Update the dose status
+    doses_taken_today[time_slot] = taken
+    
+    # Calculate stock change
+    current_stock = current_med.get("current_stock")
+    dose_per_intake = current_med.get("dose_per_intake", 1)
+    
+    if current_stock is not None:
+        if taken and not was_taken:
+            # Marking as taken - decrement stock
+            current_stock = max(0, current_stock - dose_per_intake)
+        elif not taken and was_taken:
+            # Unmarking as taken - increment stock back
+            current_stock = current_stock + dose_per_intake
+    
+    try:
+        update_data = {
+            "doses_taken_today": doses_taken_today,
+            "doses_taken_date": today,
+            "updated_at": datetime.utcnow()
+        }
+        
+        if current_stock is not None:
+            update_data["current_stock"] = current_stock
+        
+        result = await medications.update_one(
+            {"_id": ObjectId(medication_id), "user_id": user_id},
+            {"$set": update_data}
+        )
+    except Exception as e:
+        return {"success": False, "message": f"Failed to update dose: {str(e)}"}
+    
+    if result.matched_count == 0:
+        return {"success": False, "message": "Medication not found or not owned by you"}
+    
+    # Fetch and return updated medication
+    updated = await get_medication(user_id, medication_id)
+    if updated["success"]:
+        updated["message"] = f"Dose at {time_slot} marked as {'taken' if taken else 'not taken'}"
+    return updated

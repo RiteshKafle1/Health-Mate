@@ -3,7 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import Optional
 from ..dependencies.auth import get_current_user
 from ..services import medication_service
-from ..models.medication import MedicationCreate, MedicationUpdate, StockUpdate, StockRefill
+from ..services import medication_info_service
+from ..models.medication import MedicationCreate, MedicationUpdate, StockUpdate, StockRefill, DoseMarkRequest
 
 router = APIRouter(prefix="/api/user/medications", tags=["Medications"])
 
@@ -25,7 +26,10 @@ async def create_medication(
         current_stock=medication.current_stock,
         dose_per_intake=medication.dose_per_intake,
         start_date=medication.start_date,
-        is_active=medication.is_active
+        is_active=medication.is_active,
+        purpose=medication.purpose,
+        instructions=medication.instructions,
+        schedule_times=medication.schedule_times
     )
 
 
@@ -139,4 +143,39 @@ async def delete_medication(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=result
         )
+    return result
+
+
+@router.post("/{medication_id}/dose")
+async def mark_dose(
+    medication_id: str,
+    dose_data: DoseMarkRequest,
+    user_id: str = Depends(get_current_user)
+):
+    """Mark a specific dose as taken or untaken for today."""
+    result = await medication_service.mark_dose_taken(
+        user_id=user_id,
+        medication_id=medication_id,
+        time_slot=dose_data.time_slot,
+        taken=dose_data.taken
+    )
+    if not result["success"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result
+        )
+    return result
+
+
+@router.get("/info/{medication_name}")
+async def get_medication_info(
+    medication_name: str,
+    user_id: str = Depends(get_current_user)
+):
+    """
+    Get AI-generated purpose and instructions for a medication.
+    Uses knowledge base first, then Gemini AI if not found.
+    Returns purpose and instructions (max 10 words each).
+    """
+    result = await medication_info_service.get_medication_info(medication_name)
     return result

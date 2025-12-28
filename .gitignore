@@ -34,6 +34,13 @@ CHANGELOG
 .agent/
 workflows/
 
+# Confidential Documentation (DO NOT PUSH)
+backend_fastapi/Documentation/
+frontend/Documentation/
+frontend/documentation/
+**/Documentation/
+**/documentation/
+
 # IDE
 .idea/
 .vscode/

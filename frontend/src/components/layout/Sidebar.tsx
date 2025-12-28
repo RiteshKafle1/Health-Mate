@@ -13,7 +13,8 @@ import {
     TrendingUp,
     ChevronLeft,
     ChevronRight,
-    Settings
+    Settings,
+    FileText
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -34,6 +35,7 @@ const userNavItems: NavItem[] = [
     { label: 'Find Doctors', path: '/user/doctors', icon: <Users size={22} /> },
     { label: 'Appointments', path: '/user/appointments', icon: <Calendar size={22} /> },
     { label: 'Medications', path: '/user/medications', icon: <Pill size={22} /> },
+    { label: 'My Reports', path: '/user/reports', icon: <FileText size={22} /> },
     { label: 'Analytics', path: '/user/analytics', icon: <TrendingUp size={22} /> },
     { label: 'HealthMate', path: '/user/chatbot', icon: <MessageCircle size={22} /> },
     { label: 'Profile', path: '/user/profile', icon: <User size={22} /> },
@@ -42,6 +44,7 @@ const userNavItems: NavItem[] = [
 const doctorNavItems: NavItem[] = [
     { label: 'Dashboard', path: '/doctor/dashboard', icon: <LayoutDashboard size={22} /> },
     { label: 'Appointments', path: '/doctor/appointments', icon: <Calendar size={22} /> },
+    { label: 'Patient Reports', path: '/doctor/patient-reports', icon: <FileText size={22} /> },
     { label: 'HealthMate', path: '/doctor/chatbot', icon: <MessageCircle size={22} /> },
     { label: 'Profile', path: '/doctor/profile', icon: <User size={22} /> },
 ];

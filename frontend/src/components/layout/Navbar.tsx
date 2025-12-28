@@ -1,6 +1,7 @@
 import { useAuth } from '../../context/AuthContext';
-import { User, Menu, Bell, Cross, Search } from 'lucide-react';
+import { User, Menu, Cross, Search } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { NotificationDropdown } from '../NotificationDropdown';
 
 interface NavbarProps {
     onMenuClick?: () => void;
@@ -18,6 +19,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         if (path.includes('/appointments')) return 'My Appointments';
         if (path.includes('/medications')) return 'Medication Schedule';
         if (path.includes('/analytics')) return 'Health Insights';
+        if (path.includes('/reports')) return role === 'doctor' ? 'Patient Reports' : 'My Lab Reports';
         if (path.includes('/chatbot')) return 'HealthMate Assistant';
         if (path.includes('/profile')) return 'Profile Settings';
 
@@ -64,10 +66,8 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                             <button className="p-2 text-text/60 hover:text-primary hover:bg-white/60 rounded-full transition-all duration-200">
                                 <Search size={20} />
                             </button>
-                            <button className="relative p-2 text-text/60 hover:text-primary hover:bg-white/60 rounded-full transition-all duration-200">
-                                <Bell size={20} />
-                                <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full ring-2 ring-[#FFF2F2]"></span>
-                            </button>
+                            {/* Notification Dropdown - only for users */}
+                            {role === 'user' && <NotificationDropdown />}
                         </div>
 
                         {/* Divider */}

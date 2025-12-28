@@ -52,18 +52,49 @@ async def update_profile(
         image_bytes=image_bytes
     )
 
-@router.post("/upload-file")
-async def upload_file(
+# ==================== LAB REPORTS ====================
+from ..services import report_service
 
-    file: UploadFile = File(...)
-    current_user=Depends(get_current_user)
-
+@router.post("/reports")
+async def upload_report(
+    file: UploadFile = File(...),
+    description: str = Form(""),
+    report_type: str = Form("other"),
+    user_id: str = Depends(get_current_user)
 ):
-    return await user_service.upload_user_file(user_id=str(current_user.id), file)
+    """Upload a lab report or medical document."""
+    return await report_service.upload_report(
+        user_id=user_id,
+        file=file,
+        description=description,
+        report_type=report_type
+    )
 
-@router.get("/me/file")
-async def get_user_file(current_user=Depends(get_current_user)):
-    return await user_service.get_user_file(user_id=str(current_user.id))
+@router.get("/reports")
+async def get_reports(
+    skip: int = 0,
+    limit: int = 20,
+    user_id: str = Depends(get_current_user)
+):
+    """Get all user's lab reports, sorted by date."""
+    return await report_service.get_user_reports(user_id, skip, limit)
+
+@router.get("/reports/{report_id}")
+async def get_report(
+    report_id: str,
+    user_id: str = Depends(get_current_user)
+):
+    """Get a single report by ID."""
+    return await report_service.get_report_by_id(report_id, user_id)
+
+@router.delete("/reports/{report_id}")
+async def delete_report(
+    report_id: str,
+    user_id: str = Depends(get_current_user)
+):
+    """Delete a user's report."""
+    return await report_service.delete_report(user_id, report_id)
+
 
 
 @router.post("/book-appointment")
@@ -100,3 +131,59 @@ async def verify_razorpay(data: RazorpayVerify, user_id: str = Depends(get_curre
     """Verify Razorpay payment."""
     return await payment_service.verify_razorpay_payment(data.razorpay_order_id)
 
+
+# ==================== REPORT ACCESS REQUESTS ====================
+
+@router.get("/report-access-requests")
+async def get_access_requests(user_id: str = Depends(get_current_user)):
+    """Get pending report access requests from doctors."""
+    return await report_service.get_pending_access_requests(user_id)
+
+
+@router.post("/report-access-requests/{request_id}/approve")
+async def approve_request(request_id: str, user_id: str = Depends(get_current_user)):
+    """Approve a doctor's access request."""
+    return await report_service.approve_access_request(user_id, request_id)
+
+
+@router.post("/report-access-requests/{request_id}/deny")
+async def deny_request(request_id: str, user_id: str = Depends(get_current_user)):
+    """Deny a doctor's access request."""
+    return await report_service.deny_access_request(user_id, request_id)
+
+
+# ==================== NOTIFICATIONS ====================
+from ..core.database import get_notifications_collection
+from bson import ObjectId
+
+@router.get("/notifications")
+async def get_notifications(user_id: str = Depends(get_current_user)):
+    """Get user notifications."""
+    notifications = get_notifications_collection()
+    cursor = notifications.find({"user_id": user_id}).sort("created_at", -1).limit(20)
+    
+    notif_list = []
+    async for n in cursor:
+        notif_list.append({
+            "id": str(n["_id"]),
+            "type": n.get("type", ""),
+            "message": n.get("message", ""),
+            "data": n.get("data", {}),
+            "read": n.get("read", False),
+            "created_at": n.get("created_at", 0)
+        })
+    
+    return {"success": True, "notifications": notif_list}
+
+
+@router.post("/notifications/{notif_id}/read")
+async def mark_notification_read(notif_id: str, user_id: str = Depends(get_current_user)):
+    """Mark a notification as read."""
+    notifications = get_notifications_collection()
+    
+    await notifications.update_one(
+        {"_id": ObjectId(notif_id), "user_id": user_id},
+        {"$set": {"read": True}}
+    )
+    
+    return {"success": True}

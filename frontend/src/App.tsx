@@ -18,12 +18,14 @@ import { UserAppointments } from './pages/user/Appointments';
 import { Chatbot } from './pages/user/Chatbot';
 import { Medications } from './pages/user/Medications';
 import { Analytics } from './pages/user/Analytics';
+import { Reports } from './pages/user/Reports';
 
 // Doctor Pages
 import { DoctorDashboard } from './pages/doctor/Dashboard';
 import { DoctorProfile } from './pages/doctor/Profile';
 import { DoctorAppointments } from './pages/doctor/Appointments';
 import { Chatbot as DoctorChatbot } from './pages/doctor/Chatbot';
+import { PatientReports } from './pages/doctor/PatientReports';
 
 // Admin Pages
 import { AdminDashboard } from './pages/admin/Dashboard';
@@ -68,6 +70,7 @@ function App() {
               <Route path="/user/appointments" element={<UserAppointments />} />
               <Route path="/user/medications" element={<Medications />} />
               <Route path="/user/analytics" element={<Analytics />} />
+              <Route path="/user/reports" element={<Reports />} />
               <Route path="/user/chatbot" element={<Chatbot />} />
             </Route>
 
@@ -82,6 +85,7 @@ function App() {
               <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
               <Route path="/doctor/profile" element={<DoctorProfile />} />
               <Route path="/doctor/appointments" element={<DoctorAppointments />} />
+              <Route path="/doctor/patient-reports" element={<PatientReports />} />
               <Route path="/doctor/chatbot" element={<DoctorChatbot />} />
             </Route>
 

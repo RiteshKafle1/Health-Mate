@@ -65,3 +65,38 @@ async def update_profile(data: DoctorUpdate, doc_id: str = Depends(get_current_d
         available=data.available,
         about=data.about
     )
+
+
+# ==================== PATIENT REPORTS ACCESS ====================
+from ..services import report_service
+from pydantic import BaseModel
+
+
+class ReportAccessRequest(BaseModel):
+    user_id: str
+    appointment_id: str
+
+
+@router.post("/request-report-access")
+async def request_report_access(
+    data: ReportAccessRequest,
+    doc_id: str = Depends(get_current_doctor)
+):
+    """Request access to a patient's lab reports. Requires valid appointment."""
+    return await report_service.request_report_access(
+        doctor_id=doc_id,
+        user_id=data.user_id,
+        appointment_id=data.appointment_id
+    )
+
+
+@router.get("/approved-patients")
+async def get_approved_patients(doc_id: str = Depends(get_current_doctor)):
+    """Get list of patients who have approved report access."""
+    return await report_service.get_approved_patients(doc_id)
+
+
+@router.get("/patient-reports/{user_id}")
+async def get_patient_reports(user_id: str, doc_id: str = Depends(get_current_doctor)):
+    """Get a patient's reports (only if access was approved)."""
+    return await report_service.get_patient_reports_for_doctor(doc_id, user_id)

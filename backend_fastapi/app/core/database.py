@@ -61,3 +61,18 @@ def get_dose_schedules_collection():
 def get_dose_logs_collection():
     """Get dose logs collection."""
     return db.dose_logs
+
+
+def get_reports_collection():
+    """Get user reports collection."""
+    return db.reports
+
+
+def get_report_access_requests_collection():
+    """Get report access requests collection."""
+    return db.report_access_requests
+
+
+def get_notifications_collection():
+    """Get notifications collection."""
+    return db.notifications

@@ -32,11 +32,16 @@ async def get_current_user(request: Request) -> str:
                 detail={"success": False, "message": "Not Authorized Login Again"}
             )
         
-        # Optional: Check Redis session
-        if redis_module.redis_client:
-            is_valid = await redis_module.is_token_valid(user_id, token)
-            if not is_valid:
-                pass  # For now, allow even if not in Redis
+        # Optional: Check Redis session (non-blocking, graceful fallback)
+        try:
+            if redis_module.redis_client:
+                is_valid = await redis_module.is_token_valid(user_id, token)
+                if not is_valid:
+                    pass  # For now, allow even if not in Redis
+        except Exception as redis_error:
+            # Redis connection issues shouldn't block authentication
+            # JWT validation already passed, so allow the request
+            print(f"Redis session check failed (non-critical): {redis_error}")
         
         return user_id
     except JWTError as e:

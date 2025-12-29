@@ -19,13 +19,12 @@ def get_llm():
             print("Warning: GROQ_API_KEY not found in environment variables")
             return None
         
-        # Using llama-3.1-8b-instant for fastest response times
-        # Groq's 8B model is 3-5x faster than 70B with good quality
+        # Using openai/gpt-oss-120b model with Groq
         _llm_fast = ChatGroq(
             api_key=api_key,
             model_name="openai/gpt-oss-120b",
             temperature=0.3,
-            max_tokens=1024,  # Reduced from 2048 for faster responses
+            max_tokens=1024,
         )
     return _llm_fast
 
@@ -42,3 +41,24 @@ def get_llm_large():
         temperature=0.3,
         max_tokens=1024,
     )
+
+
+async def stream_llm_response(prompt: str):
+    """
+    Stream LLM response tokens as they're generated.
+    
+    Yields tokens (strings) one at a time for real-time display.
+    """
+    llm = get_llm()
+    if not llm:
+        yield "Medical AI service temporarily unavailable."
+        return
+    
+    try:
+        async for chunk in llm.astream(prompt):
+            if hasattr(chunk, 'content') and chunk.content:
+                yield chunk.content
+    except Exception as e:
+        print(f"LLM streaming error: {e}")
+        yield f"Error generating response: {str(e)}"
+

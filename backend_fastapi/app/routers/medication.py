@@ -179,3 +179,91 @@ async def get_medication_info(
     """
     result = await medication_info_service.get_medication_info(medication_name)
     return result
+
+
+# ============================================
+# ADHERENCE TRACKING ENDPOINTS
+# ============================================
+
+@router.get("/adherence/stats")
+async def get_adherence_stats(
+    period: str = "week",  # week, month, all
+    medication_id: Optional[str] = None,
+    user_id: str = Depends(get_current_user)
+):
+    """
+    Get adherence statistics for the current user.
+    
+    Returns:
+    - Overall adherence percentage
+    - Breakdown by status (taken, missed, late)
+    - Per-medication breakdown
+    - Per-date breakdown
+    """
+    from ..services import dose_history_service
+    return await dose_history_service.get_adherence_stats(
+        user_id=user_id,
+        period=period,
+        medication_id=medication_id
+    )
+
+
+@router.get("/adherence/missed")
+async def get_missed_doses(
+    limit: int = 20,
+    medication_id: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    user_id: str = Depends(get_current_user)
+):
+    """
+    Get list of missed doses for the current user.
+    
+    Returns most recent missed doses, optionally filtered by medication or date range.
+    """
+    from ..services import dose_history_service
+    return await dose_history_service.get_missed_doses(
+        user_id=user_id,
+        limit=limit,
+        medication_id=medication_id,
+        start_date=start_date,
+        end_date=end_date
+    )
+
+
+@router.get("/adherence/streak")
+async def get_streak(user_id: str = Depends(get_current_user)):
+    """
+    Get current adherence streak.
+    
+    Returns:
+    - Current streak (consecutive days with 100% adherence)
+    - Best streak ever
+    - Last broken date
+    """
+    from ..services import dose_history_service
+    return await dose_history_service.calculate_streak(user_id)
+
+
+@router.get("/adherence/history")
+async def get_dose_history(
+    medication_id: Optional[str] = None,
+    limit: int = 50,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    user_id: str = Depends(get_current_user)
+):
+    """
+    Get detailed dose history for the current user.
+    
+    Returns chronological list of all dose events with status, timing, and notes.
+    """
+    from ..services import dose_history_service
+    return await dose_history_service.get_dose_history(
+        user_id=user_id,
+        medication_id=medication_id,
+        limit=limit,
+        start_date=start_date,
+        end_date=end_date
+    )
+

@@ -1,5 +1,7 @@
 """Chatbot router for User-only access to MediGenius medical chatbot."""
+import json
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 
@@ -122,6 +124,136 @@ async def chat(request: ChatRequest, user_id: str = Depends(get_current_user)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"success": False, "message": f"Chat processing error: {str(e)}"}
         )
+
+
+@router.post("/chat/stream")
+async def chat_stream(request: ChatRequest, user_id: str = Depends(get_current_user)):
+    """
+    Stream chat responses using Server-Sent Events (SSE).
+    
+    Returns tokens as they are generated for real-time display.
+    Uses text/event-stream content type.
+    """
+    from ..healthmate_clinician.chatbot_manager import get_chatbot_manager
+    from ..healthmate_clinician.tools.llm_client import stream_llm_response
+    from ..healthmate_clinician.tools.vector_store import get_vectorstore_instance
+    
+    session_id = get_or_create_session(user_id, request.session_id)
+    
+    if not request.message or not request.message.strip():
+        async def error_stream():
+            yield f"data: {json.dumps({'error': 'Message cannot be empty'})}\n\n"
+            yield "data: [DONE]\n\n"
+        return StreamingResponse(error_stream(), media_type="text/event-stream")
+    
+    message = request.message.strip()
+    
+    async def generate_stream():
+        """Generate SSE stream of LLM response tokens."""
+        manager = get_chatbot_manager()
+        
+        # First, send session info
+        yield f"data: {json.dumps({'type': 'session', 'session_id': session_id})}\n\n"
+        
+        # Save user message
+        manager.database.save_message(session_id, user_id, 'user', message)
+        
+        # Try to get context from RAG
+        context = ""
+        source = "AI Knowledge"
+        
+        try:
+            vectorstore = get_vectorstore_instance()
+            if vectorstore:
+                results = vectorstore.similarity_search_with_score(message, k=3)
+                relevant_docs = []
+                for doc, distance in results:
+                    similarity = 1 - distance if distance <= 1 else 0
+                    if similarity >= 0.55:
+                        relevant_docs.append(doc)
+                
+                if relevant_docs:
+                    context = "\n\n".join([doc.page_content[:1000] for doc in relevant_docs[:2]])
+                    source = "Medical Database"
+        except Exception as e:
+            print(f"RAG error in streaming: {e}")
+        
+        # Send source info
+        yield f"data: {json.dumps({'type': 'source', 'source': source})}\n\n"
+        
+        # Build prompt - matches ExecutorAgent's MEDICAL_PROMPT_TEMPLATE with follow-up question strategy
+        prompt = f"""You are HealthMate Clinician, a medical Q&A assistant using the Follow-up Question Strategy.
+
+BEHAVIOR RULES:
+
+1. CLARIFICATION (if needed):
+   - If the question is ambiguous, ask up to TWO targeted follow-up questions
+   - Each question should clarify the user's intent
+   - Do not ask more than two questions at once
+
+2. ANSWERING:
+   - After clarification (or if question is clear), provide a concise, evidence-based answer
+   - Use the ANSWER format below
+   - Include safety caveats and when to seek urgent care
+   - Encourage consulting healthcare professionals for diagnosis/treatment
+
+3. SAFETY AND TONE:
+   - Use non-judgmental, empathetic language
+   - Do not diagnose - present differential considerations where relevant
+   - Include red flags that require urgent care
+
+4. FORMATTING:
+   - Present content clearly without special characters like asterisks
+   - Use clean structure with consistent layout
+   - Reference the source: {source}
+
+---
+
+ANSWER FORMAT (use when providing final answer):
+
+SUMMARY
+[1-3 sentences describing the main point]
+
+WHAT TO DO NOW
+[Practical steps: when to seek care, home care tips, what to monitor]
+
+RED FLAGS
+[Urgent warning signs and actions - call emergency if present]
+
+POSSIBLE CONSIDERATIONS
+[Likely possibilities to discuss with your doctor - NOT a diagnosis]
+
+---
+
+PATIENT'S CURRENT QUESTION: {message}
+
+REFERENCE INFORMATION:
+{context if context else "No specific reference available."}
+
+YOUR RESPONSE (follow the rules above):"""
+        
+        # Stream the response
+        full_response = ""
+        async for token in stream_llm_response(prompt):
+            full_response += token
+            yield f"data: {json.dumps({'type': 'token', 'content': token})}\n\n"
+        
+        # Save assistant response
+        manager.database.save_message(session_id, user_id, 'assistant', full_response, source)
+        
+        # Send completion signal
+        yield f"data: {json.dumps({'type': 'done', 'source': source})}\n\n"
+        yield "data: [DONE]\n\n"
+    
+    return StreamingResponse(
+        generate_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
 
 
 @router.get("/history", response_model=HistoryResponse)

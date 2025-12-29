@@ -177,3 +177,125 @@ export const getMedicationInfo = async (medicationName: string): Promise<Medicat
     const response = await api.get(`/api/user/medications/info/${encodeURIComponent(medicationName)}`);
     return response.data;
 };
+
+// ============================================
+// ADHERENCE TRACKING API
+// ============================================
+
+export interface AdherenceStats {
+    success: boolean;
+    period: string;
+    start_date: string;
+    end_date: string;
+    summary: {
+        total_doses: number;
+        taken: number;
+        missed: number;
+        late: number;
+        skipped: number;
+        adherence_percentage: number;
+        on_time_percentage: number;
+    };
+    by_medication: Record<string, {
+        medication_id: string;
+        taken: number;
+        missed: number;
+        late: number;
+        skipped: number;
+        total: number;
+        adherence_percentage: number;
+    }>;
+    by_date: Record<string, {
+        taken: number;
+        missed: number;
+        total: number;
+    }>;
+}
+
+export interface MissedDose {
+    medication_id: string;
+    medication_name: string;
+    date: string;
+    time_slot: string;
+    scheduled_at: string | null;
+}
+
+export interface MissedDosesResponse {
+    success: boolean;
+    missed_doses: MissedDose[];
+    count: number;
+}
+
+export interface StreakResponse {
+    success: boolean;
+    current_streak: number;
+    best_streak: number;
+    last_broken_date: string | null;
+    is_perfect_today: boolean | null;
+}
+
+export interface DoseHistoryItem {
+    id: string;
+    medication_id: string;
+    medication_name: string;
+    date: string;
+    time_slot: string;
+    status: 'taken' | 'missed' | 'skipped';
+    was_late: boolean;
+    actual_time: string | null;
+    scheduled_at: string | null;
+    notes: string | null;
+}
+
+export interface DoseHistoryResponse {
+    success: boolean;
+    history: DoseHistoryItem[];
+    count: number;
+}
+
+// Get adherence statistics
+export const getAdherenceStats = async (
+    period: 'week' | 'month' | 'all' = 'week',
+    medicationId?: string
+): Promise<AdherenceStats> => {
+    const params = new URLSearchParams({ period });
+    if (medicationId) params.append('medication_id', medicationId);
+    const response = await api.get(`/api/user/medications/adherence/stats?${params}`);
+    return response.data;
+};
+
+// Get missed doses
+export const getMissedDoses = async (
+    limit: number = 20,
+    medicationId?: string,
+    startDate?: string,
+    endDate?: string
+): Promise<MissedDosesResponse> => {
+    const params = new URLSearchParams({ limit: limit.toString() });
+    if (medicationId) params.append('medication_id', medicationId);
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    const response = await api.get(`/api/user/medications/adherence/missed?${params}`);
+    return response.data;
+};
+
+// Get adherence streak
+export const getStreak = async (): Promise<StreakResponse> => {
+    const response = await api.get('/api/user/medications/adherence/streak');
+    return response.data;
+};
+
+// Get dose history
+export const getDoseHistory = async (
+    medicationId?: string,
+    limit: number = 50,
+    startDate?: string,
+    endDate?: string
+): Promise<DoseHistoryResponse> => {
+    const params = new URLSearchParams({ limit: limit.toString() });
+    if (medicationId) params.append('medication_id', medicationId);
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    const response = await api.get(`/api/user/medications/adherence/history?${params}`);
+    return response.data;
+};

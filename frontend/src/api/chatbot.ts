@@ -54,6 +54,100 @@ export const sendChatMessage = async (
     return response.data;
 };
 
+// Streaming message handler type
+export interface StreamCallbacks {
+    onToken: (token: string) => void;
+    onSource: (source: string) => void;
+    onSessionId: (sessionId: string) => void;
+    onComplete: (source: string) => void;
+    onError: (error: string) => void;
+}
+
+// API base URL (same as axios config)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+// Send a message with streaming response
+export const sendChatMessageStream = async (
+    message: string,
+    callbacks: StreamCallbacks,
+    sessionId?: string
+): Promise<void> => {
+    // Get token based on role (same logic as axios interceptor)
+    const role = localStorage.getItem('role');
+    let token = '';
+    if (role === 'user') {
+        token = localStorage.getItem('token') || '';
+    } else if (role === 'doctor') {
+        token = localStorage.getItem('dtoken') || '';
+    } else if (role === 'admin') {
+        token = localStorage.getItem('atoken') || '';
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/user/chatbot/chat/stream`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'token': token
+            },
+            body: JSON.stringify({
+                message,
+                session_id: sessionId
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+
+        if (!reader) {
+            throw new Error('No response body');
+        }
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const data = line.slice(6);
+
+                    if (data === '[DONE]') {
+                        return;
+                    }
+
+                    try {
+                        const parsed = JSON.parse(data);
+
+                        if (parsed.type === 'token') {
+                            callbacks.onToken(parsed.content);
+                        } else if (parsed.type === 'source') {
+                            callbacks.onSource(parsed.source);
+                        } else if (parsed.type === 'session') {
+                            callbacks.onSessionId(parsed.session_id);
+                        } else if (parsed.type === 'done') {
+                            callbacks.onComplete(parsed.source);
+                        } else if (parsed.error) {
+                            callbacks.onError(parsed.error);
+                        }
+                    } catch {
+                        // Skip non-JSON lines
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        callbacks.onError(error instanceof Error ? error.message : 'Stream failed');
+    }
+};
+
+
 // Get chat history for current session
 export const getChatHistory = async (sessionId?: string): Promise<HistoryResponse> => {
     const params = sessionId ? { session_id: sessionId } : {};

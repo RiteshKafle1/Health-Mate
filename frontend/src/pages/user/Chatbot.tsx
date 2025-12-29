@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Send, Plus, Trash2, History, X, Bot, User, Loader2, Activity } from 'lucide-react';
+import { MessageCircle, Send, Plus, Trash2, History, X, Bot, User, Loader2, Activity, Zap } from 'lucide-react';
 import {
     sendChatMessage,
+    sendChatMessageStream,
     getChatSessions,
     createNewSession,
     deleteSession,
@@ -16,10 +17,12 @@ export function Chatbot() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputMessage, setInputMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isStreaming, setIsStreaming] = useState(false);
     const [sessionId, setSessionId] = useState<string | null>(null);
     const [sessions, setSessions] = useState<ChatSession[]>([]);
     const [showSidebar, setShowSidebar] = useState(false);
     const [symptomCheckerMode, setSymptomCheckerMode] = useState(false);
+    const [useStreaming, setUseStreaming] = useState(true); // Enable streaming by default
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -48,7 +51,7 @@ export function Chatbot() {
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!inputMessage.trim() || isLoading) return;
+        if (!inputMessage.trim() || isLoading || isStreaming) return;
 
         const userMessage: ChatMessage = {
             role: 'user',
@@ -58,36 +61,99 @@ export function Chatbot() {
 
         setMessages(prev => [...prev, userMessage]);
         setInputMessage('');
-        setIsLoading(true);
 
-        try {
-            const response = await sendChatMessage(userMessage.content, sessionId || undefined);
+        // Use streaming mode if enabled
+        if (useStreaming) {
+            setIsStreaming(true);
 
-            if (response.success) {
-                const assistantMessage: ChatMessage = {
-                    role: 'assistant',
-                    content: response.response,
-                    source: response.source,
-                    timestamp: response.timestamp
-                };
-                setMessages(prev => [...prev, assistantMessage]);
+            // Add empty assistant message that will be filled progressively
+            const streamingMessage: ChatMessage = {
+                role: 'assistant',
+                content: '',
+                source: 'Loading...',
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            setMessages(prev => [...prev, streamingMessage]);
 
-                if (response.session_id && !sessionId) {
-                    setSessionId(response.session_id);
+            await sendChatMessageStream(
+                userMessage.content,
+                {
+                    onToken: (token) => {
+                        // Append token to the last message (assistant streaming message)
+                        setMessages(prev => {
+                            const updated = [...prev];
+                            const lastIdx = updated.length - 1;
+                            if (lastIdx >= 0 && updated[lastIdx].role === 'assistant') {
+                                updated[lastIdx] = {
+                                    ...updated[lastIdx],
+                                    content: updated[lastIdx].content + token
+                                };
+                            }
+                            return updated;
+                        });
+                    },
+                    onSource: (source) => {
+                        setMessages(prev => {
+                            const updated = [...prev];
+                            const lastIdx = updated.length - 1;
+                            if (lastIdx >= 0 && updated[lastIdx].role === 'assistant') {
+                                updated[lastIdx] = { ...updated[lastIdx], source };
+                            }
+                            return updated;
+                        });
+                    },
+                    onSessionId: (newSessionId) => {
+                        if (!sessionId) {
+                            setSessionId(newSessionId);
+                        }
+                    },
+                    onComplete: () => {
+                        setIsStreaming(false);
+                        loadSessions();
+                    },
+                    onError: (error) => {
+                        console.error('Stream error:', error);
+                        toast.error('Streaming failed. Please try again.');
+                        setIsStreaming(false);
+                        // Remove the incomplete assistant message
+                        setMessages(prev => prev.slice(0, -1));
+                    }
+                },
+                sessionId || undefined
+            );
+        } else {
+            // Non-streaming mode (original behavior)
+            setIsLoading(true);
+
+            try {
+                const response = await sendChatMessage(userMessage.content, sessionId || undefined);
+
+                if (response.success) {
+                    const assistantMessage: ChatMessage = {
+                        role: 'assistant',
+                        content: response.response,
+                        source: response.source,
+                        timestamp: response.timestamp
+                    };
+                    setMessages(prev => [...prev, assistantMessage]);
+
+                    if (response.session_id && !sessionId) {
+                        setSessionId(response.session_id);
+                    }
+
+                    // Refresh sessions list
+                    loadSessions();
+                } else {
+                    toast.error('Failed to get response');
                 }
-
-                // Refresh sessions list
-                loadSessions();
-            } else {
-                toast.error('Failed to get response');
+            } catch (error) {
+                console.error('Chat error:', error);
+                toast.error('Failed to send message. Please try again.');
+                // Remove the user message if failed
+                setMessages(prev => prev.slice(0, -1));
+            } finally {
+                setIsLoading(false);
             }
-        } catch (error) {
-            console.error('Chat error:', error);
-            toast.error('Failed to send message. Please try again.');
-            // Remove the user message if failed
-            setMessages(prev => prev.slice(0, -1));
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -216,6 +282,17 @@ export function Chatbot() {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
+                            {/* Streaming Toggle */}
+                            <button
+                                onClick={() => setUseStreaming(!useStreaming)}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${useStreaming
+                                    ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 hover:bg-yellow-500/30'
+                                    : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white'
+                                    }`}
+                                title={useStreaming ? 'Streaming enabled - see responses in real-time' : 'Streaming disabled'}
+                            >
+                                <Zap className="w-4 h-4" />
+                            </button>
                             {/* Symptom Checker Toggle */}
                             <button
                                 onClick={() => setSymptomCheckerMode(!symptomCheckerMode)}

@@ -76,3 +76,8 @@ def get_report_access_requests_collection():
 def get_notifications_collection():
     """Get notifications collection."""
     return db.notifications
+
+
+def get_dose_history_collection():
+    """Get dose history collection for medication adherence tracking."""
+    return db.dose_history

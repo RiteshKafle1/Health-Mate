@@ -163,6 +163,30 @@ def calculate_next_dose_time(schedule_times: Optional[List[str]], doses_taken: O
 
 def enrich_medication(med: dict) -> dict:
     """Add calculated fields to medication record."""
+    
+    # ===== DAILY RESET LOGIC =====
+    # Check if we need to reset doses for a new day
+    today = datetime.now().strftime("%Y-%m-%d")
+    doses_taken_date = med.get("doses_taken_date")
+    
+    if doses_taken_date and doses_taken_date != today:
+        # It's a new day - need to reset the dose tracking
+        # Store previous day's data for history logging
+        med["_previous_doses"] = med.get("doses_taken_today", {}).copy()
+        med["_previous_date"] = doses_taken_date
+        med["doses_taken_today"] = {}
+        med["doses_taken_date"] = today
+        med["_needs_daily_reset"] = True  # Flag for async processing
+    elif not doses_taken_date:
+        # First time - initialize
+        med["doses_taken_date"] = today
+        med["doses_taken_today"] = {}
+    
+    # Initialize if missing (fallback)
+    if not med.get("doses_taken_today"):
+        med["doses_taken_today"] = {}
+    # ===== END DAILY RESET LOGIC =====
+    
     # Calculate stock metrics
     current_stock = med.get("current_stock")
     total_stock = med.get("total_stock")
@@ -190,10 +214,6 @@ def enrich_medication(med: dict) -> dict:
     # Generate schedule times if not set
     if not med.get("schedule_times") and frequency:
         med["schedule_times"] = generate_schedule_times(frequency)
-    
-    # Initialize doses_taken_today if not present
-    if not med.get("doses_taken_today"):
-        med["doses_taken_today"] = {}
     
     # Calculate next dose time
     med["next_dose_time"] = calculate_next_dose_time(
@@ -303,14 +323,59 @@ async def get_user_medications(user_id: str) -> dict:
     out_count = 0       # Out of stock
     
     async for med in cursor:
+        med_id = med["_id"]  # Keep ObjectId for updates
         med["_id"] = str(med["_id"])
         if isinstance(med.get("created_at"), datetime):
             med["created_at"] = med["created_at"].isoformat()
         if isinstance(med.get("updated_at"), datetime):
             med["updated_at"] = med["updated_at"].isoformat()
         
-        # Enrich with calculated fields
+        # Enrich with calculated fields (includes daily reset check)
         med = enrich_medication(med)
+        
+        # Process daily reset if flagged
+        if med.get("_needs_daily_reset"):
+            # Persist the reset to database
+            await medications.update_one(
+                {"_id": med_id},
+                {"$set": {
+                    "doses_taken_today": {},
+                    "doses_taken_date": med["doses_taken_date"],
+                    "updated_at": datetime.utcnow()
+                }}
+            )
+            
+            # Log previous day's doses to history (async, don't block)
+            previous_date = med.get("_previous_date")
+            previous_doses = med.get("_previous_doses", {})
+            schedule_times = med.get("schedule_times", [])
+            
+            if previous_date and schedule_times:
+                # Import here to avoid circular imports
+                try:
+                    from .dose_history_service import log_dose_event
+                    for time_slot in schedule_times:
+                        was_taken = previous_doses.get(time_slot, False)
+                        await log_dose_event(
+                            user_id=user_id,
+                            medication_id=med["_id"],
+                            medication_name=med.get("name", "Unknown"),
+                            date=previous_date,
+                            time_slot=time_slot,
+                            status="taken" if was_taken else "missed",
+                            actual_time=None  # We don't have exact time from previous day
+                        )
+                except ImportError:
+                    # Service not yet created, skip history logging
+                    pass
+            
+            # Clean up internal flags before adding to list
+            del med["_needs_daily_reset"]
+            if "_previous_doses" in med:
+                del med["_previous_doses"]
+            if "_previous_date" in med:
+                del med["_previous_date"]
+        
         meds_list.append(med)
         
         # Update summary stats
@@ -566,6 +631,7 @@ async def mark_dose_taken(user_id: str, medication_id: str, time_slot: str, take
     Mark a specific dose as taken or untaken.
     Updates doses_taken_today with the time slot status.
     Also decrements current_stock when marking as taken.
+    NOW ALSO LOGS TO DOSE HISTORY FOR ADHERENCE TRACKING.
     """
     medications = get_medications_collection()
     
@@ -623,8 +689,27 @@ async def mark_dose_taken(user_id: str, medication_id: str, time_slot: str, take
     if result.matched_count == 0:
         return {"success": False, "message": "Medication not found or not owned by you"}
     
+    # === LOG TO DOSE HISTORY ===
+    # Log this action to permanent history for adherence tracking
+    try:
+        from .dose_history_service import log_dose_event
+        await log_dose_event(
+            user_id=user_id,
+            medication_id=medication_id,
+            medication_name=current_med.get("name", "Unknown"),
+            date=today,
+            time_slot=time_slot,
+            status="taken" if taken else "missed",
+            actual_time=datetime.now() if taken else None
+        )
+    except Exception:
+        # Don't fail the main operation if history logging fails
+        pass
+    # === END HISTORY LOGGING ===
+    
     # Fetch and return updated medication
     updated = await get_medication(user_id, medication_id)
     if updated["success"]:
         updated["message"] = f"Dose at {time_slot} marked as {'taken' if taken else 'not taken'}"
     return updated
+

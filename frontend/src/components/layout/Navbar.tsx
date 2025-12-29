@@ -1,5 +1,5 @@
 import { useAuth } from '../../context/AuthContext';
-import { User, Menu, Cross, Search } from 'lucide-react';
+import { User, Menu, Cross, Search, Stethoscope, BookOpen } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { NotificationDropdown } from '../NotificationDropdown';
 
@@ -20,12 +20,15 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         if (path.includes('/medications')) return 'Medication Schedule';
         if (path.includes('/analytics')) return 'Health Insights';
         if (path.includes('/reports')) return role === 'doctor' ? 'Patient Reports' : 'My Lab Reports';
-        if (path.includes('/chatbot')) return 'HealthMate Assistant';
+        if (path.includes('/chatbot')) return 'HealthMate Clinician';
         if (path.includes('/profile')) return 'Profile Settings';
 
         // Fallback to capitalizing URL
         return path.split('/').pop()?.replace('-', ' ')?.replace(/^\w/, c => c.toUpperCase()) || 'Dashboard';
     };
+
+    // Check if current page is the chatbot/clinician page
+    const isClinicianPage = location.pathname.includes('/chatbot');
 
     return (
         <nav className="h-20 bg-[#FFF2F2] border-b border-surface/30 px-6 md:px-10 flex items-center justify-between sticky top-0 z-40 transition-all duration-300 shadow-sm">
@@ -49,10 +52,18 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                 {/* Vertical Divider */}
                 <div className="h-8 w-px bg-text/10 hidden md:block"></div>
 
-                {/* Contextual Title */}
-                <h2 className="text-xl font-bold text-text tracking-tight animate-fade-in">
-                    {getPageTitle()}
-                </h2>
+                {/* Contextual Title with Clinician Icons */}
+                <div className="flex items-center gap-2">
+                    {isClinicianPage && (
+                        <div className="flex items-center gap-1 p-1.5 bg-primary/10 rounded-lg">
+                            <Stethoscope className="h-4 w-4 text-primary" />
+                            <BookOpen className="h-4 w-4 text-primary" />
+                        </div>
+                    )}
+                    <h2 className="text-xl font-bold text-text tracking-tight animate-fade-in">
+                        {getPageTitle()}
+                    </h2>
+                </div>
             </div>
 
             {/* Center: Optional Search? Keeping it minimal as requested, so skipping. */}

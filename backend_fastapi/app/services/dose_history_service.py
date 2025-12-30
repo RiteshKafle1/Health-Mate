@@ -164,14 +164,21 @@ async def get_adherence_stats(
             skipped += 1
             by_medication[med_name]["skipped"] += 1
     
-    # Calculate percentages
-    adherence_percentage = (taken / total * 100) if total > 0 else 100
+    # Calculate percentages (return 0 if no data, not 100)
+    if total == 0:
+        adherence_percentage = 0
+        on_time_percentage = 0
+        no_data = True
+    else:
+        adherence_percentage = (taken / total * 100)
+        on_time_percentage = ((taken - late) / total * 100)
+        no_data = False
     
     # Calculate per-medication adherence
     for med_name in by_medication:
         med_stats = by_medication[med_name]
         med_stats["adherence_percentage"] = round(
-            (med_stats["taken"] / med_stats["total"] * 100) if med_stats["total"] > 0 else 100,
+            (med_stats["taken"] / med_stats["total"] * 100) if med_stats["total"] > 0 else 0,
             1
         )
     
@@ -180,6 +187,7 @@ async def get_adherence_stats(
         "period": period,
         "start_date": start_date.strftime("%Y-%m-%d"),
         "end_date": today.strftime("%Y-%m-%d"),
+        "no_data": no_data,
         "summary": {
             "total_doses": total,
             "taken": taken,
@@ -187,7 +195,8 @@ async def get_adherence_stats(
             "late": late,
             "skipped": skipped,
             "adherence_percentage": round(adherence_percentage, 1),
-            "on_time_percentage": round(((taken - late) / total * 100) if total > 0 else 100, 1)
+            "on_time_percentage": round(on_time_percentage, 1),
+            "message": "Start tracking your medications to see adherence stats" if no_data else None
         },
         "by_medication": by_medication,
         "by_date": by_date
@@ -249,6 +258,7 @@ async def calculate_streak(user_id: str) -> dict:
     A day counts towards the streak if:
     - All scheduled doses were taken
     - No doses were missed
+    - The day is consecutive (no gaps)
     
     Returns:
     - Current streak length
@@ -283,28 +293,54 @@ async def calculate_streak(user_id: str) -> dict:
     current_streak = 0
     last_broken_date = None
     today = datetime.now().strftime("%Y-%m-%d")
+    prev_date = None
     
     for i, day in enumerate(daily_stats):
         # Skip today if it's still ongoing
         if day["date"] == today and i == 0:
+            prev_date = datetime.strptime(today, "%Y-%m-%d")
             continue
+        
+        current_date = datetime.strptime(day["date"], "%Y-%m-%d")
+        
+        # Check for consecutive dates (no gaps)
+        if prev_date:
+            expected_date = prev_date - timedelta(days=1)
+            if current_date.date() != expected_date.date():
+                # Gap detected - streak broken due to missing day
+                last_broken_date = (expected_date).strftime("%Y-%m-%d")
+                break
         
         if day["is_perfect"]:
             current_streak += 1
+            prev_date = current_date
         else:
             last_broken_date = day["date"]
             break
     
-    # Calculate best streak ever
+    # Calculate best streak ever (also checking consecutive dates)
     best_streak = 0
     temp_streak = 0
+    prev_date_best = None
     
     for day in daily_stats:
-        if day["is_perfect"]:
+        current_date = datetime.strptime(day["date"], "%Y-%m-%d")
+        
+        # Check for consecutive dates
+        is_consecutive = True
+        if prev_date_best:
+            expected_date = prev_date_best - timedelta(days=1)
+            if current_date.date() != expected_date.date():
+                is_consecutive = False
+                temp_streak = 0  # Reset streak due to gap
+        
+        if day["is_perfect"] and is_consecutive:
             temp_streak += 1
             best_streak = max(best_streak, temp_streak)
+            prev_date_best = current_date
         else:
-            temp_streak = 0
+            temp_streak = 0 if not day["is_perfect"] else 1
+            prev_date_best = current_date if day["is_perfect"] else None
     
     return {
         "success": True,

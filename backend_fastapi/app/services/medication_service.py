@@ -457,7 +457,12 @@ async def update_medication(
     dose_per_intake: Optional[int] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    is_active: Optional[bool] = None
+    is_active: Optional[bool] = None,
+    purpose: Optional[str] = None,
+    instructions: Optional[str] = None,
+    purpose_source: Optional[str] = None,
+    instructions_source: Optional[str] = None,
+    schedule_times: Optional[List[str]] = None
 ) -> dict:
     """Update an existing medication."""
     medications = get_medications_collection()
@@ -487,6 +492,19 @@ async def update_medication(
         update_data["end_date"] = end_date
     if is_active is not None:
         update_data["is_active"] = is_active
+    if purpose is not None:
+        # Normalize empty strings to None so fields can be cleared
+        update_data["purpose"] = purpose.strip() if purpose.strip() else None
+    if instructions is not None:
+        update_data["instructions"] = instructions.strip() if instructions.strip() else None
+    if purpose_source is not None:
+        # Clear source if purpose was cleared
+        update_data["purpose_source"] = purpose_source if (purpose is None or purpose.strip()) else None
+    if instructions_source is not None:
+        # Clear source if instructions was cleared  
+        update_data["instructions_source"] = instructions_source if (instructions is None or instructions.strip()) else None
+    if schedule_times is not None:
+        update_data["schedule_times"] = schedule_times
     
     # Recalculate end_date if duration or start_date changed
     if duration is not None or start_date is not None:

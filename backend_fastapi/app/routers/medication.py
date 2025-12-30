@@ -1,6 +1,7 @@
 """Medication router - REST API endpoints for medication management."""
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import Optional
+from datetime import datetime
 from ..dependencies.auth import get_current_user
 from ..services import medication_service
 from ..services import medication_info_service
@@ -80,7 +81,12 @@ async def update_medication(
         dose_per_intake=medication.dose_per_intake,
         start_date=medication.start_date,
         end_date=medication.end_date,
-        is_active=medication.is_active
+        is_active=medication.is_active,
+        purpose=medication.purpose,
+        instructions=medication.instructions,
+        purpose_source=medication.purpose_source,
+        instructions_source=medication.instructions_source,
+        schedule_times=medication.schedule_times
     )
     if not result["success"]:
         raise HTTPException(
@@ -170,14 +176,24 @@ async def mark_dose(
 @router.get("/info/{medication_name}")
 async def get_medication_info(
     medication_name: str,
+    field: str = "both",  # "purpose" | "instructions" | "both"
     user_id: str = Depends(get_current_user)
 ):
     """
-    Get AI-generated purpose and instructions for a medication.
-    Uses knowledge base first, then Gemini AI if not found.
-    Returns purpose and instructions (max 10 words each).
+    Get medication purpose and/or instructions from multiple sources.
+    
+    Sources (priority order):
+    1. Local knowledge base
+    2. OpenFDA API (FDA drug labels)
+    3. Tavily web search (medical sites)
+    4. Gemini AI (fallback)
+    
+    Query params:
+        field: "purpose" | "instructions" | "both" (default: both)
+    
+    Returns: {purpose, instructions, source, success}
     """
-    result = await medication_info_service.get_medication_info(medication_name)
+    result = await medication_info_service.get_medication_info(medication_name, field)
     return result
 
 
@@ -267,3 +283,75 @@ async def get_dose_history(
         end_date=end_date
     )
 
+
+@router.get("/adherence/time-analysis")
+async def get_time_analysis(
+    period: str = "week",
+    user_id: str = Depends(get_current_user)
+):
+    """
+    Analyze dose adherence by time of day.
+    
+    Returns:
+    - Breakdown by time period (Morning, Afternoon, Evening, Night)
+    - Miss percentage per period
+    - Worst time period identified
+    """
+    from ..services import dose_history_service
+    return await dose_history_service.get_time_of_day_analysis(user_id, period)
+
+
+@router.get("/adherence/comparison")
+async def get_comparison(user_id: str = Depends(get_current_user)):
+    """
+    Compare current week's adherence with previous week.
+    
+    Returns:
+    - This week's stats
+    - Last week's stats
+    - Delta (improvement/decline percentage)
+    - Trend direction and insight message
+    """
+    from ..services import dose_history_service
+    return await dose_history_service.get_comparison_stats(user_id)
+
+
+# ============================================
+# PHASE 3: AI INSIGHTS & REPORTING
+# ============================================
+
+@router.get("/adherence/ai-insights")
+async def get_ai_insights(
+    user_id: str = Depends(get_current_user),
+    refresh: bool = False
+):
+    """
+    Get AI-generated personalized medication adherence insights.
+    
+    Uses caching to minimize API calls:
+    - Returns cached insights if < 24 hours old
+    - Set refresh=True to force regeneration (max 1/day)
+    
+    Returns:
+    - insights: List of 3 personalized tips
+    - generated_at: When insights were generated
+    - from_cache: True if returned from cache
+    """
+    from ..services import ai_insights_service
+    return await ai_insights_service.generate_ai_insights(user_id, force_refresh=refresh)
+
+
+@router.get("/adherence/ai-insights/can-refresh")
+async def can_refresh_insights(user_id: str = Depends(get_current_user)):
+    """
+    Check if user can refresh their AI insights.
+    
+    Users can only refresh once per 24 hours to prevent API abuse.
+    
+    Returns:
+    - can_refresh: bool
+    - next_refresh_at: datetime when refresh will be available
+    - hours_until_refresh: hours remaining
+    """
+    from ..services import ai_insights_service
+    return await ai_insights_service.can_refresh_insights(user_id)

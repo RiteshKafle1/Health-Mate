@@ -25,6 +25,8 @@ class MedicationBase(BaseModel):
     # Phase 3: Enhanced Tracking
     purpose: Optional[str] = None  # Why the medication is prescribed (e.g., "Antibiotic for infection")
     instructions: Optional[str] = None  # How to take it (e.g., "Take with food")
+    purpose_source: Optional[str] = None  # Source of purpose info (knowledge_base, openfda, tavily, ai_generated)
+    instructions_source: Optional[str] = None  # Source of instructions info
     schedule_times: Optional[List[str]] = None  # Specific times like ["08:00", "12:00", "16:00"]
     doses_taken_today: Optional[Dict[str, bool]] = None  # {"08:00": true, "12:00": false}
 
@@ -55,6 +57,8 @@ class MedicationUpdate(BaseModel):
     # Enhanced tracking fields
     purpose: Optional[str] = None
     instructions: Optional[str] = None
+    purpose_source: Optional[str] = None
+    instructions_source: Optional[str] = None
     schedule_times: Optional[List[str]] = None
     doses_taken_today: Optional[Dict[str, bool]] = None
 

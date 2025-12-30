@@ -81,3 +81,8 @@ def get_notifications_collection():
 def get_dose_history_collection():
     """Get dose history collection for medication adherence tracking."""
     return db.dose_history
+
+
+def get_ai_insights_cache_collection():
+    """Get AI insights cache collection for storing generated insights."""
+    return db.ai_insights_cache

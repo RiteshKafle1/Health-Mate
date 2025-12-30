@@ -16,11 +16,11 @@ export function OptionChip({ label, onClick, selected = false, icon, disabled = 
             disabled={disabled}
             className={`
                 relative flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium
-                transition-all duration-200 ease-out
-                ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                transition-all duration-200 ease-out border shadow-sm
+                ${disabled ? 'opacity-50 cursor-not-allowed bg-slate-50' : 'cursor-pointer'}
                 ${selected
-                    ? 'bg-purple-500/30 text-purple-200 border-2 border-purple-500 shadow-lg shadow-purple-500/20'
-                    : 'bg-slate-700/50 text-slate-300 border border-slate-600/50 hover:bg-slate-600/50 hover:text-white hover:border-slate-500 hover:scale-[1.02] active:scale-[0.98]'
+                    ? 'bg-purple-50 text-purple-700 border-purple-500 ring-1 ring-purple-500 shadow-purple-500/10'
+                    : 'bg-white text-text-muted border-surface hover:border-purple-300 hover:text-purple-600 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0'
                 }
             `}
         >

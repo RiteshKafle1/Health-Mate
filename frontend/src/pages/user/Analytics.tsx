@@ -24,7 +24,6 @@ import {
     Flame,
     Calendar,
     Clock,
-    Pill,
     ChevronRight,
     Target,
     Award,
@@ -141,6 +140,8 @@ export function Analytics() {
     const [navExpanded, setNavExpanded] = useState(false);
     const [canRefresh, setCanRefresh] = useState<CanRefreshResponse | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [missedSectionExpanded, setMissedSectionExpanded] = useState(false);
+    const [missedFilter, setMissedFilter] = useState<'today' | '7d' | '14d' | '30d'>('7d');
 
     // Section refs for quick navigation
     const sectionRefs = {
@@ -165,48 +166,71 @@ export function Analytics() {
     ];
 
     // Scroll to section
-    const scrollToSection = (sectionId: string) => {
-        const ref = sectionRefs[sectionId as keyof typeof sectionRefs];
-        if (ref?.current) {
-            ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            setActiveSection(sectionId);
-            // Reset active after animation
-            setTimeout(() => setActiveSection(null), 1500);
+    const scrollToSection = (id: string) => {
+        const element = sectionRefs[id as keyof typeof sectionRefs];
+        if (element && element.current) {
+            const yOffset = -100;
+            const y = element.current.getBoundingClientRect().top + window.scrollY + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+            setActiveSection(id);
         }
     };
-
-    useEffect(() => {
-        fetchData();
-    }, [period]);
 
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const [statsRes, missedRes, streakRes, timeRes, compRes, aiRes] = await Promise.all([
-                getAdherenceStats(period),
-                getMissedDoses(10),
+            const end = new Date();
+            let start = new Date();
+
+            if (missedFilter === 'today') {
+                // Start and end are both today
+            } else if (missedFilter === '7d') {
+                start.setDate(end.getDate() - 7);
+            } else if (missedFilter === '14d') {
+                start.setDate(end.getDate() - 14);
+            } else if (missedFilter === '30d') {
+                start.setDate(end.getDate() - 30);
+            }
+
+            const startDateStr = start.toISOString().split('T')[0];
+            const endDateStr = end.toISOString().split('T')[0];
+
+            /*
+             * If filtering by 'today', usage of startDate=today and endDate=today 
+             * ensures we only get today's missed doses.
+             */
+
+            const [stats, streakRes, missedRes, timeRes, compRes, aiRes, refreshRes] = await Promise.all([
+                getAdherenceStats(period), // Keep original period for overall stats
                 getStreak(),
-                getTimeAnalysis(period),
+                getMissedDoses(50, undefined, startDateStr, endDateStr), // Apply date filter
+                getTimeAnalysis(period), // Keep original period for time analysis
                 getComparison(),
-                getAIInsights()
+                getAIInsights(),
+                canRefreshInsights()
             ]);
 
-            if (statsRes.success) setAdherenceStats(statsRes);
-            if (missedRes.success) setMissedDoses(missedRes);
+            if (stats.success) setAdherenceStats(stats);
             if (streakRes.success) setStreak(streakRes);
+            if (missedRes.success) setMissedDoses(missedRes);
             if (timeRes.success) setTimeAnalysis(timeRes);
             if (compRes.success) setComparison(compRes);
-            if (aiRes.success) setAiInsights(aiRes);
-
-            // Check refresh status
-            const refreshStatus = await canRefreshInsights();
-            setCanRefresh(refreshStatus);
-        } catch {
+            if (aiRes.success) {
+                setAiInsights(aiRes);
+            }
+            if (refreshRes) setCanRefresh(refreshRes);
+        } catch (error) {
+            console.error('Error fetching analytics:', error);
             toast.error('Failed to load health insights');
         } finally {
             setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchData();
+    }, [period, missedFilter]);
+
 
     // Handler for refreshing AI insights
     const handleRefreshInsights = async () => {
@@ -283,7 +307,7 @@ export function Analytics() {
         );
     }
 
-    const { summary, by_medication, by_date } = adherenceStats;
+    const { summary, by_date } = adherenceStats;
 
     // Prepare chart data from by_date with adherence percentage
     const chartData = Object.entries(by_date)
@@ -311,7 +335,7 @@ export function Analytics() {
                     <div>
                         <h1 className="text-2xl font-bold text-[#2D336B] flex items-center gap-3">
                             <Activity className="text-[#7886C7]" size={28} />
-                            Health Insights
+                            Adherence Analytics
                         </h1>
                         <p className="text-[#2D336B]/60 mt-1 font-medium">
                             Track your medication adherence and health trends
@@ -438,6 +462,57 @@ export function Analytics() {
                         </div>
                     </div>
                 </div>
+
+                {/* AI-Powered Insights - Moved to Top */}
+                {aiInsights && aiInsights.insights.length > 0 && (
+                    <div ref={sectionRefs.aiInsights} className="bg-gradient-to-br from-[#7886C7]/10 to-purple-50/50 backdrop-blur-xl border border-[#7886C7]/30 rounded-[1.5rem] p-6 shadow-xl shadow-[#2D336B]/5 scroll-mt-24">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <Sparkles size={20} className="text-[#7886C7]" />
+                                <h3 className="text-lg font-bold text-[#2D336B]">
+                                    Daily Health Tips
+                                </h3>
+                                {aiInsights.from_cache && (
+                                    <span className="text-xs text-[#2D336B]/40">
+                                        · Updated {formatTimeAgo(aiInsights.generated_at)}
+                                    </span>
+                                )}
+                            </div>
+                            <button
+                                onClick={handleRefreshInsights}
+                                disabled={isRefreshing || !canRefresh?.can_refresh}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${canRefresh?.can_refresh && !isRefreshing
+                                    ? 'bg-[#7886C7]/20 text-[#7886C7] hover:bg-[#7886C7]/30 cursor-pointer'
+                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    }`}
+                                title={canRefresh?.can_refresh ? 'Refresh insights' : `Refresh available in ${canRefresh?.hours_until_refresh || 0}h`}
+                            >
+                                {isRefreshing ? (
+                                    <Loader2 size={12} className="animate-spin" />
+                                ) : (
+                                    <Activity size={12} />
+                                )}
+                                {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {aiInsights.insights.map((insight, index) => (
+                                <div
+                                    key={index}
+                                    className="bg-white/80 rounded-xl p-4 border border-[#A9B5DF]/30 hover:shadow-md transition-all flex items-start gap-3"
+                                >
+                                    <div className="p-1.5 bg-[#EEF2FF] rounded-lg text-[#7886C7] mt-0.5">
+                                        <Award size={14} />
+                                    </div>
+                                    <p className="text-[#2D336B] text-sm leading-relaxed font-medium">
+                                        {insight}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* Charts Row */}
                 <div ref={sectionRefs.trend} className="grid grid-cols-1 lg:grid-cols-3 gap-6 scroll-mt-24">
@@ -693,139 +768,133 @@ export function Analytics() {
                     )}
                 </div>
 
-                {/* Calendar Heatmap */}
+                {/* Daily Adherence Calendar - Redesigned */}
                 {adherenceStats && Object.keys(adherenceStats.by_date).length > 0 && (
                     <div ref={sectionRefs.calendar} className="bg-white/70 backdrop-blur-xl border border-[#A9B5DF]/40 rounded-[1.5rem] p-6 shadow-xl shadow-[#2D336B]/5 scroll-mt-24">
-                        <h3 className="text-lg font-bold text-[#2D336B] mb-4 flex items-center gap-2">
+                        <h3 className="text-lg font-bold text-[#2D336B] mb-6 flex items-center gap-2">
                             <Calendar size={20} className="text-[#7886C7]" />
-                            Daily Adherence Calendar
+                            Adherence History
                         </h3>
 
-                        <div className="flex flex-wrap gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
                             {Object.entries(adherenceStats.by_date)
-                                .sort((a, b) => a[0].localeCompare(b[0]))
+                                .sort((a, b) => b[0].localeCompare(a[0])) // Sort descending for history
+                                .slice(0, 14) // Show last 2 weeks prominently
                                 .map(([date, stats]) => {
                                     const adherence = stats.total > 0 ? (stats.taken / stats.total) * 100 : 100;
-                                    const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'short' });
-                                    const dayNum = new Date(date).getDate();
+                                    const dateObj = new Date(date);
+                                    const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+                                    const dayNum = dateObj.getDate();
+                                    const month = dateObj.toLocaleDateString('en-US', { month: 'short' });
+
+                                    let statusColor = 'bg-gray-100 text-gray-400 border-gray-200';
+                                    let icon = <Clock size={14} />;
+
+                                    if (adherence === 100) {
+                                        statusColor = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                                        icon = <CheckCircle2 size={14} />;
+                                    } else if (adherence >= 50) {
+                                        statusColor = 'bg-amber-100 text-amber-700 border-amber-200';
+                                        icon = <AlertTriangle size={14} />;
+                                    } else {
+                                        statusColor = 'bg-red-100 text-red-700 border-red-200';
+                                        icon = <AlertTriangle size={14} />;
+                                    }
 
                                     return (
                                         <div
                                             key={date}
-                                            className={`w-12 h-14 rounded-xl flex flex-col items-center justify-center text-xs font-medium transition-all hover:scale-110 cursor-default ${adherence === 100 ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
-                                                adherence >= 50 ? 'bg-amber-100 text-amber-700 border border-amber-200' :
-                                                    'bg-red-100 text-red-700 border border-red-200'
-                                                }`}
-                                            title={`${date}: ${Math.round(adherence)}% adherence (${stats.taken}/${stats.total})`}
+                                            className={`p-3 rounded-xl border flex flex-col gap-2 transition-all hover:shadow-md ${statusColor}`}
                                         >
-                                            <span className="text-[10px] opacity-70">{dayName}</span>
-                                            <span className="text-lg font-bold">{dayNum}</span>
+                                            <div className="flex justify-between items-start">
+                                                <span className="text-[10px] font-bold uppercase opacity-70">{dayName}</span>
+                                                {icon}
+                                            </div>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-xl font-bold">{dayNum}</span>
+                                                <span className="text-xs opacity-70">{month}</span>
+                                            </div>
+                                            <div className="mt-auto pt-2 border-t border-black/5 flex justify-between items-center text-xs font-medium">
+                                                <span>{Math.round(adherence)}%</span>
+                                                <span className="opacity-70">{stats.taken}/{stats.total}</span>
+                                            </div>
                                         </div>
                                     );
                                 })}
                         </div>
-
-                        <div className="flex items-center justify-center gap-6 mt-4 text-xs text-[#2D336B]/60">
-                            <div className="flex items-center gap-1">
-                                <div className="w-4 h-4 rounded bg-emerald-100 border border-emerald-200" />
-                                <span>100%</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <div className="w-4 h-4 rounded bg-amber-100 border border-amber-200" />
-                                <span>50-99%</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <div className="w-4 h-4 rounded bg-red-100 border border-red-200" />
-                                <span>&lt;50%</span>
-                            </div>
-                        </div>
                     </div>
                 )}
 
-                {/* Phase 3: AI-Powered Insights */}
-                {aiInsights && aiInsights.insights.length > 0 && (
-                    <div ref={sectionRefs.aiInsights} className="bg-gradient-to-br from-[#7886C7]/10 to-purple-50/50 backdrop-blur-xl border border-[#7886C7]/30 rounded-[1.5rem] p-6 shadow-xl shadow-[#2D336B]/5 scroll-mt-24">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2">
-                                <Sparkles size={20} className="text-[#7886C7]" />
-                                <h3 className="text-lg font-bold text-[#2D336B]">
-                                    AI-Powered Insights
-                                </h3>
-                                {aiInsights.from_cache && (
-                                    <span className="text-xs text-[#2D336B]/40">
-                                        · Updated {formatTimeAgo(aiInsights.generated_at)}
-                                    </span>
-                                )}
-                            </div>
-                            <button
-                                onClick={handleRefreshInsights}
-                                disabled={isRefreshing || !canRefresh?.can_refresh}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${canRefresh?.can_refresh && !isRefreshing
-                                    ? 'bg-[#7886C7]/20 text-[#7886C7] hover:bg-[#7886C7]/30 cursor-pointer'
-                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                    }`}
-                                title={canRefresh?.can_refresh ? 'Refresh insights' : `Refresh available in ${canRefresh?.hours_until_refresh || 0}h`}
-                            >
-                                {isRefreshing ? (
-                                    <Loader2 size={12} className="animate-spin" />
-                                ) : (
-                                    <Activity size={12} />
-                                )}
-                                {isRefreshing ? 'Refreshing...' : 'Refresh'}
-                            </button>
-                        </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {aiInsights.insights.map((insight, index) => (
-                                <div
-                                    key={index}
-                                    className="bg-white/80 rounded-xl p-4 border border-[#A9B5DF]/30 hover:shadow-md transition-all"
-                                >
-                                    <p className="text-[#2D336B] text-sm leading-relaxed">
-                                        {insight}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-
-                        {aiInsights.fallback && (
-                            <p className="text-xs text-[#2D336B]/40 mt-4 text-center">
-                                Generic insights shown. Track more doses for personalized recommendations.
-                            </p>
-                        )}
-
-                        {!canRefresh?.can_refresh && canRefresh?.hours_until_refresh && (
-                            <p className="text-xs text-[#2D336B]/30 mt-3 text-center">
-                                Next refresh available in {canRefresh.hours_until_refresh}h
-                            </p>
-                        )}
-                    </div>
-                )}
 
                 {/* Missed Doses History */}
-                {missedDoses && missedDoses.missed_doses.length > 0 && (
-                    <div ref={sectionRefs.missed} className="bg-white/70 backdrop-blur-xl border border-[#A9B5DF]/40 rounded-[1.5rem] p-6 shadow-xl shadow-[#2D336B]/5 scroll-mt-24">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-[#2D336B] flex items-center gap-2">
-                                <AlertTriangle size={20} className="text-red-500" />
-                                Missed Doses
-                            </h3>
-                            <span className="text-sm text-[#2D336B]/50">
-                                Showing last {missedDoses.count} missed
-                            </span>
+                <div ref={sectionRefs.missed} className="bg-white/70 backdrop-blur-xl border border-[#A9B5DF]/40 rounded-[1.5rem] shadow-xl shadow-[#2D336B]/5 scroll-mt-24 overflow-hidden transition-all duration-300">
+                    <div
+                        className="p-6 flex items-center justify-between cursor-pointer hover:bg-white/50 transition-colors"
+                        onClick={() => setMissedSectionExpanded(!missedSectionExpanded)}
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-red-100 rounded-lg text-red-500">
+                                <AlertTriangle size={20} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-[#2D336B]">
+                                    Missed Doses
+                                </h3>
+                                {!missedSectionExpanded && missedDoses && (
+                                    <p className="text-xs text-[#2D336B]/50">
+                                        {missedDoses.count > 0 ? `${missedDoses.count} missed in this period` : 'No missed doses'}
+                                    </p>
+                                )}
+                            </div>
                         </div>
-                        <div className="divide-y divide-[#A9B5DF]/20">
-                            {missedDoses.missed_doses.map((dose, index) => (
-                                <MissedDoseRow
-                                    key={index}
-                                    medicationName={dose.medication_name}
-                                    date={dose.date}
-                                    timeSlot={dose.time_slot}
-                                />
-                            ))}
+                        <ChevronDown
+                            size={20}
+                            className={`text-[#2D336B]/40 transition-transform duration-300 ${missedSectionExpanded ? 'rotate-180' : ''}`}
+                        />
+                    </div>
+
+                    <div className={`transition-all duration-300 ease-in-out ${missedSectionExpanded ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                        <div className="px-6 pb-6">
+                            {/* Filter Tabs */}
+                            <div className="flex p-1 bg-[#EEF2FF] rounded-xl mb-4 w-fit">
+                                {(['today', '7d', '14d', '30d'] as const).map((filter) => (
+                                    <button
+                                        key={filter}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setMissedFilter(filter);
+                                        }}
+                                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${missedFilter === filter
+                                            ? 'bg-white text-[#7886C7] shadow-sm'
+                                            : 'text-[#2D336B]/50 hover:text-[#2D336B]/70'
+                                            }`}
+                                    >
+                                        {filter === 'today' ? 'Today' : `Last ${filter.replace('d', '')} days`}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {missedDoses && missedDoses.missed_doses.length > 0 ? (
+                                <div className="divide-y divide-[#A9B5DF]/20">
+                                    {missedDoses.missed_doses.map((dose, index) => (
+                                        <MissedDoseRow
+                                            key={index}
+                                            medicationName={dose.medication_name}
+                                            date={dose.date}
+                                            timeSlot={dose.time_slot}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-[#2D336B]/40">
+                                    <CheckCircle2 size={32} className="mx-auto mb-2 opacity-50 text-emerald-500" />
+                                    <p>No missed doses in this period!</p>
+                                </div>
+                            )}
                         </div>
                     </div>
-                )}
+                </div>
 
             </div>
         </div>

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Send, Plus, Trash2, History, X, Bot, User, Loader2, Activity, Zap } from 'lucide-react';
+import { Send, Plus, Trash2, History, X, Bot, User, Loader2, Activity, Zap, Sparkles } from 'lucide-react';
 import {
     sendChatMessage,
     sendChatMessageStream,
@@ -202,16 +202,16 @@ export function Chatbot() {
     };
 
     return (
-        <div className="h-[calc(100vh-120px)] flex bg-slate-900 rounded-xl overflow-hidden border border-slate-700/50">
+        <div className="h-[calc(100vh-120px)] flex bg-white/50 backdrop-blur-sm rounded-2xl overflow-hidden shadow-card border border-surface/50">
             {/* Sidebar for sessions */}
-            <div className={`${showSidebar ? 'w-72' : 'w-0'} transition-all duration-300 bg-slate-800/50 border-r border-slate-700/50 overflow-hidden`}>
-                <div className="p-4 border-b border-slate-700/50">
+            <div className={`${showSidebar ? 'w-80' : 'w-0'} transition-all duration-300 bg-white/80 border-r border-indigo-50 overflow-hidden flex flex-col`}>
+                <div className="p-5 border-b border-indigo-50 bg-white/50">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-white font-semibold flex items-center gap-2">
-                            <History className="w-4 h-4" />
+                        <h3 className="text-text font-semibold flex items-center gap-2">
+                            <History className="w-4 h-4 text-primary" />
                             Chat History
                         </h3>
-                        <button onClick={() => setShowSidebar(false)} className="text-slate-400 hover:text-white">
+                        <button onClick={() => setShowSidebar(false)} className="text-text-muted hover:text-primary transition-colors">
                             <X className="w-4 h-4" />
                         </button>
                     </div>
@@ -220,9 +220,9 @@ export function Chatbot() {
                     {sessions.map((session) => (
                         <div
                             key={session.session_id}
-                            className={`p-3 rounded-lg cursor-pointer group transition-colors ${sessionId === session.session_id
-                                ? 'bg-emerald-500/20 border border-emerald-500/30'
-                                : 'bg-slate-700/30 hover:bg-slate-700/50'
+                            className={`p-3 rounded-xl cursor-pointer group transition-all duration-200 border ${sessionId === session.session_id
+                                ? 'bg-primary/5 border-primary/20 shadow-sm'
+                                : 'bg-transparent border-transparent hover:bg-white hover:shadow-sm hover:border-surface'
                                 }`}
                         >
                             <div className="flex justify-between items-start">
@@ -230,10 +230,10 @@ export function Chatbot() {
                                     className="flex-1 min-w-0"
                                     onClick={() => handleLoadSession(session)}
                                 >
-                                    <p className="text-sm text-white truncate">
+                                    <p className={`text-sm font-medium truncate ${sessionId === session.session_id ? 'text-primary' : 'text-text'}`}>
                                         {session.preview || 'New conversation'}
                                     </p>
-                                    <p className="text-xs text-slate-400 mt-1">
+                                    <p className="text-xs text-text-muted/70 mt-1">
                                         {session.last_active ? new Date(session.last_active).toLocaleDateString() : ''}
                                     </p>
                                 </div>
@@ -242,40 +242,46 @@ export function Chatbot() {
                                         e.stopPropagation();
                                         handleDeleteSession(session.session_id);
                                     }}
-                                    className="opacity-0 group-hover:opacity-100 p-1 text-red-400 hover:text-red-300 transition-opacity"
+                                    className="opacity-0 group-hover:opacity-100 p-1.5 text-text-muted hover:text-error hover:bg-error-bg rounded-lg transition-all"
                                 >
-                                    <Trash2 className="w-4 h-4" />
+                                    <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                             </div>
                         </div>
                     ))}
                     {sessions.length === 0 && (
-                        <p className="text-slate-500 text-sm text-center py-4">No chat history yet</p>
+                        <div className="text-center py-8">
+                            <div className="w-12 h-12 bg-surface/50 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <History className="w-5 h-5 text-text-muted/50" />
+                            </div>
+                            <p className="text-text-muted text-sm">No chat history yet</p>
+                        </div>
                     )}
                 </div>
             </div>
 
             {/* Main chat area */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col bg-slate-50/50">
                 {/* Header */}
-                <div className="p-4 border-b border-slate-700/50 bg-slate-800/30">
+                <div className="p-4 border-b border-indigo-50 bg-white/80 backdrop-blur-sm z-10">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setShowSidebar(!showSidebar)}
-                                className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+                                className="p-2 rounded-xl bg-surface hover:bg-white hover:shadow-soft text-text-muted hover:text-primary transition-all duration-200"
                             >
                                 <History className="w-5 h-5" />
                             </button>
-                            <div className="flex items-center gap-2">
-                                <div className={`p-2 rounded-full bg-gradient-to-br ${symptomCheckerMode ? 'from-purple-500 to-purple-700' : 'from-emerald-500 to-teal-600'}`}>
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2.5 rounded-xl shadow-soft ${symptomCheckerMode ? 'bg-gradient-to-br from-purple-500 to-purple-600' : 'bg-gradient-to-br from-primary to-primary-hover'}`}>
                                     {symptomCheckerMode ? <Activity className="w-5 h-5 text-white" /> : <Bot className="w-5 h-5 text-white" />}
                                 </div>
                                 <div>
-                                    <h2 className="text-white font-semibold">
-                                        {symptomCheckerMode ? 'Symptom Checker' : 'HealthMate Clinician'}
+                                    <h2 className="text-text font-bold text-lg leading-tight">
+                                        {symptomCheckerMode ? 'Symptom Checker' : 'HealthMate'}
+                                        <span className="ml-2 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">Clinician</span>
                                     </h2>
-                                    <p className="text-xs text-slate-400">
+                                    <p className="text-xs text-text-muted font-medium">
                                         {symptomCheckerMode ? 'Guided Assessment' : 'AI Medical Assistant'}
                                     </p>
                                 </div>
@@ -285,9 +291,9 @@ export function Chatbot() {
                             {/* Streaming Toggle */}
                             <button
                                 onClick={() => setUseStreaming(!useStreaming)}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${useStreaming
-                                    ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 hover:bg-yellow-500/30'
-                                    : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white'
+                                className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all font-medium text-sm ${useStreaming
+                                    ? 'bg-amber-50 text-amber-600 border border-amber-200'
+                                    : 'bg-surface text-text-muted hover:bg-white hover:shadow-sm'
                                     }`}
                                 title={useStreaming ? 'Streaming enabled - see responses in real-time' : 'Streaming disabled'}
                             >
@@ -296,9 +302,9 @@ export function Chatbot() {
                             {/* Symptom Checker Toggle */}
                             <button
                                 onClick={() => setSymptomCheckerMode(!symptomCheckerMode)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${symptomCheckerMode
-                                    ? 'bg-purple-500/30 text-purple-300 border border-purple-500/50 hover:bg-purple-500/40'
-                                    : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700 hover:text-white'
+                                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-medium text-sm shadow-sm ${symptomCheckerMode
+                                    ? 'bg-purple-50 text-purple-600 border border-purple-200'
+                                    : 'bg-surface text-text-muted hover:bg-white hover:text-primary hover:shadow-md'
                                     }`}
                             >
                                 <Activity className="w-4 h-4" />
@@ -306,7 +312,7 @@ export function Chatbot() {
                             </button>
                             <button
                                 onClick={handleNewChat}
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white font-medium hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/20 transition-all text-sm shadow-md"
                             >
                                 <Plus className="w-4 h-4" />
                                 New Chat
@@ -329,18 +335,21 @@ export function Chatbot() {
                     <>
 
                         {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6">
                             {messages.length === 0 && (
-                                <div className="h-full flex flex-col items-center justify-center text-center">
-                                    <div className="p-4 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-600/20 mb-4">
-                                        <MessageCircle className="w-12 h-12 text-emerald-400" />
+                                <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                                    <div className="relative mb-6">
+                                        <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full"></div>
+                                        <div className="relative p-5 rounded-2xl bg-white shadow-soft ring-1 ring-primary/10">
+                                            <Sparkles className="w-10 h-10 text-primary" />
+                                        </div>
                                     </div>
-                                    <h3 className="text-xl font-semibold text-white mb-2">Welcome to HealthMate Clinician</h3>
-                                    <p className="text-slate-400 max-w-md">
-                                        Your AI-powered medical assistant. Ask me anything about health, symptoms,
-                                        medications, or general wellness advice.
+                                    <h3 className="text-2xl font-bold text-text mb-3">Welcome to HealthMate</h3>
+                                    <p className="text-text-muted max-w-md leading-relaxed">
+                                        Your advanced AI clinician assistant. Ask about symptoms,
+                                        medications, or general wellness advice with confidence.
                                     </p>
-                                    <div className="mt-6 grid grid-cols-2 gap-3 max-w-lg">
+                                    <div className="mt-8 grid grid-cols-2 gap-3 max-w-lg w-full">
                                         {[
                                             'What are symptoms of flu?',
                                             'How to reduce fever naturally?',
@@ -350,9 +359,9 @@ export function Chatbot() {
                                             <button
                                                 key={i}
                                                 onClick={() => setInputMessage(suggestion)}
-                                                className="p-3 text-sm text-left rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors"
+                                                className="p-4 text-sm text-left rounded-xl bg-white border border-surface/50 text-text-muted hover:border-primary/30 hover:text-primary hover:shadow-soft transition-all duration-200 group"
                                             >
-                                                {suggestion}
+                                                <span className="font-medium group-hover:underline decoration-primary/30 underline-offset-4">{suggestion}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -362,48 +371,48 @@ export function Chatbot() {
                             {messages.map((message, index) => (
                                 <div
                                     key={index}
-                                    className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                    className={`flex gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start max-w-4xl'}`}
                                 >
                                     {message.role === 'assistant' && (
-                                        <div className="p-2 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 h-fit">
+                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center shadow-md mt-1">
                                             <Bot className="w-4 h-4 text-white" />
                                         </div>
                                     )}
                                     <div
-                                        className={`max-w-[70%] rounded-2xl p-4 ${message.role === 'user'
-                                            ? 'bg-emerald-500 text-white'
-                                            : 'bg-slate-800 text-slate-200 border border-slate-700/50'
+                                        className={`rounded-2xl p-5 shadow-sm leading-relaxed text-sm md:text-base ${message.role === 'user'
+                                            ? 'bg-primary text-white rounded-tr-none'
+                                            : 'bg-white text-text border border-surface/50 rounded-tl-none shadow-card'
                                             }`}
                                     >
                                         <p className="whitespace-pre-wrap">{message.content}</p>
-                                        <div className={`flex items-center gap-2 mt-2 text-xs ${message.role === 'user' ? 'text-emerald-200' : 'text-slate-500'
+                                        <div className={`flex items-center gap-2 mt-2.5 text-xs font-medium ${message.role === 'user' ? 'text-white/70' : 'text-text-muted/60'
                                             }`}>
                                             {message.timestamp && <span>{message.timestamp}</span>}
                                             {message.source && message.role === 'assistant' && (
                                                 <>
-                                                    <span>•</span>
+                                                    <span className="w-1 h-1 rounded-full bg-current opacity-50"></span>
                                                     <span>{message.source}</span>
                                                 </>
                                             )}
                                         </div>
                                     </div>
                                     {message.role === 'user' && (
-                                        <div className="p-2 rounded-full bg-slate-700 h-fit">
-                                            <User className="w-4 h-4 text-slate-300" />
+                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center shadow-sm mt-1">
+                                            <User className="w-4 h-4 text-primary" />
                                         </div>
                                     )}
                                 </div>
                             ))}
 
                             {isLoading && (
-                                <div className="flex gap-3 justify-start">
-                                    <div className="p-2 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 h-fit">
+                                <div className="flex gap-4 justify-start">
+                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center shadow-md">
                                         <Bot className="w-4 h-4 text-white" />
                                     </div>
-                                    <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700/50">
-                                        <div className="flex items-center gap-2 text-slate-400">
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                            <span>Thinking...</span>
+                                    <div className="bg-white rounded-2xl rounded-tl-none p-4 border border-surface/50 shadow-card">
+                                        <div className="flex items-center gap-3 text-text-muted">
+                                            <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                                            <span className="text-sm font-medium">Thinking...</span>
                                         </div>
                                     </div>
                                 </div>
@@ -412,27 +421,31 @@ export function Chatbot() {
                         </div>
 
                         {/* Input */}
-                        <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-700/50 bg-slate-800/30">
-                            <div className="flex gap-3">
-                                <input
-                                    type="text"
-                                    value={inputMessage}
-                                    onChange={(e) => setInputMessage(e.target.value)}
-                                    placeholder="Ask about health, symptoms, medications..."
-                                    className="flex-1 px-4 py-3 rounded-xl bg-slate-700/50 border border-slate-600/50 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50"
-                                    disabled={isLoading}
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={!inputMessage.trim() || isLoading}
-                                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium hover:from-emerald-600 hover:to-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
-                                >
-                                    <Send className="w-5 h-5" />
-                                </button>
+                        <form onSubmit={handleSendMessage} className="p-4 bg-white/80 backdrop-blur-md border-t border-indigo-50 z-10">
+                            <div className="max-w-4xl mx-auto">
+                                <div className="flex gap-3 items-end">
+                                    <div className="flex-1 relative group">
+                                        <input
+                                            type="text"
+                                            value={inputMessage}
+                                            onChange={(e) => setInputMessage(e.target.value)}
+                                            placeholder="Ask about health, symptoms, medications..."
+                                            className="w-full px-5 py-3.5 rounded-2xl bg-surface/30 border border-surface text-text placeholder-text-muted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-inner transition-all duration-200"
+                                            disabled={isLoading}
+                                        />
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        disabled={!inputMessage.trim() || isLoading}
+                                        className="mb-[1px] px-5 py-3.5 rounded-2xl bg-primary text-white font-medium hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center gap-2"
+                                    >
+                                        <Send className="w-5 h-5" />
+                                    </button>
+                                </div>
+                                <p className="text-[11px] text-text-muted/60 mt-3 text-center font-medium">
+                                    HealthMate Clinician provides general health information only. Please consult a healthcare professional for medical advice.
+                                </p>
                             </div>
-                            <p className="text-xs text-slate-500 mt-2 text-center">
-                                HealthMate Clinician provides general health information only. Please consult a healthcare professional for medical advice.
-                            </p>
                         </form>
                     </>
                 )}

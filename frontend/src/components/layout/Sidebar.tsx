@@ -53,6 +53,7 @@ const adminNavItems: NavItem[] = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={22} /> },
     { label: 'Add Doctor', path: '/admin/add-doctor', icon: <UserPlus size={22} /> },
     { label: 'All Doctors', path: '/admin/doctors', icon: <Users size={22} /> },
+    { label: 'Patients', path: '/admin/patients', icon: <User size={22} /> },
     { label: 'Appointments', path: '/admin/appointments', icon: <Calendar size={22} /> },
     { label: 'HealthMate', path: '/admin/chatbot', icon: <MessageCircle size={22} /> },
 ];

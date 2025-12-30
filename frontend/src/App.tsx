@@ -31,6 +31,7 @@ import { PatientReports } from './pages/doctor/PatientReports';
 import { AdminDashboard } from './pages/admin/Dashboard';
 import { AddDoctor } from './pages/admin/AddDoctor';
 import { AllDoctors } from './pages/admin/AllDoctors';
+import { AllPatients } from './pages/admin/AllPatients';
 import { AdminAppointments } from './pages/admin/Appointments';
 import { Chatbot as AdminChatbot } from './pages/admin/Chatbot';
 
@@ -100,6 +101,7 @@ function App() {
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/add-doctor" element={<AddDoctor />} />
               <Route path="/admin/doctors" element={<AllDoctors />} />
+              <Route path="/admin/patients" element={<AllPatients />} />
               <Route path="/admin/appointments" element={<AdminAppointments />} />
               <Route path="/admin/chatbot" element={<AdminChatbot />} />
             </Route>

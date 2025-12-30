@@ -43,6 +43,11 @@ export interface Doctor {
     slots_booked: Record<string, string[]>;
     address: Address;
     date: number;
+    appointmentStats?: {
+        total: number;
+        pending: number;
+        completed: number;
+    };
 }
 
 export interface DoctorLogin {
@@ -123,6 +128,7 @@ export interface ApiResponse<T = unknown> {
     dashData?: DashboardData;
     order?: RazorpayOrder;
     data?: T;
+    stats?: PlatformStats | RegistrationStats;
 }
 
 // Razorpay types
@@ -148,4 +154,71 @@ export interface AuthState {
     token: string | null;
     role: UserRole;
     isAuthenticated: boolean;
+}
+
+// Admin Dashboard Analytics Types
+export interface PlatformStats {
+    totalDoctors: number;
+    availableDoctors: number;
+    totalPatients: number;
+    newPatientsThisWeek: number;
+    totalAppointments: number;
+    todaysAppointments: number;
+    completedAppointments: number;
+    cancelledAppointments: number;
+    pendingAppointments: number;
+    completionRate: number;
+    activeMedicationUsers: number;
+}
+
+export interface DoctorPerformance {
+    _id: string;
+    name: string;
+    image: string;
+    speciality: string;
+    available: boolean;
+    totalAppointments: number;
+    completed: number;
+    cancelled: number;
+    pending: number;
+    patients: number;
+    completionRate: number;
+}
+
+export interface ChartDataItem {
+    name: string;
+    value: number;
+    color?: string;
+}
+
+export interface DailyTrendItem {
+    date: string;
+    count: number;
+}
+
+export interface AppointmentAnalytics {
+    byStatus: ChartDataItem[];
+    bySpecialty: ChartDataItem[];
+    dailyTrend: DailyTrendItem[];
+}
+
+export interface ActivityItem {
+    type: string;
+    message: string;
+    timestamp: number;
+    icon: string;
+}
+
+export interface RegistrationStatsItem {
+    date: string;
+    users: number;
+    doctors: number;
+}
+
+export interface RegistrationStats {
+    chartData: RegistrationStatsItem[];
+    summary: {
+        users: number;
+        doctors: number;
+    };
 }

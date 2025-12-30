@@ -1,11 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
     getAdherenceStats,
     getMissedDoses,
     getStreak,
+    getTimeAnalysis,
+    getComparison,
+    getAIInsights,
+    canRefreshInsights,
     type AdherenceStats,
     type MissedDosesResponse,
-    type StreakResponse
+    type StreakResponse,
+    type TimeAnalysisResponse,
+    type ComparisonResponse,
+    type AIInsightsResponse,
+    type CanRefreshResponse
 } from '../../api/medication';
 import {
     Loader2,
@@ -19,11 +27,14 @@ import {
     Pill,
     ChevronRight,
     Target,
-    Award
+    Award,
+    Sparkles,
+    ChevronDown,
+    GripHorizontal
 } from 'lucide-react';
 import {
-    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    PieChart, Pie, Cell
+    ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    PieChart, Pie, Cell, Legend, ReferenceLine
 } from 'recharts';
 import toast from 'react-hot-toast';
 
@@ -84,80 +95,6 @@ const AdherenceRing = ({ percentage, size = 160 }: { percentage: number; size?: 
     );
 };
 
-// Stat Card Component
-const StatCard = ({
-    icon: Icon,
-    label,
-    value,
-    subValue,
-    colorClass
-}: {
-    icon: React.ElementType;
-    label: string;
-    value: string | number;
-    subValue?: string;
-    colorClass: string;
-}) => (
-    <div className="bg-white/70 backdrop-blur-xl border border-[#A9B5DF]/40 rounded-2xl p-6 shadow-lg shadow-[#2D336B]/5 hover:shadow-xl hover:shadow-[#7886C7]/10 transition-all duration-300 hover:-translate-y-1">
-        <div className="flex items-center justify-between">
-            <div>
-                <p className="text-sm font-medium text-[#2D336B]/60 uppercase tracking-wider">{label}</p>
-                <h3 className="text-3xl font-bold text-[#2D336B] mt-2">{value}</h3>
-                {subValue && <p className="text-sm text-[#2D336B]/50 mt-1">{subValue}</p>}
-            </div>
-            <div className={`p-4 rounded-2xl ${colorClass}`}>
-                <Icon size={28} />
-            </div>
-        </div>
-    </div>
-);
-
-// Medication Progress Card
-const MedicationCard = ({
-    name,
-    taken,
-    total,
-    percentage
-}: {
-    name: string;
-    taken: number;
-    total: number;
-    percentage: number;
-}) => {
-    const getColor = () => {
-        if (percentage >= 80) return 'bg-emerald-500';
-        if (percentage >= 50) return 'bg-amber-500';
-        return 'bg-red-500';
-    };
-
-    const getBgColor = () => {
-        if (percentage >= 80) return 'bg-emerald-50 border-emerald-200/50';
-        if (percentage >= 50) return 'bg-amber-50 border-amber-200/50';
-        return 'bg-red-50 border-red-200/50';
-    };
-
-    return (
-        <div className={`${getBgColor()} border rounded-2xl p-5 hover:shadow-lg transition-all duration-300`}>
-            <div className="flex items-center gap-3 mb-3">
-                <div className={`p-2.5 rounded-xl ${getColor()} bg-opacity-10`}>
-                    <Pill size={18} className={getColor().replace('bg-', 'text-')} />
-                </div>
-                <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-[#2D336B] truncate">{name}</h4>
-                    <p className="text-sm text-[#2D336B]/50">{taken}/{total} doses</p>
-                </div>
-                <span className="text-lg font-bold text-[#2D336B]">{percentage}%</span>
-            </div>
-            <div className="w-full bg-white/50 rounded-full h-2.5 overflow-hidden">
-                <div
-                    className={`h-full rounded-full ${getColor()} transition-all duration-700`}
-                    style={{ width: `${percentage}%` }}
-                />
-            </div>
-        </div>
-    );
-};
-
 // Missed Dose Row
 const MissedDoseRow = ({
     medicationName,
@@ -197,6 +134,46 @@ export function Analytics() {
     const [adherenceStats, setAdherenceStats] = useState<AdherenceStats | null>(null);
     const [missedDoses, setMissedDoses] = useState<MissedDosesResponse | null>(null);
     const [streak, setStreak] = useState<StreakResponse | null>(null);
+    const [timeAnalysis, setTimeAnalysis] = useState<TimeAnalysisResponse | null>(null);
+    const [comparison, setComparison] = useState<ComparisonResponse | null>(null);
+    const [aiInsights, setAiInsights] = useState<AIInsightsResponse | null>(null);
+    const [activeSection, setActiveSection] = useState<string | null>(null);
+    const [navExpanded, setNavExpanded] = useState(false);
+    const [canRefresh, setCanRefresh] = useState<CanRefreshResponse | null>(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
+    // Section refs for quick navigation
+    const sectionRefs = {
+        overview: useRef<HTMLDivElement>(null),
+        trend: useRef<HTMLDivElement>(null),
+        comparison: useRef<HTMLDivElement>(null),
+        timeAnalysis: useRef<HTMLDivElement>(null),
+        calendar: useRef<HTMLDivElement>(null),
+        aiInsights: useRef<HTMLDivElement>(null),
+        missed: useRef<HTMLDivElement>(null)
+    };
+
+    // Quick navigation items
+    const navItems = [
+        { id: 'overview', label: 'Overview', icon: Target, color: 'text-emerald-600' },
+        { id: 'trend', label: 'Trend', icon: TrendingUp, color: 'text-blue-600' },
+        { id: 'comparison', label: 'Week', icon: Activity, color: 'text-purple-600' },
+        { id: 'timeAnalysis', label: 'Time', icon: Clock, color: 'text-amber-600' },
+        { id: 'calendar', label: 'Calendar', icon: Calendar, color: 'text-indigo-600' },
+        { id: 'aiInsights', label: 'AI Tips', icon: Sparkles, color: 'text-pink-600' },
+        { id: 'missed', label: 'Missed', icon: AlertTriangle, color: 'text-red-600' }
+    ];
+
+    // Scroll to section
+    const scrollToSection = (sectionId: string) => {
+        const ref = sectionRefs[sectionId as keyof typeof sectionRefs];
+        if (ref?.current) {
+            ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setActiveSection(sectionId);
+            // Reset active after animation
+            setTimeout(() => setActiveSection(null), 1500);
+        }
+    };
 
     useEffect(() => {
         fetchData();
@@ -205,19 +182,71 @@ export function Analytics() {
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const [statsRes, missedRes, streakRes] = await Promise.all([
+            const [statsRes, missedRes, streakRes, timeRes, compRes, aiRes] = await Promise.all([
                 getAdherenceStats(period),
                 getMissedDoses(10),
-                getStreak()
+                getStreak(),
+                getTimeAnalysis(period),
+                getComparison(),
+                getAIInsights()
             ]);
 
             if (statsRes.success) setAdherenceStats(statsRes);
             if (missedRes.success) setMissedDoses(missedRes);
             if (streakRes.success) setStreak(streakRes);
+            if (timeRes.success) setTimeAnalysis(timeRes);
+            if (compRes.success) setComparison(compRes);
+            if (aiRes.success) setAiInsights(aiRes);
+
+            // Check refresh status
+            const refreshStatus = await canRefreshInsights();
+            setCanRefresh(refreshStatus);
         } catch {
             toast.error('Failed to load health insights');
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    // Handler for refreshing AI insights
+    const handleRefreshInsights = async () => {
+        if (!canRefresh?.can_refresh) {
+            toast.error(`You can refresh in ${canRefresh?.hours_until_refresh || 24} hours`);
+            return;
+        }
+
+        setIsRefreshing(true);
+        try {
+            const newInsights = await getAIInsights(true); // force refresh
+            if (newInsights.success) {
+                setAiInsights(newInsights);
+                toast.success('AI insights refreshed!');
+                // Update refresh status
+                const refreshStatus = await canRefreshInsights();
+                setCanRefresh(refreshStatus);
+            }
+        } catch {
+            toast.error('Failed to refresh insights');
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
+
+    // Helper to format time ago
+    const formatTimeAgo = (isoDate: string): string => {
+        try {
+            const date = new Date(isoDate);
+            const now = new Date();
+            const diffMs = now.getTime() - date.getTime();
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffMins = Math.floor(diffMs / (1000 * 60));
+
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            return `${Math.floor(diffHours / 24)}d ago`;
+        } catch {
+            return '';
         }
     };
 
@@ -256,13 +285,14 @@ export function Analytics() {
 
     const { summary, by_medication, by_date } = adherenceStats;
 
-    // Prepare chart data from by_date
+    // Prepare chart data from by_date with adherence percentage
     const chartData = Object.entries(by_date)
         .map(([date, stats]) => ({
             date,
             taken: stats.taken,
             missed: stats.missed,
-            total: stats.total
+            total: stats.total,
+            adherence: stats.total > 0 ? Math.round((stats.taken / stats.total) * 100) : 0
         }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
@@ -271,14 +301,6 @@ export function Analytics() {
         { name: 'Taken', value: summary.taken, color: '#10b981' },
         { name: 'Missed', value: summary.missed, color: '#ef4444' },
     ].filter(d => d.value > 0);
-
-    // Medication cards data
-    const medicationCards = Object.entries(by_medication).map(([name, stats]) => ({
-        name,
-        taken: stats.taken,
-        total: stats.total,
-        percentage: stats.adherence_percentage
-    }));
 
     return (
         <div className="min-h-screen bg-[#EEF2FF] p-4 lg:p-6">
@@ -301,8 +323,8 @@ export function Analytics() {
                         <button
                             onClick={() => setPeriod('week')}
                             className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${period === 'week'
-                                    ? 'bg-[#7886C7] text-white shadow-md'
-                                    : 'text-[#2D336B]/70 hover:text-[#2D336B] hover:bg-white/50'
+                                ? 'bg-[#7886C7] text-white shadow-md'
+                                : 'text-[#2D336B]/70 hover:text-[#2D336B] hover:bg-white/50'
                                 }`}
                         >
                             Last 7 Days
@@ -310,8 +332,8 @@ export function Analytics() {
                         <button
                             onClick={() => setPeriod('month')}
                             className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${period === 'month'
-                                    ? 'bg-[#7886C7] text-white shadow-md'
-                                    : 'text-[#2D336B]/70 hover:text-[#2D336B] hover:bg-white/50'
+                                ? 'bg-[#7886C7] text-white shadow-md'
+                                : 'text-[#2D336B]/70 hover:text-[#2D336B] hover:bg-white/50'
                                 }`}
                         >
                             Last 30 Days
@@ -319,8 +341,49 @@ export function Analytics() {
                     </div>
                 </div>
 
+                {/* Quick Navigation Bar - Collapsible */}
+                <div
+                    className="sticky top-4 z-20 group"
+                    onMouseEnter={() => setNavExpanded(true)}
+                    onMouseLeave={() => setNavExpanded(false)}
+                >
+                    <div className={`bg-white/95 backdrop-blur-xl border border-[#A9B5DF]/40 rounded-2xl shadow-lg shadow-[#2D336B]/10 transition-all duration-300 overflow-hidden ${navExpanded ? 'p-3' : 'p-2'}`}>
+                        {/* Drag Handle - Click to toggle */}
+                        <button
+                            onClick={() => setNavExpanded(!navExpanded)}
+                            className="w-full flex items-center justify-center gap-2 mb-2 text-[#2D336B]/40 hover:text-[#7886C7] transition-colors"
+                        >
+                            <GripHorizontal size={16} />
+                            <ChevronDown
+                                size={14}
+                                className={`transition-transform duration-300 ${navExpanded ? 'rotate-180' : ''}`}
+                            />
+                        </button>
+
+                        {/* Navigation Icons */}
+                        <div className="flex items-center justify-center gap-1 overflow-x-auto">
+                            {navItems.map(({ id, label, icon: Icon, color }) => (
+                                <button
+                                    key={id}
+                                    onClick={() => scrollToSection(id)}
+                                    title={label}
+                                    className={`flex flex-col items-center gap-1 rounded-xl transition-all hover:bg-[#EEF2FF] hover:scale-110 ${navExpanded ? 'px-3 py-2' : 'px-2 py-1.5'} ${activeSection === id ? 'bg-[#EEF2FF] ring-2 ring-[#7886C7]/50' : ''
+                                        }`}
+                                >
+                                    <Icon size={navExpanded ? 20 : 18} className={color} />
+                                    <span
+                                        className={`text-[10px] font-medium text-[#2D336B]/70 whitespace-nowrap transition-all duration-300 ${navExpanded ? 'opacity-100 max-h-4' : 'opacity-0 max-h-0 overflow-hidden'}`}
+                                    >
+                                        {label}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
                 {/* Hero Section - 3 Main Cards */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div ref={sectionRefs.overview} className="grid grid-cols-1 lg:grid-cols-3 gap-6 scroll-mt-24">
 
                     {/* Adherence Score Card */}
                     <div className="bg-white/70 backdrop-blur-xl border border-[#A9B5DF]/40 rounded-[1.5rem] p-8 shadow-xl shadow-[#2D336B]/5 flex flex-col items-center justify-center">
@@ -377,7 +440,7 @@ export function Analytics() {
                 </div>
 
                 {/* Charts Row */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div ref={sectionRefs.trend} className="grid grid-cols-1 lg:grid-cols-3 gap-6 scroll-mt-24">
 
                     {/* Trend Chart */}
                     <div className="lg:col-span-2 bg-white/70 backdrop-blur-xl border border-[#A9B5DF]/40 rounded-[1.5rem] p-6 shadow-xl shadow-[#2D336B]/5">
@@ -388,54 +451,103 @@ export function Analytics() {
                         <div className="h-[280px] w-full">
                             {chartData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={chartData}>
-                                        <defs>
-                                            <linearGradient id="colorTaken" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                                                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                            </linearGradient>
-                                            <linearGradient id="colorMissed" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4} />
-                                                <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
+                                    <ComposedChart data={chartData}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                                         <XAxis
                                             dataKey="date"
-                                            tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                            tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}
                                             stroke="#64748b"
-                                            fontSize={12}
+                                            fontSize={11}
                                             tickLine={false}
                                         />
-                                        <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                                        <YAxis
+                                            yAxisId="left"
+                                            stroke="#64748b"
+                                            fontSize={11}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            label={{ value: 'Doses', angle: -90, position: 'insideLeft', style: { fontSize: 10, fill: '#64748b' } }}
+                                        />
+                                        <YAxis
+                                            yAxisId="right"
+                                            orientation="right"
+                                            stroke="#7886C7"
+                                            fontSize={11}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            domain={[0, 100]}
+                                            tickFormatter={(val) => `${val}%`}
+                                        />
+
+                                        {/* Goal line at 90% */}
+                                        <ReferenceLine
+                                            yAxisId="right"
+                                            y={90}
+                                            stroke="#22c55e"
+                                            strokeDasharray="5 5"
+                                            strokeWidth={2}
+                                            label={{ value: 'Goal: 90%', position: 'right', style: { fontSize: 10, fill: '#22c55e' } }}
+                                        />
+
                                         <Tooltip
                                             contentStyle={{
                                                 backgroundColor: '#fff',
                                                 borderRadius: '12px',
                                                 border: 'none',
-                                                boxShadow: '0 10px 40px -10px rgba(0,0,0,0.2)'
+                                                boxShadow: '0 10px 40px -10px rgba(0,0,0,0.2)',
+                                                padding: '12px'
                                             }}
-                                            labelFormatter={(val) => new Date(val).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                                            labelFormatter={(val) => new Date(val).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
+                                            formatter={(value: number, name: string, props: { payload: { taken: number; total: number; adherence: number } }) => {
+                                                if (name === 'Adherence %') {
+                                                    return [`${value}%`, name];
+                                                }
+                                                const { taken, total, adherence } = props.payload;
+                                                if (name === 'Taken') {
+                                                    return [`${taken}/${total} (${adherence}%)`, 'Taken'];
+                                                }
+                                                return [value, name];
+                                            }}
                                         />
-                                        <Area
-                                            type="monotone"
+
+                                        <Legend
+                                            verticalAlign="top"
+                                            height={36}
+                                            iconType="circle"
+                                            iconSize={8}
+                                            formatter={(value) => <span style={{ color: '#2D336B', fontSize: 12 }}>{value}</span>}
+                                        />
+
+                                        {/* Stacked bars */}
+                                        <Bar
+                                            yAxisId="left"
                                             dataKey="taken"
-                                            stroke="#10b981"
-                                            fillOpacity={1}
-                                            fill="url(#colorTaken)"
-                                            strokeWidth={3}
+                                            stackId="a"
+                                            fill="#10b981"
+                                            radius={[0, 0, 0, 0]}
                                             name="Taken"
                                         />
-                                        <Area
-                                            type="monotone"
+                                        <Bar
+                                            yAxisId="left"
                                             dataKey="missed"
-                                            stroke="#ef4444"
-                                            fillOpacity={1}
-                                            fill="url(#colorMissed)"
-                                            strokeWidth={3}
+                                            stackId="a"
+                                            fill="#ef4444"
+                                            radius={[4, 4, 0, 0]}
                                             name="Missed"
                                         />
-                                    </AreaChart>
+
+                                        {/* Adherence percentage line */}
+                                        <Line
+                                            yAxisId="right"
+                                            type="monotone"
+                                            dataKey="adherence"
+                                            stroke="#7886C7"
+                                            strokeWidth={3}
+                                            dot={{ fill: '#7886C7', strokeWidth: 2, r: 4 }}
+                                            activeDot={{ r: 6, fill: '#7886C7' }}
+                                            name="Adherence %"
+                                        />
+                                    </ComposedChart>
                                 </ResponsiveContainer>
                             ) : (
                                 <div className="h-full flex items-center justify-center text-[#2D336B]/40">
@@ -493,30 +605,206 @@ export function Analytics() {
                     </div>
                 </div>
 
-                {/* By Medication Section */}
-                {medicationCards.length > 0 && (
-                    <div className="bg-white/70 backdrop-blur-xl border border-[#A9B5DF]/40 rounded-[1.5rem] p-6 shadow-xl shadow-[#2D336B]/5">
-                        <h3 className="text-lg font-bold text-[#2D336B] mb-6 flex items-center gap-2">
-                            <Pill size={20} className="text-[#7886C7]" />
-                            By Medication
+                {/* Phase 1: Week Comparison & Time Analysis Row */}
+                <div ref={sectionRefs.comparison} className="grid grid-cols-1 lg:grid-cols-2 gap-6 scroll-mt-24">
+
+                    {/* Week-over-Week Comparison */}
+                    {comparison && (
+                        <div className={`bg-white/70 backdrop-blur-xl border rounded-[1.5rem] p-6 shadow-xl shadow-[#2D336B]/5 ${comparison.trend === 'improving' ? 'border-emerald-200' :
+                            comparison.trend === 'declining' ? 'border-red-200' : 'border-[#A9B5DF]/40'
+                            }`}>
+                            <h3 className="text-lg font-bold text-[#2D336B] mb-4 flex items-center gap-2">
+                                <TrendingUp size={20} className={
+                                    comparison.trend === 'improving' ? 'text-emerald-500' :
+                                        comparison.trend === 'declining' ? 'text-red-500 rotate-180' : 'text-[#7886C7]'
+                                } />
+                                Week-over-Week
+                            </h3>
+
+                            <div className="flex items-center justify-between mb-4">
+                                <div>
+                                    <p className="text-sm text-[#2D336B]/50 mb-1">This Week</p>
+                                    <p className="text-3xl font-bold text-[#2D336B]">
+                                        {comparison.current_week.adherence_percentage}%
+                                    </p>
+                                </div>
+                                <div className={`px-4 py-2 rounded-xl font-bold text-lg ${comparison.delta > 0 ? 'bg-emerald-100 text-emerald-700' :
+                                    comparison.delta < 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+                                    }`}>
+                                    {comparison.delta > 0 ? '+' : ''}{comparison.delta}%
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-sm text-[#2D336B]/50 mb-1">Last Week</p>
+                                    <p className="text-3xl font-bold text-[#2D336B]/50">
+                                        {comparison.previous_week.adherence_percentage}%
+                                    </p>
+                                </div>
+                            </div>
+
+                            <p className="text-sm text-[#2D336B]/70 bg-[#EEF2FF] p-3 rounded-xl">
+                                💡 {comparison.insight}
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Time-of-Day Analysis */}
+                    {timeAnalysis && timeAnalysis.time_analysis.length > 0 && (
+                        <div ref={sectionRefs.timeAnalysis} className="bg-white/70 backdrop-blur-xl border border-[#A9B5DF]/40 rounded-[1.5rem] p-6 shadow-xl shadow-[#2D336B]/5 scroll-mt-24">
+                            <h3 className="text-lg font-bold text-[#2D336B] mb-4 flex items-center gap-2">
+                                <Clock size={20} className="text-[#7886C7]" />
+                                When Do You Miss Doses?
+                            </h3>
+
+                            <div className="space-y-3">
+                                {timeAnalysis.time_analysis.map((item) => {
+                                    const isWorst = item.period === timeAnalysis.worst_period && item.miss_percentage > 0;
+                                    return (
+                                        <div key={item.period} className="relative">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className={`text-sm font-medium ${isWorst ? 'text-red-600' : 'text-[#2D336B]/70'}`}>
+                                                    {item.label}
+                                                    {isWorst && <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full">Problem Time</span>}
+                                                </span>
+                                                <span className={`text-sm font-bold ${item.miss_percentage > 30 ? 'text-red-600' :
+                                                    item.miss_percentage > 10 ? 'text-amber-600' : 'text-emerald-600'
+                                                    }`}>
+                                                    {item.miss_percentage}% missed
+                                                </span>
+                                            </div>
+                                            <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                                                <div
+                                                    className={`h-full rounded-full transition-all duration-700 ${item.miss_percentage > 30 ? 'bg-red-500' :
+                                                        item.miss_percentage > 10 ? 'bg-amber-500' : 'bg-emerald-500'
+                                                        }`}
+                                                    style={{ width: `${100 - item.miss_percentage}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {timeAnalysis.insight && (
+                                <p className="mt-4 text-sm text-[#2D336B]/70 bg-amber-50 p-3 rounded-xl border border-amber-200/50">
+                                    ⚠️ {timeAnalysis.insight}
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                {/* Calendar Heatmap */}
+                {adherenceStats && Object.keys(adherenceStats.by_date).length > 0 && (
+                    <div ref={sectionRefs.calendar} className="bg-white/70 backdrop-blur-xl border border-[#A9B5DF]/40 rounded-[1.5rem] p-6 shadow-xl shadow-[#2D336B]/5 scroll-mt-24">
+                        <h3 className="text-lg font-bold text-[#2D336B] mb-4 flex items-center gap-2">
+                            <Calendar size={20} className="text-[#7886C7]" />
+                            Daily Adherence Calendar
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {medicationCards.map((med, index) => (
-                                <MedicationCard
+
+                        <div className="flex flex-wrap gap-2">
+                            {Object.entries(adherenceStats.by_date)
+                                .sort((a, b) => a[0].localeCompare(b[0]))
+                                .map(([date, stats]) => {
+                                    const adherence = stats.total > 0 ? (stats.taken / stats.total) * 100 : 100;
+                                    const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'short' });
+                                    const dayNum = new Date(date).getDate();
+
+                                    return (
+                                        <div
+                                            key={date}
+                                            className={`w-12 h-14 rounded-xl flex flex-col items-center justify-center text-xs font-medium transition-all hover:scale-110 cursor-default ${adherence === 100 ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                                                adherence >= 50 ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                                                    'bg-red-100 text-red-700 border border-red-200'
+                                                }`}
+                                            title={`${date}: ${Math.round(adherence)}% adherence (${stats.taken}/${stats.total})`}
+                                        >
+                                            <span className="text-[10px] opacity-70">{dayName}</span>
+                                            <span className="text-lg font-bold">{dayNum}</span>
+                                        </div>
+                                    );
+                                })}
+                        </div>
+
+                        <div className="flex items-center justify-center gap-6 mt-4 text-xs text-[#2D336B]/60">
+                            <div className="flex items-center gap-1">
+                                <div className="w-4 h-4 rounded bg-emerald-100 border border-emerald-200" />
+                                <span>100%</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <div className="w-4 h-4 rounded bg-amber-100 border border-amber-200" />
+                                <span>50-99%</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <div className="w-4 h-4 rounded bg-red-100 border border-red-200" />
+                                <span>&lt;50%</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Phase 3: AI-Powered Insights */}
+                {aiInsights && aiInsights.insights.length > 0 && (
+                    <div ref={sectionRefs.aiInsights} className="bg-gradient-to-br from-[#7886C7]/10 to-purple-50/50 backdrop-blur-xl border border-[#7886C7]/30 rounded-[1.5rem] p-6 shadow-xl shadow-[#2D336B]/5 scroll-mt-24">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <Sparkles size={20} className="text-[#7886C7]" />
+                                <h3 className="text-lg font-bold text-[#2D336B]">
+                                    AI-Powered Insights
+                                </h3>
+                                {aiInsights.from_cache && (
+                                    <span className="text-xs text-[#2D336B]/40">
+                                        · Updated {formatTimeAgo(aiInsights.generated_at)}
+                                    </span>
+                                )}
+                            </div>
+                            <button
+                                onClick={handleRefreshInsights}
+                                disabled={isRefreshing || !canRefresh?.can_refresh}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${canRefresh?.can_refresh && !isRefreshing
+                                    ? 'bg-[#7886C7]/20 text-[#7886C7] hover:bg-[#7886C7]/30 cursor-pointer'
+                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    }`}
+                                title={canRefresh?.can_refresh ? 'Refresh insights' : `Refresh available in ${canRefresh?.hours_until_refresh || 0}h`}
+                            >
+                                {isRefreshing ? (
+                                    <Loader2 size={12} className="animate-spin" />
+                                ) : (
+                                    <Activity size={12} />
+                                )}
+                                {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {aiInsights.insights.map((insight, index) => (
+                                <div
                                     key={index}
-                                    name={med.name}
-                                    taken={med.taken}
-                                    total={med.total}
-                                    percentage={med.percentage}
-                                />
+                                    className="bg-white/80 rounded-xl p-4 border border-[#A9B5DF]/30 hover:shadow-md transition-all"
+                                >
+                                    <p className="text-[#2D336B] text-sm leading-relaxed">
+                                        {insight}
+                                    </p>
+                                </div>
                             ))}
                         </div>
+
+                        {aiInsights.fallback && (
+                            <p className="text-xs text-[#2D336B]/40 mt-4 text-center">
+                                Generic insights shown. Track more doses for personalized recommendations.
+                            </p>
+                        )}
+
+                        {!canRefresh?.can_refresh && canRefresh?.hours_until_refresh && (
+                            <p className="text-xs text-[#2D336B]/30 mt-3 text-center">
+                                Next refresh available in {canRefresh.hours_until_refresh}h
+                            </p>
+                        )}
                     </div>
                 )}
 
                 {/* Missed Doses History */}
                 {missedDoses && missedDoses.missed_doses.length > 0 && (
-                    <div className="bg-white/70 backdrop-blur-xl border border-[#A9B5DF]/40 rounded-[1.5rem] p-6 shadow-xl shadow-[#2D336B]/5">
+                    <div ref={sectionRefs.missed} className="bg-white/70 backdrop-blur-xl border border-[#A9B5DF]/40 rounded-[1.5rem] p-6 shadow-xl shadow-[#2D336B]/5 scroll-mt-24">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-bold text-[#2D336B] flex items-center gap-2">
                                 <AlertTriangle size={20} className="text-red-500" />

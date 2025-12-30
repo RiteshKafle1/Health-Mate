@@ -25,6 +25,8 @@ export interface Medication {
     // Enhanced tracking fields
     purpose?: string;
     instructions?: string;
+    purpose_source?: string;  // Where purpose info came from (knowledge_base, openfda, tavily, ai_generated)
+    instructions_source?: string;  // Where instructions came from
     schedule_times?: string[];  // e.g., ["08:00", "14:00", "20:00"]
     doses_taken_today?: Record<string, boolean>;  // e.g., {"08:00": true, "14:00": false}
 
@@ -70,6 +72,8 @@ export interface MedicationUpdate {
     // Enhanced tracking
     purpose?: string;
     instructions?: string;
+    purpose_source?: string;
+    instructions_source?: string;
     schedule_times?: string[];
     doses_taken_today?: Record<string, boolean>;
 }
@@ -167,14 +171,19 @@ export const markDoseTaken = async (
 
 // Get AI-generated medication info (purpose and instructions)
 export interface MedicationInfo {
-    purpose: string;
-    instructions: string;
-    source: 'knowledge_base' | 'ai_generated' | 'fallback';
+    purpose: string | null;
+    instructions: string | null;
+    source: 'knowledge_base' | 'openfda' | 'tavily' | 'ai_generated' | 'fallback';
     success: boolean;
 }
 
-export const getMedicationInfo = async (medicationName: string): Promise<MedicationInfo> => {
-    const response = await api.get(`/api/user/medications/info/${encodeURIComponent(medicationName)}`);
+export const getMedicationInfo = async (
+    medicationName: string,
+    field: 'purpose' | 'instructions' | 'both' = 'both'
+): Promise<MedicationInfo> => {
+    const response = await api.get(
+        `/api/user/medications/info/${encodeURIComponent(medicationName)}?field=${field}`
+    );
     return response.data;
 };
 
@@ -298,4 +307,110 @@ export const getDoseHistory = async (
     if (endDate) params.append('end_date', endDate);
     const response = await api.get(`/api/user/medications/adherence/history?${params}`);
     return response.data;
+};
+
+// ============================================
+// PHASE 1: ADVANCED ANALYTICS
+// ============================================
+
+export interface TimeAnalysisItem {
+    period: string;
+    label: string;
+    total: number;
+    taken: number;
+    missed: number;
+    adherence_percentage: number;
+    miss_percentage: number;
+}
+
+export interface TimeAnalysisResponse {
+    success: boolean;
+    period: string;
+    time_analysis: TimeAnalysisItem[];
+    worst_period: string | null;
+    worst_miss_rate: number;
+    insight: string;
+}
+
+export interface ComparisonStats {
+    start_date: string;
+    end_date: string;
+    total: number;
+    taken: number;
+    missed: number;
+    adherence_percentage: number;
+}
+
+export interface ComparisonResponse {
+    success: boolean;
+    current_week: ComparisonStats;
+    previous_week: ComparisonStats;
+    delta: number;
+    trend: 'improving' | 'declining' | 'stable';
+    insight: string;
+}
+
+// Get time-of-day analysis
+export const getTimeAnalysis = async (
+    period: 'week' | 'month' = 'week'
+): Promise<TimeAnalysisResponse> => {
+    const response = await api.get(`/api/user/medications/adherence/time-analysis?period=${period}`);
+    return response.data;
+};
+
+// Get week-over-week comparison
+export const getComparison = async (): Promise<ComparisonResponse> => {
+    const response = await api.get('/api/user/medications/adherence/comparison');
+    return response.data;
+};
+
+// ============================================
+// PHASE 3: AI INSIGHTS & REPORTING
+// ============================================
+
+export interface AIInsightsResponse {
+    success: boolean;
+    insights: string[];
+    generated_at: string;
+    data_period: string;
+    fallback?: boolean;
+    from_cache?: boolean;
+    cache_age_hours?: number;
+    error?: string;
+}
+
+export interface CanRefreshResponse {
+    can_refresh: boolean;
+    next_refresh_at: string | null;
+    hours_until_refresh: number | null;
+}
+
+// Get AI-generated personalized insights (cached, returns from cache if < 24h old)
+export const getAIInsights = async (refresh: boolean = false): Promise<AIInsightsResponse> => {
+    const response = await api.get(`/api/user/medications/adherence/ai-insights?refresh=${refresh}`);
+    return response.data;
+};
+
+// Check if user can refresh their AI insights (limited to once per 24h)
+export const canRefreshInsights = async (): Promise<CanRefreshResponse> => {
+    const response = await api.get('/api/user/medications/adherence/ai-insights/can-refresh');
+    return response.data;
+};
+
+// Download PDF report
+export const downloadPDFReport = async (period: 'week' | 'month' = 'month'): Promise<void> => {
+    const response = await api.get(`/api/user/medications/adherence/report/pdf?period=${period}`, {
+        responseType: 'blob'
+    });
+
+    // Create download link
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `adherence_report_${period}_${new Date().toISOString().split('T')[0]}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
 };

@@ -167,9 +167,34 @@ export function Medications() {
         timing: '',
         description: '',
         dose_per_intake: 1,
-        start_date: new Date().toISOString().split('T')[0]
+        start_date: new Date().toISOString().split('T')[0],
+        schedule_times: ['08:00']  // Default first dose time
     });
     const [isSaving, setIsSaving] = useState(false);
+
+    // --- Helper: Calculate interval based on frequency ---
+    const getIntervalHours = (freq: number): number => {
+        if (freq === 1) return 24;  // Once daily
+        if (freq === 2) return 12;  // BID (twice daily)
+        if (freq === 3) return 8;   // TID (three times daily)
+        if (freq === 4) return 6;   // QID (four times daily)
+        return Math.floor(24 / Math.max(1, freq));
+    };
+
+    // --- Helper: Generate times from first dose ---
+    const generateScheduleTimes = (firstTime: string, frequency: number): string[] => {
+        if (!firstTime || frequency < 1) return [firstTime || '08:00'];
+
+        const interval = getIntervalHours(frequency);
+        const [hours, mins] = firstTime.split(':').map(Number);
+        const times: string[] = [firstTime];
+
+        for (let i = 1; i < frequency; i++) {
+            const newHours = (hours + interval * i) % 24;
+            times.push(`${newHours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`);
+        }
+        return times;
+    };
 
     // --- Effects ---
     useEffect(() => {
@@ -207,7 +232,8 @@ export function Medications() {
             timing: '',
             description: '',
             dose_per_intake: 1,
-            start_date: new Date().toISOString().split('T')[0]
+            start_date: new Date().toISOString().split('T')[0],
+            schedule_times: ['08:00']
         });
     };
 
@@ -234,7 +260,17 @@ export function Medications() {
         if (!editingMedication) return;
         setIsSaving(true);
         try {
-            const res = await updateMedication(editingMedication._id, formData);
+            // Clean data: send empty string for cleared fields (backend will convert to null)
+            // Note: undefined gets dropped in JSON, so we use empty string which backend handles
+            const cleanedData = {
+                ...formData,
+                purpose: formData.purpose?.trim() ?? '',
+                instructions: formData.instructions?.trim() ?? '',
+                // Clear source when content is cleared
+                purpose_source: formData.purpose?.trim() ? (formData as any).purpose_source : '',
+                instructions_source: formData.instructions?.trim() ? (formData as any).instructions_source : ''
+            };
+            const res = await updateMedication(editingMedication._id, cleanedData);
             if (res.success) {
                 toast.success('Updated successfully');
                 setEditingMedication(null);
@@ -259,7 +295,10 @@ export function Medications() {
             total_stock: med.total_stock,
             current_stock: med.current_stock,
             dose_per_intake: med.dose_per_intake || 1,
-            start_date: med.start_date || ''
+            start_date: med.start_date || '',
+            schedule_times: med.schedule_times || generateScheduleTimes('08:00', med.frequency),
+            purpose: med.purpose || '',
+            instructions: med.instructions || ''
         });
     };
 
@@ -308,18 +347,53 @@ export function Medications() {
         }
     };
 
-    // AI Actions
-    const handleGetMedicationInfo = async (medId: string, name: string) => {
-        const toastId = toast.loading('Consulting AI...');
+    // AI Actions - Separate handlers for purpose and instructions
+    const handleGetPurpose = async (medId: string, name: string) => {
+        const toastId = toast.loading('Fetching purpose...');
         try {
-            const info = await getMedicationInfo(name);
+            const info = await getMedicationInfo(name, 'purpose');
+            if (info.success && info.purpose) {
+                await updateMedication(medId, { purpose: info.purpose, purpose_source: info.source });
+                toast.success(`Purpose found (${info.source})`, { id: toastId });
+                fetchMedications();
+            } else {
+                toast.error('No purpose found', { id: toastId });
+            }
+        } catch {
+            toast.error('Could not fetch purpose', { id: toastId });
+        }
+    };
+
+    const handleGetInstructions = async (medId: string, name: string) => {
+        const toastId = toast.loading('Fetching instructions...');
+        try {
+            const info = await getMedicationInfo(name, 'instructions');
+            if (info.success && info.instructions) {
+                await updateMedication(medId, { instructions: info.instructions, instructions_source: info.source });
+                toast.success(`Instructions found (${info.source})`, { id: toastId });
+                fetchMedications();
+            } else {
+                toast.error('No instructions found', { id: toastId });
+            }
+        } catch {
+            toast.error('Could not fetch instructions', { id: toastId });
+        }
+    };
+
+    const handleGetMedicationInfo = async (medId: string, name: string) => {
+        const toastId = toast.loading('Consulting sources...');
+        try {
+            const info = await getMedicationInfo(name, 'both');
             if (info.success) {
-                await updateMedication(medId, { purpose: info.purpose, instructions: info.instructions });
-                toast.success('Info enriched by AI', { id: toastId });
+                await updateMedication(medId, {
+                    purpose: info.purpose || undefined,
+                    instructions: info.instructions || undefined
+                });
+                toast.success(`Info enriched (${info.source})`, { id: toastId });
                 fetchMedications();
             } else toast.dismiss(toastId);
         } catch {
-            toast.error('AI unavailable', { id: toastId });
+            toast.error('Could not fetch info', { id: toastId });
         }
     };
 
@@ -394,6 +468,74 @@ export function Medications() {
                 </div>
             </div>
 
+            {/* Today's Progress Section */}
+            {medications.length > 0 && (() => {
+                // Calculate today's overall progress
+                const todayStats = medications
+                    .filter(m => m.is_active !== false)
+                    .reduce((acc, med) => {
+                        const times = med.schedule_times || [];
+                        const dosesTaken = med.doses_taken_today || {};
+                        const takenCount = Object.values(dosesTaken).filter(Boolean).length;
+                        return {
+                            totalDoses: acc.totalDoses + times.length,
+                            takenDoses: acc.takenDoses + takenCount
+                        };
+                    }, { totalDoses: 0, takenDoses: 0 });
+
+                const pendingDoses = todayStats.totalDoses - todayStats.takenDoses;
+                const progressPercent = todayStats.totalDoses > 0
+                    ? Math.round((todayStats.takenDoses / todayStats.totalDoses) * 100)
+                    : 0;
+
+                const getProgressColor = () => {
+                    if (progressPercent >= 80) return 'bg-emerald-500';
+                    if (progressPercent >= 50) return 'bg-amber-500';
+                    return 'bg-red-500';
+                };
+
+                return todayStats.totalDoses > 0 ? (
+                    <div className="bg-gradient-to-br from-primary/5 to-indigo-50 rounded-3xl p-6 border border-primary/20 shadow-sm">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-bold text-lg text-text flex items-center gap-2">
+                                <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                                    🎯
+                                </div>
+                                Today's Progress
+                            </h3>
+                            <div className="text-3xl font-bold text-text">
+                                {progressPercent}%
+                            </div>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="w-full bg-white/50 rounded-full h-3 overflow-hidden mb-4 shadow-inner">
+                            <div
+                                className={`h-full rounded-full ${getProgressColor()} transition-all duration-700`}
+                                style={{ width: `${progressPercent}%` }}
+                            />
+                        </div>
+
+                        {/* Stats Row */}
+                        <div className="flex items-center justify-center gap-8 text-sm">
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                                <span className="font-semibold text-text">{todayStats.takenDoses}</span>
+                                <span className="text-text-muted">Taken</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full bg-gray-300" />
+                                <span className="font-semibold text-text">{pendingDoses}</span>
+                                <span className="text-text-muted">Pending</span>
+                            </div>
+                            <div className="text-text-muted">
+                                Total: <span className="font-semibold text-text">{todayStats.totalDoses}</span> doses
+                            </div>
+                        </div>
+                    </div>
+                ) : null;
+            })()}
+
             {/* Stats / Filter Bar */}
             {summary && (
                 <div className="bg-white rounded-3xl p-6 shadow-sm border border-surface/50">
@@ -463,6 +605,21 @@ export function Medications() {
                 ) : (
                     filteredMedications.map((med) => {
                         const stock = getStockConfig(med.stock_status);
+
+                        // Calculate today's progress for this medication
+                        const scheduleTimes = med.schedule_times || [];
+                        const dosesTaken = med.doses_taken_today || {};
+                        const takenCount = Object.values(dosesTaken).filter(Boolean).length;
+                        const totalDoses = scheduleTimes.length;
+                        const pendingCount = totalDoses - takenCount;
+                        const medProgress = totalDoses > 0 ? Math.round((takenCount / totalDoses) * 100) : 0;
+
+                        const getProgressColor = () => {
+                            if (medProgress >= 80) return 'bg-emerald-500';
+                            if (medProgress >= 50) return 'bg-amber-500';
+                            return 'bg-red-500';
+                        };
+
                         return (
                             <div key={med._id} className="group relative bg-white rounded-3xl p-6 border border-surface shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                                 {/* Top Actions */}
@@ -471,20 +628,38 @@ export function Medications() {
                                     <button onClick={() => handleDelete(med._id)} className="p-2 bg-surface hover:bg-red-500 hover:text-white rounded-full transition-colors"><Trash2 size={14} /></button>
                                 </div>
 
-                                <div className="flex items-start gap-4 mb-6">
+                                <div className="flex items-start gap-4 mb-4">
                                     <div className="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center text-primary border border-primary/10">
                                         <Pill size={28} />
                                     </div>
-                                    <div>
-                                        <h3 className="text-lg font-bold text-text leading-tight mb-1">{med.name}</h3>
+                                    <div className="flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-lg font-bold text-text leading-tight">{med.name}</h3>
+                                            {totalDoses > 0 && (
+                                                <span className={`text-xs font-bold px-2 py-1 rounded-full ${medProgress >= 80 ? 'bg-emerald-100 text-emerald-700' :
+                                                    medProgress >= 50 ? 'bg-amber-100 text-amber-700' :
+                                                        'bg-red-100 text-red-700'
+                                                    }`}>
+                                                    {medProgress}%
+                                                </span>
+                                            )}
+                                        </div>
                                         <p className="text-sm font-medium text-text-muted">{med.frequency}x daily • {med.timing}</p>
+                                        {totalDoses > 0 && (
+                                            <p className="text-xs text-text-muted mt-1">
+                                                <span className="text-emerald-600 font-medium">{takenCount}</span>/{totalDoses} taken
+                                                {pendingCount > 0 && (
+                                                    <span className="text-amber-600 ml-1">• {pendingCount} pending</span>
+                                                )}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* Schedule */}
+                                {/* Schedule with Progress Bar */}
                                 {med.schedule_times && med.schedule_times.length > 0 && (
                                     <div className="mb-6">
-                                        <div className="flex flex-wrap gap-2">
+                                        <div className="flex flex-wrap gap-2 mb-3">
                                             {med.schedule_times.map(time => (
                                                 <DosePill
                                                     key={time} time={time}
@@ -493,6 +668,13 @@ export function Medications() {
                                                     isLoading={doseLoadingTime?.medId === med._id && doseLoadingTime.time === time}
                                                 />
                                             ))}
+                                        </div>
+                                        {/* Mini Progress Bar */}
+                                        <div className="w-full bg-surface/50 rounded-full h-1.5 overflow-hidden">
+                                            <div
+                                                className={`h-full rounded-full ${getProgressColor()} transition-all duration-500`}
+                                                style={{ width: `${medProgress}%` }}
+                                            />
                                         </div>
                                     </div>
                                 )}
@@ -513,21 +695,69 @@ export function Medications() {
                                         </div>
                                     )}
 
-                                    <div className="bg-surface/10 rounded-xl p-4 border border-surface/50">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <FileText size={14} className="text-primary" />
-                                            <span className="text-xs font-bold text-text uppercase">Purpose</span>
+                                    {/* Purpose & Instructions Section */}
+                                    <div className="bg-surface/10 rounded-xl p-4 border border-surface/50 space-y-3">
+                                        {/* Purpose */}
+                                        <div className="group">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <FileText size={12} className="text-primary" />
+                                                <span className="text-[10px] font-bold text-text uppercase">Purpose</span>
+                                                {med.purpose_source && (
+                                                    <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-medium ${med.purpose_source === 'knowledge_base' ? 'bg-green-100 text-green-700' :
+                                                        med.purpose_source === 'openfda' ? 'bg-blue-100 text-blue-700' :
+                                                            med.purpose_source === 'tavily' ? 'bg-purple-100 text-purple-700' :
+                                                                'bg-orange-100 text-orange-700'
+                                                        }`}>
+                                                        {med.purpose_source === 'knowledge_base' ? 'KB' :
+                                                            med.purpose_source === 'openfda' ? 'FDA' :
+                                                                med.purpose_source === 'tavily' ? 'Web' : 'AI'}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="relative">
+                                                <p className="text-xs text-text-muted leading-relaxed line-clamp-1 group-hover:line-clamp-none transition-all duration-300">
+                                                    {med.purpose ||
+                                                        <span
+                                                            onClick={() => handleGetPurpose(med._id, med.name)}
+                                                            className="text-primary cursor-pointer hover:underline flex items-center gap-1"
+                                                        >
+                                                            <Sparkles size={10} /> Tap to get AI purpose
+                                                        </span>
+                                                    }
+                                                </p>
+                                            </div>
                                         </div>
-                                        <p className="text-xs text-text-muted line-clamp-2 leading-relaxed">
-                                            {med.purpose ||
-                                                <span
-                                                    onClick={() => handleGetMedicationInfo(med._id, med.name)}
-                                                    className="text-primary cursor-pointer hover:underline flex items-center gap-1"
-                                                >
-                                                    <Sparkles size={10} /> Tap to get AI purpose
-                                                </span>
-                                            }
-                                        </p>
+
+                                        {/* Instructions */}
+                                        <div className="group border-t border-surface/30 pt-3">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <Pill size={12} className="text-secondary" />
+                                                <span className="text-[10px] font-bold text-text uppercase">Instructions</span>
+                                                {med.instructions_source && (
+                                                    <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-medium ${med.instructions_source === 'knowledge_base' ? 'bg-green-100 text-green-700' :
+                                                        med.instructions_source === 'openfda' ? 'bg-blue-100 text-blue-700' :
+                                                            med.instructions_source === 'tavily' ? 'bg-purple-100 text-purple-700' :
+                                                                'bg-orange-100 text-orange-700'
+                                                        }`}>
+                                                        {med.instructions_source === 'knowledge_base' ? 'KB' :
+                                                            med.instructions_source === 'openfda' ? 'FDA' :
+                                                                med.instructions_source === 'tavily' ? 'Web' : 'AI'}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="relative">
+                                                <p className="text-xs text-text-muted leading-relaxed line-clamp-1 group-hover:line-clamp-none transition-all duration-300">
+                                                    {med.instructions ||
+                                                        <span
+                                                            onClick={() => handleGetInstructions(med._id, med.name)}
+                                                            className="text-secondary cursor-pointer hover:underline flex items-center gap-1"
+                                                        >
+                                                            <Sparkles size={10} /> Tap to get AI instructions
+                                                        </span>
+                                                    }
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -560,7 +790,17 @@ export function Medications() {
                                     label="Frequency (per day)"
                                     type="number"
                                     value={formData.frequency}
-                                    onChange={e => setFormData({ ...formData, frequency: parseInt(e.target.value) })}
+                                    onChange={e => {
+                                        const newFreq = parseInt(e.target.value) || 1;
+                                        const firstTime = formData.schedule_times?.[0] || '08:00';
+                                        const newTimes = generateScheduleTimes(firstTime, newFreq);
+                                        setFormData({
+                                            ...formData,
+                                            frequency: newFreq,
+                                            schedule_times: newTimes,
+                                            timing: `Custom: ${newTimes.join(', ')}`
+                                        });
+                                    }}
                                     required
                                     className={premiumInputClass}
                                 />
@@ -571,21 +811,53 @@ export function Medications() {
                                     placeholder="e.g. 7 days"
                                     className={premiumInputClass}
                                 />
-                                <div>
-                                    <label className="text-sm font-semibold text-text block mb-2">Default Timing</label>
-                                    <select
-                                        className="w-full p-3 bg-[#EFF4FF] border border-[#A9B5DF]/50 shadow-sm rounded-xl focus:ring-2 focus:ring-[#7886C7]/30 focus:border-[#7886C7] focus:bg-white outline-none hover:border-[#7886C7] hover:bg-white hover:shadow-md transition-all duration-200 text-sm h-12 text-text"
-                                        value={formData.timing}
-                                        onChange={e => setFormData({ ...formData, timing: e.target.value })}
-                                    >
-                                        <option value="">Select a time...</option>
-                                        <option value="Before breakfast">Before breakfast</option>
-                                        <option value="After breakfast">After breakfast</option>
-                                        <option value="After lunch">After lunch</option>
-                                        <option value="Before dinner">Before dinner</option>
-                                        <option value="Before bed">Before bed</option>
-                                    </select>
+                            </div>
+
+                            {/* Dynamic Dose Schedule Times */}
+                            <div className="p-6 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-3xl border border-primary/20">
+                                <h3 className="font-bold text-text mb-4 text-sm uppercase tracking-wider flex items-center gap-2">
+                                    <Activity size={16} className="text-primary" />
+                                    Dose Schedule ({formData.frequency}x daily = every {getIntervalHours(formData.frequency)}h)
+                                </h3>
+                                <div className={`grid gap-4 ${formData.frequency === 1 ? 'grid-cols-1' : formData.frequency === 2 ? 'grid-cols-2' : formData.frequency <= 4 ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                                    {Array.from({ length: formData.frequency }, (_, i) => {
+                                        const currentTimes = formData.schedule_times || ['08:00'];
+                                        const currentTime = currentTimes[i] || '';
+
+                                        return (
+                                            <div key={i} className="relative">
+                                                <label className="text-xs font-semibold text-text-muted block mb-2">
+                                                    {i === 0 ? 'First Dose *' : `Dose ${i + 1}`}
+                                                </label>
+                                                <input
+                                                    type="time"
+                                                    value={currentTime}
+                                                    onChange={e => {
+                                                        const newTime = e.target.value;
+                                                        if (i === 0) {
+                                                            // First dose changed - recalculate all subsequent times
+                                                            const newTimes = generateScheduleTimes(newTime, formData.frequency);
+                                                            setFormData({ ...formData, schedule_times: newTimes, timing: `Custom: ${newTimes.join(', ')}` });
+                                                        } else {
+                                                            // Individual time edited
+                                                            const newTimes = [...currentTimes];
+                                                            newTimes[i] = newTime;
+                                                            setFormData({ ...formData, schedule_times: newTimes, timing: `Custom: ${newTimes.join(', ')}` });
+                                                        }
+                                                    }}
+                                                    required={i === 0}
+                                                    className="w-full p-3 bg-white border border-surface shadow-sm rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none hover:border-primary/50 transition-all duration-200 text-sm h-12 text-text font-medium"
+                                                />
+                                                {i === 0 && (
+                                                    <span className="text-[10px] text-primary mt-1 block">Changes auto-fill other times</span>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
+                                <p className="text-xs text-text-muted mt-4 italic">
+                                    💡 Tip: Set your first dose time, other times will be auto-calculated based on {getIntervalHours(formData.frequency)}-hour intervals.
+                                </p>
                             </div>
 
                             <div className="p-6 bg-[#EFF4FF]/50 rounded-3xl border border-dashed border-[#A9B5DF]/60">
@@ -594,24 +866,64 @@ export function Medications() {
                                     <Input
                                         label="Total Stock"
                                         type="number"
-                                        value={formData.total_stock || ''}
-                                        onChange={e => setFormData({ ...formData, total_stock: parseInt(e.target.value) })}
+                                        value={formData.total_stock ?? ''}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            setFormData({ ...formData, total_stock: val === '' ? undefined : parseInt(val) || 0 });
+                                        }}
                                         className={premiumInputClass}
                                     />
                                     <Input
                                         label="Current"
                                         type="number"
-                                        value={formData.current_stock || ''}
-                                        onChange={e => setFormData({ ...formData, current_stock: parseInt(e.target.value) })}
+                                        value={formData.current_stock ?? ''}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            setFormData({ ...formData, current_stock: val === '' ? undefined : parseInt(val) || 0 });
+                                        }}
                                         className={premiumInputClass}
                                     />
                                     <Input
                                         label="Pills/Dose"
                                         type="number"
-                                        value={formData.dose_per_intake}
-                                        onChange={e => setFormData({ ...formData, dose_per_intake: parseInt(e.target.value) })}
+                                        value={formData.dose_per_intake ?? 1}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            setFormData({ ...formData, dose_per_intake: val === '' ? 1 : parseInt(val) || 1 });
+                                        }}
                                         className={premiumInputClass}
                                     />
+                                </div>
+                            </div>
+
+                            {/* Purpose & Instructions (Optional) */}
+                            <div className="p-6 bg-gradient-to-br from-secondary/5 to-primary/5 rounded-3xl border border-secondary/20">
+                                <h3 className="font-bold text-text mb-4 text-sm uppercase tracking-wider flex items-center gap-2">
+                                    <FileText size={16} className="text-secondary" />
+                                    Purpose & Instructions (Optional)
+                                </h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-xs font-semibold text-text-muted block mb-2">Purpose</label>
+                                        <textarea
+                                            value={formData.purpose || ''}
+                                            onChange={e => setFormData({ ...formData, purpose: e.target.value || undefined })}
+                                            placeholder="e.g., Pain relief, antibiotics for bacterial infection, blood pressure control..."
+                                            rows={2}
+                                            className="w-full p-3 bg-white border border-surface shadow-sm rounded-xl focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none hover:border-secondary/50 transition-all duration-200 text-sm resize-y min-h-[60px]"
+                                        />
+                                        <p className="text-[10px] text-text-muted mt-1">Leave blank to use "Tap to get AI purpose" on the card</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-semibold text-text-muted block mb-2">Instructions</label>
+                                        <textarea
+                                            value={formData.instructions || ''}
+                                            onChange={e => setFormData({ ...formData, instructions: e.target.value || undefined })}
+                                            placeholder="e.g., Take with food to avoid stomach upset. Do not take with dairy products. Avoid alcohol while on this medication..."
+                                            rows={2}
+                                            className="w-full p-3 bg-white border border-surface shadow-sm rounded-xl focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none hover:border-secondary/50 transition-all duration-200 text-sm resize-y min-h-[60px]"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 

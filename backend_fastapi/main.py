@@ -6,8 +6,20 @@ from app.core.database import connect_to_mongo, close_mongo_connection
 from app.core.redis import connect_to_redis, close_redis_connection
 from app.core.cloudinary_config import configure_cloudinary
 from app.core.config import settings
-from app.routers import user, doctor, admin, chatbot, chatbot_doctor, chatbot_admin, medication, healthmate_assist, dose, auth
-from app.services.chatbot_service import init_chatbot_service
+
+# Import routers from new domain-based structure
+from app.routers.shared import auth_router
+from app.routers.admin import admin_router, admin_chatbot_router
+from app.routers.doctor import doctor_router, doctor_chatbot_router
+from app.routers.user import (
+    user_router,
+    user_chatbot_router,
+    medication_router,
+    dose_router,
+    healthmate_assist_router
+)
+
+from app.services.shared.chatbot_service import init_chatbot_service
 from app.healthmate_assist.chatbot_manager import initialize_assist
 
 
@@ -55,17 +67,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(auth.router)  # Authentication endpoints (real-time validation)
-app.include_router(user.router)
-app.include_router(doctor.router)
-app.include_router(admin.router)
-app.include_router(chatbot.router)  # MediGenius medical chatbot (User-only)
-app.include_router(chatbot_doctor.router)  # MediGenius chatbot for Doctors
-app.include_router(chatbot_admin.router)  # MediGenius chatbot for Admin
-app.include_router(medication.router)  # Medication management
-app.include_router(healthmate_assist.router)  # HealthMate Assist chatbot
-app.include_router(dose.router)  # Dose scheduling and tracking
+# Include routers - Shared
+app.include_router(auth_router)  # Authentication endpoints (real-time validation)
+
+# Include routers - Admin
+app.include_router(admin_router)  # Admin management
+app.include_router(admin_chatbot_router)  # MediGenius chatbot for Admin
+
+# Include routers - Doctor
+app.include_router(doctor_router)  # Doctor management
+app.include_router(doctor_chatbot_router)  # MediGenius chatbot for Doctors
+
+# Include routers - User
+app.include_router(user_router)  # User management
+app.include_router(user_chatbot_router)  # MediGenius chatbot for Users
+app.include_router(medication_router)  # Medication management
+app.include_router(dose_router)  # Dose scheduling and tracking
+app.include_router(healthmate_assist_router)  # HealthMate Assist chatbot
 
 
 @app.get("/")

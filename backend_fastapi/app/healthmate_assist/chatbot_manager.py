@@ -12,7 +12,7 @@ from .conversation_flow import (
     ConversationIntent,
     MedicationFlowState
 )
-from ..services import medication_service
+# Note: medication_service imported lazily inside methods to avoid circular import
 
 
 class HealthMateAssistManager:
@@ -165,6 +165,9 @@ Respond naturally to the user's message."""
         self._save_message(session_id, user_id, "user", message)
         
         if is_complete:
+            # Lazy import to avoid circular dependency
+            from ..services.user import medication_service
+            
             # Create the medication
             result = await medication_service.create_medication(
                 user_id=user_id,
@@ -202,6 +205,9 @@ Respond naturally to the user's message."""
         timestamp: str
     ) -> Dict[str, Any]:
         """Handle request to list medications."""
+        # Lazy import to avoid circular dependency
+        from ..services.user import medication_service
+        
         result = await medication_service.get_user_medications(user_id)
         
         if not result["success"] or not result["medications"]:
@@ -240,6 +246,9 @@ Respond naturally to the user's message."""
         timestamp: str
     ) -> Dict[str, Any]:
         """Handle request to delete medication."""
+        # Lazy import to avoid circular dependency
+        from ..services.user import medication_service
+        
         # For now, direct to manual deletion
         result = await medication_service.get_user_medications(user_id)
         

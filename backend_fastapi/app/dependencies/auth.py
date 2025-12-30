@@ -100,9 +100,7 @@ async def get_current_admin(request: Request) -> bool:
         # Express.js admin auth: jwt.sign(email + password, secret)
         # Then verifies: decoded === email + password
         decoded = jwt.decode(atoken, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
-        expected = settings.ADMIN_EMAIL + settings.ADMIN_PASSWORD
-        
-        if decoded != expected:
+        if decoded.get("role") != "admin" or decoded.get("email") != settings.ADMIN_EMAIL:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail={"success": False, "message": "Not Authorized Login Again"}

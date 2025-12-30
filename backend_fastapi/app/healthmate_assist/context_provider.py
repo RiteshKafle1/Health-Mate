@@ -1,6 +1,5 @@
 """Context provider - Fetches user context for HealthMate Assist."""
 from typing import Optional
-from ..services import medication_service, user_service
 from ..core.database import get_appointments_collection
 from bson import ObjectId
 from datetime import datetime
@@ -22,6 +21,9 @@ class ContextProvider:
     @staticmethod
     async def _get_user_profile(user_id: str) -> str:
         """Get user profile summary."""
+        # Lazy import to avoid circular dependency
+        from ..services.user import user_service
+        
         result = await user_service.get_user_profile(user_id)
         if not result.get("success"):
             return "User profile not available."
@@ -44,6 +46,9 @@ class ContextProvider:
     @staticmethod
     async def _get_medications_context(user_id: str) -> str:
         """Get medications summary."""
+        # Lazy import to avoid circular dependency
+        from ..services.user import medication_service
+        
         return await medication_service.get_medications_summary(user_id)
     
     @staticmethod

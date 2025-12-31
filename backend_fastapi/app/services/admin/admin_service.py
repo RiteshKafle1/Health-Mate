@@ -27,15 +27,15 @@ async def add_doctor(
     degree: str,
     experience: str,
     about: str,
-    fees: float,
     address: str,
+    fees: float = 0.0,
     image_bytes: bytes = None
 ) -> dict:
     """Add a new doctor."""
     doctors = get_doctors_collection()
     
     # Validate required fields
-    if not all([name, email, password, speciality, degree, experience, about, fees, address]):
+    if not all([name, email, password, speciality, degree, experience, about, address]):
         return {"success": False, "message": "Missing Details"}
     
     # Validate email
@@ -55,7 +55,8 @@ async def add_doctor(
     image_url = ""
     if image_bytes:
         try:
-            image_url = await upload_image_from_bytes(image_bytes, "doctor")
+            upload_result = await upload_image_from_bytes(image_bytes, "doctor")
+            image_url = upload_result.get("secure_url")
         except Exception as e:
             return {"success": False, "message": f"Image upload failed: {str(e)}"}
     

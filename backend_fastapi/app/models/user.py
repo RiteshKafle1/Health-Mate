@@ -21,7 +21,17 @@ class UserBase(BaseModel):
     weight: str = "Not Set"
     height: str = "Not Set"
     image: str = DEFAULT_USER_IMAGE
-    file:str
+    file: str = ""
+    profile_completion_percentage: int = 0
+    last_profile_reminder_at: int = 0
+    notification_preferences: dict = Field(default_factory=lambda: {
+        "profile_reminders": True,
+        "medication_reminders": True,
+        "appointment_reminders": True,
+        "health_checkins": False,
+        "low_stock_alerts": True,
+        "push_enabled": False
+    })
 
 
 class UserCreate(BaseModel):
@@ -64,6 +74,15 @@ class UserResponse(BaseModel):
     weight: str
     height: str
     image: str
-    file:str
+    file: str
+    profile_completion_percentage: int = 0
+    notification_preferences: dict = Field(default_factory=lambda: {
+        "profile_reminders": True,
+        "medication_reminders": True,
+        "appointment_reminders": True,
+        "health_checkins": False,
+        "low_stock_alerts": True,
+        "push_enabled": False
+    })
     class Config:
         populate_by_name = True

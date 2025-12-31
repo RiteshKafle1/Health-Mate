@@ -173,7 +173,7 @@ export const markDoseTaken = async (
 export interface MedicationInfo {
     purpose: string | null;
     instructions: string | null;
-    source: 'knowledge_base' | 'openfda' | 'tavily' | 'ai_generated' | 'fallback';
+    source: 'knowledge_base' | 'openfda_ai' | 'tavily_ai' | 'ai_generated' | 'fallback';
     success: boolean;
 }
 

@@ -8,13 +8,17 @@ export interface User {
     _id: string;
     name: string;
     email: string;
-    phone: string;
-    address: Address;
-    gender: string;
-    dob: string;
-    weight: string;
-    height: string;
-    image: string;
+    phone?: string;
+    address?: {
+        line1: string;
+        line2: string;
+    };
+    gender?: string;
+    dob?: string;
+    weight?: string;
+    height?: string;
+    image?: string;
+    profile_completion_percentage?: number;
 }
 
 export interface UserCreate {

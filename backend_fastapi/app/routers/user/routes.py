@@ -195,3 +195,22 @@ async def mark_notification_read(notif_id: str, user_id: str = Depends(get_curre
     )
     
     return {"success": True}
+
+
+# ==================== NOTIFICATION PREFERENCES ====================
+
+@router.get("/notification-preferences")
+async def get_preferences(user_id: str = Depends(get_current_user)):
+    """Get user's notification preferences."""
+    from ...services.notification_service import get_notification_preferences
+    return await get_notification_preferences(user_id)
+
+
+@router.put("/notification-preferences")
+async def update_preferences(
+    preferences: dict,
+    user_id: str = Depends(get_current_user)
+):
+    """Update user's notification preferences."""
+    from ...services.notification_service import update_notification_preferences
+    return await update_notification_preferences(user_id, preferences)

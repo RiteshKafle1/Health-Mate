@@ -1,7 +1,8 @@
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { User, Menu, Cross, Search, Stethoscope, BookOpen } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { User, Menu, Search, Stethoscope, BookOpen } from 'lucide-react';
 import { NotificationDropdown } from '../NotificationDropdown';
+import logo from '../../assets/logo.png';
 
 interface NavbarProps {
     onMenuClick?: () => void;
@@ -42,11 +43,18 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                     <Menu size={24} />
                 </button>
 
-                {/* Logo - requested to be on left */}
+                {/* Logo - Consistent with Sidebar & Redirects to Dashboard */}
                 <div className="hidden md:flex items-center gap-2 text-primary">
-                    <div className="p-1.5 bg-white/50 rounded-xl shadow-sm border border-white/60">
-                        <Cross className="h-5 w-5" />
-                    </div>
+                    <Link
+                        to={`/${role || 'user'}/dashboard`}
+                        className="transition-all cursor-pointer"
+                    >
+                        <img
+                            src={logo}
+                            alt="HealthMate Logo"
+                            className="h-[72px] w-auto transition-all duration-500 ease-out hover:scale-110 hover:rotate-3 hover:brightness-125 hover:contrast-125 hover:drop-shadow-[0_0_15px_rgba(120,134,199,0.8)] active:scale-95"
+                        />
+                    </Link>
                 </div>
 
                 {/* Vertical Divider */}

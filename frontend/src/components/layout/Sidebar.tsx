@@ -9,7 +9,6 @@ import {
     MessageCircle,
     Pill,
     LogOut,
-    Activity,
     TrendingUp,
     ChevronLeft,
     ChevronRight,
@@ -17,6 +16,7 @@ import {
     FileText,
     Stethoscope
 } from 'lucide-react';
+import logo from '../../assets/logo.png';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -90,15 +90,21 @@ export function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }: Side
                 <div className={`flex items-center px-6 mb-8 transition-all duration-300 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
                     {!isCollapsed && (
                         <div className="flex items-center gap-3 animate-fade-in">
-                            <div className="p-2 bg-primary/10 rounded-xl">
-                                <Activity className="h-6 w-6 text-primary" />
-                            </div>
+                            <img
+                                src={logo}
+                                alt="HealthMate"
+                                className="h-[72px] w-auto transition-all duration-500 ease-out hover:scale-110 hover:rotate-3 hover:brightness-125 hover:contrast-125 hover:drop-shadow-[0_0_15px_rgba(120,134,199,0.8)] active:scale-95 cursor-pointer"
+                            />
                             <span className="text-xl font-bold tracking-tight text-text">HealthMate</span>
                         </div>
                     )}
                     {isCollapsed && (
-                        <div className="p-2 bg-primary/10 rounded-xl">
-                            <Activity className="h-6 w-6 text-primary" />
+                        <div className="flex justify-center w-full">
+                            <img
+                                src={logo}
+                                alt="HealthMate"
+                                className="h-[72px] w-auto transition-all duration-500 ease-out hover:scale-110 hover:rotate-3 hover:brightness-125 hover:contrast-125 hover:drop-shadow-[0_0_15px_rgba(120,134,199,0.8)] active:scale-95 cursor-pointer"
+                            />
                         </div>
                     )}
 

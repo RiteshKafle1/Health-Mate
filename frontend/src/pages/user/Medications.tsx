@@ -704,13 +704,13 @@ export function Medications() {
                                                 <span className="text-[10px] font-bold text-text uppercase">Purpose</span>
                                                 {med.purpose_source && (
                                                     <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-medium ${med.purpose_source === 'knowledge_base' ? 'bg-green-100 text-green-700' :
-                                                        med.purpose_source === 'openfda' ? 'bg-blue-100 text-blue-700' :
-                                                            med.purpose_source === 'tavily' ? 'bg-purple-100 text-purple-700' :
+                                                        med.purpose_source === 'openfda_ai' ? 'bg-blue-100 text-blue-700' :
+                                                            med.purpose_source === 'tavily_ai' ? 'bg-purple-100 text-purple-700' :
                                                                 'bg-orange-100 text-orange-700'
                                                         }`}>
                                                         {med.purpose_source === 'knowledge_base' ? 'KB' :
-                                                            med.purpose_source === 'openfda' ? 'FDA' :
-                                                                med.purpose_source === 'tavily' ? 'Web' : 'AI'}
+                                                            med.purpose_source === 'openfda_ai' ? 'FDA+AI' :
+                                                                med.purpose_source === 'tavily_ai' ? 'Web+AI' : 'AI'}
                                                     </span>
                                                 )}
                                             </div>
@@ -735,13 +735,13 @@ export function Medications() {
                                                 <span className="text-[10px] font-bold text-text uppercase">Instructions</span>
                                                 {med.instructions_source && (
                                                     <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-medium ${med.instructions_source === 'knowledge_base' ? 'bg-green-100 text-green-700' :
-                                                        med.instructions_source === 'openfda' ? 'bg-blue-100 text-blue-700' :
-                                                            med.instructions_source === 'tavily' ? 'bg-purple-100 text-purple-700' :
+                                                        med.instructions_source === 'openfda_ai' ? 'bg-blue-100 text-blue-700' :
+                                                            med.instructions_source === 'tavily_ai' ? 'bg-purple-100 text-purple-700' :
                                                                 'bg-orange-100 text-orange-700'
                                                         }`}>
                                                         {med.instructions_source === 'knowledge_base' ? 'KB' :
-                                                            med.instructions_source === 'openfda' ? 'FDA' :
-                                                                med.instructions_source === 'tavily' ? 'Web' : 'AI'}
+                                                            med.instructions_source === 'openfda_ai' ? 'FDA+AI' :
+                                                                med.instructions_source === 'tavily_ai' ? 'Web+AI' : 'AI'}
                                                     </span>
                                                 )}
                                             </div>

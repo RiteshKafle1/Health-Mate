@@ -14,7 +14,8 @@ import {
     ChevronLeft,
     ChevronRight,
     Settings,
-    FileText
+    FileText,
+    Stethoscope
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -32,7 +33,7 @@ interface NavItem {
 
 const userNavItems: NavItem[] = [
     { label: 'Dashboard', path: '/user/dashboard', icon: <LayoutDashboard size={22} /> },
-    { label: 'Find Doctors', path: '/user/doctors', icon: <Users size={22} /> },
+    { label: 'Find Doctors', path: '/user/doctors', icon: <Stethoscope size={22} /> },
     { label: 'Appointments', path: '/user/appointments', icon: <Calendar size={22} /> },
     { label: 'Medications', path: '/user/medications', icon: <Pill size={22} /> },
     { label: 'My Reports', path: '/user/reports', icon: <FileText size={22} /> },

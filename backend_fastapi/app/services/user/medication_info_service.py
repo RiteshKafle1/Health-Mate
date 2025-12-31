@@ -1,8 +1,15 @@
-"""Medication Info Service - Multi-source medication information lookup."""
+"""Medication Info Service - Multi-source medication information lookup with Redis caching."""
 from typing import Optional, Dict
 import httpx
 import os
 from ...healthmate_assist.gemini_client import get_gemini_client
+from ...core.redis import get_redis
+
+
+# Redis key prefix for medication info cache
+MEDICATION_INFO_CACHE_PREFIX = "med_info:"
+# Cache TTL: 7 days (medication info rarely changes)
+MEDICATION_INFO_CACHE_TTL = 7 * 24 * 60 * 60  # 604800 seconds
 
 
 # Common medications knowledge base for fast lookup
@@ -106,12 +113,111 @@ def get_from_knowledge_base(medication_name: str) -> Optional[Dict[str, str]]:
     return None
 
 
+async def get_cached_refined_info(cache_key: str) -> Optional[str]:
+    """Get cached refined medication info from Redis."""
+    redis = get_redis()
+    if not redis:
+        return None
+    
+    try:
+        cached = await redis.get(f"{MEDICATION_INFO_CACHE_PREFIX}{cache_key}")
+        if cached:
+            print(f"[MedInfo] Cache HIT: {cache_key}")
+            return cached
+    except Exception as e:
+        print(f"[MedInfo] Redis get error: {e}")
+    
+    return None
+
+
+async def save_refined_info_to_cache(cache_key: str, value: str):
+    """Save refined medication info to Redis with TTL."""
+    redis = get_redis()
+    if not redis:
+        return
+    
+    try:
+        await redis.setex(
+            f"{MEDICATION_INFO_CACHE_PREFIX}{cache_key}",
+            MEDICATION_INFO_CACHE_TTL,
+            value
+        )
+        print(f"[MedInfo] Cached: {cache_key} (TTL: 7 days)")
+    except Exception as e:
+        print(f"[MedInfo] Redis save error: {e}")
+
+
+async def refine_with_ai(
+    medication_name: str,
+    raw_data: str,
+    field: str,  # "purpose" or "instructions"
+    source: str  # "openfda" or "tavily"
+) -> str:
+    """
+    Use Gemini to refine raw data from external sources.
+    Uses Redis caching for distributed cache across devices.
+    
+    Args:
+        medication_name: Name of the medication
+        raw_data: Raw text from OpenFDA or Tavily
+        field: "purpose" or "instructions"
+        source: Source of raw data for context
+    
+    Returns:
+        Clean, refined text (max 20 words, ~100 chars)
+    """
+    # Check Redis cache first
+    cache_key = f"{medication_name.lower()}_{field}_{source}"
+    cached = await get_cached_refined_info(cache_key)
+    if cached:
+        return cached
+    
+    try:
+        gemini = get_gemini_client()
+        
+        if field == "purpose":
+            prompt = f"""Based on this {source.upper()} data about "{medication_name}":
+
+"{raw_data[:500]}"
+
+Write a clear, accurate PURPOSE statement in under 20 words.
+What medical condition does this medication treat?
+Format: Just the purpose, no labels or prefixes."""
+        else:  # instructions
+            prompt = f"""Based on this {source.upper()} data about "{medication_name}":
+
+"{raw_data[:500]}"
+
+Write clear INSTRUCTIONS for taking this medication in under 20 words.
+Include timing, food interactions, or important precautions.
+Format: Just the instructions, no labels or prefixes."""
+        
+        response = gemini.generate_response(
+            prompt=prompt,
+            system_instruction="You are a clinical pharmacist. Convert raw medical data into clear, patient-friendly information. Be accurate and concise."
+        )
+        
+        refined = response.strip()[:100]
+        
+        # Save to Redis cache
+        await save_refined_info_to_cache(cache_key, refined)
+        
+        return refined
+        
+    except Exception as e:
+        print(f"AI refinement error: {e}")
+        # Fallback to truncated raw data
+        return raw_data.split(".")[0][:100].strip()
+
+
 async def fetch_from_openfda(medication_name: str) -> Optional[Dict[str, str]]:
     """
-    Fetch medication info from OpenFDA API.
+    Fetch medication info from OpenFDA API and refine with AI.
     Free API, no key required.
     
-    Returns: {"purpose": "...", "instructions": "..."} or None
+    Flow: OpenFDA → Raw Data → Gemini AI → Clean 20-word summary
+    
+    Returns: {"purpose": "...", "instructions": "...", "raw_source": "openfda"} or None
     """
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
@@ -125,29 +231,39 @@ async def fetch_from_openfda(medication_name: str) -> Optional[Dict[str, str]]:
                 if data.get("results"):
                     result = data["results"][0]
                     
-                    # Extract purpose (indications_and_usage)
-                    purpose = None
+                    # Extract raw purpose (indications_and_usage)
+                    purpose_raw = None
                     if "indications_and_usage" in result:
-                        raw = result["indications_and_usage"][0]
-                        # Extract first sentence, limit to ~15 words
-                        purpose = raw.split(".")[0][:100].strip()
+                        purpose_raw = result["indications_and_usage"][0]
                     elif "purpose" in result:
-                        purpose = result["purpose"][0][:100].strip()
+                        purpose_raw = result["purpose"][0]
                     
-                    # Extract instructions (dosage_and_administration)
-                    instructions = None
+                    # Extract raw instructions (dosage_and_administration)
+                    instructions_raw = None
                     if "dosage_and_administration" in result:
-                        raw = result["dosage_and_administration"][0]
-                        # Extract first sentence
-                        instructions = raw.split(".")[0][:100].strip()
+                        instructions_raw = result["dosage_and_administration"][0]
                     elif "warnings" in result:
-                        # Fallback to warnings for important info
-                        instructions = result["warnings"][0].split(".")[0][:100].strip()
+                        instructions_raw = result["warnings"][0]
                     
-                    if purpose or instructions:
+                    if purpose_raw or instructions_raw:
+                        # Refine raw data with AI for clean output
+                        purpose = None
+                        instructions = None
+                        
+                        if purpose_raw:
+                            purpose = await refine_with_ai(
+                                medication_name, purpose_raw, "purpose", "openfda"
+                            )
+                        
+                        if instructions_raw:
+                            instructions = await refine_with_ai(
+                                medication_name, instructions_raw, "instructions", "openfda"
+                            )
+                        
                         return {
                             "purpose": purpose or "See prescription label",
-                            "instructions": instructions or "Follow doctor's instructions"
+                            "instructions": instructions or "Follow doctor's instructions",
+                            "raw_source": "openfda"
                         }
     except Exception as e:
         print(f"OpenFDA fetch error: {e}")
@@ -157,14 +273,16 @@ async def fetch_from_openfda(medication_name: str) -> Optional[Dict[str, str]]:
 
 async def fetch_from_tavily(medication_name: str, field: str = "both") -> Optional[Dict[str, str]]:
     """
-    Search for medication info using Tavily web search.
+    Search for medication info using Tavily web search and refine with AI.
     Searches medical sites: Mayo Clinic, WebMD, Drugs.com, etc.
+    
+    Flow: Tavily Search → Raw Web Data → Gemini AI → Clean 20-word summary
     
     Args:
         medication_name: Name of the medication
         field: "purpose", "instructions", or "both"
     
-    Returns: {"purpose": "...", "instructions": "..."} or None
+    Returns: {"purpose": "...", "instructions": "...", "raw_source": "tavily"} or None
     """
     tavily_key = os.getenv("TAVILY_API_KEY")
     if not tavily_key:
@@ -201,30 +319,33 @@ async def fetch_from_tavily(medication_name: str, field: str = "both") -> Option
             if response.status_code == 200:
                 data = response.json()
                 
-                # Use Tavily's answer if available
+                # Get raw content from Tavily
+                raw_content = None
                 if data.get("answer"):
-                    answer = data["answer"]
+                    raw_content = data["answer"]
+                elif data.get("results"):
+                    raw_content = data["results"][0].get("content", "")
+                
+                if raw_content:
+                    # Refine raw data with AI for clean output
+                    purpose = None
+                    instructions = None
                     
-                    # Parse based on field
-                    if field == "purpose":
-                        return {"purpose": answer[:150], "instructions": None}
-                    elif field == "instructions":
-                        return {"purpose": None, "instructions": answer[:150]}
-                    else:
-                        # Try to split into purpose and instructions
-                        return {
-                            "purpose": answer[:100],
-                            "instructions": "Follow prescribed dosage"
-                        }
-                        
-                # Fallback to first result content
-                if data.get("results"):
-                    content = data["results"][0].get("content", "")[:200]
-                    if content:
-                        return {
-                            "purpose": content if field != "instructions" else None,
-                            "instructions": content if field != "purpose" else None
-                        }
+                    if field in ["purpose", "both"]:
+                        purpose = await refine_with_ai(
+                            medication_name, raw_content, "purpose", "tavily"
+                        )
+                    
+                    if field in ["instructions", "both"]:
+                        instructions = await refine_with_ai(
+                            medication_name, raw_content, "instructions", "tavily"
+                        )
+                    
+                    return {
+                        "purpose": purpose,
+                        "instructions": instructions,
+                        "raw_source": "tavily"
+                    }
     
     except Exception as e:
         print(f"Tavily fetch error: {e}")
@@ -337,7 +458,7 @@ async def get_medication_info(
         result["source"] = "knowledge_base"
         return result
     
-    # 2. Try OpenFDA API
+    # 2. Try OpenFDA API (with AI refinement)
     fda_result = await fetch_from_openfda(medication_name)
     if fda_result:
         if field == "both":
@@ -349,10 +470,10 @@ async def get_medication_info(
             result["instructions"] = fda_result["instructions"]
         
         if result["purpose"] or result["instructions"]:
-            result["source"] = "openfda"
+            result["source"] = "openfda_ai"  # FDA data refined by AI
             return result
     
-    # 3. Try Tavily web search
+    # 3. Try Tavily web search (with AI refinement)
     tavily_result = await fetch_from_tavily(medication_name, field)
     if tavily_result:
         if field == "both":
@@ -364,7 +485,7 @@ async def get_medication_info(
             result["instructions"] = tavily_result["instructions"]
         
         if result["purpose"] or result["instructions"]:
-            result["source"] = "tavily"
+            result["source"] = "tavily_ai"  # Web data refined by AI
             return result
     
     # 4. Fallback to AI generation

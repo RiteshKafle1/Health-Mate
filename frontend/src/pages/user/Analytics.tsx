@@ -142,6 +142,7 @@ export function Analytics() {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [missedSectionExpanded, setMissedSectionExpanded] = useState(false);
     const [missedFilter, setMissedFilter] = useState<'today' | '7d' | '14d' | '30d'>('7d');
+    const [isMissedLoading, setIsMissedLoading] = useState(false);
 
     // Section refs for quick navigation
     const sectionRefs = {
@@ -176,8 +177,37 @@ export function Analytics() {
         }
     };
 
-    const fetchData = async () => {
+
+    // Initial data fetch (everything except missed doses which depends on filter)
+    const fetchInitialData = async () => {
         setIsLoading(true);
+        try {
+            const [stats, streakRes, timeRes, compRes, aiRes, refreshRes] = await Promise.all([
+                getAdherenceStats(period),
+                getStreak(),
+                getTimeAnalysis(period),
+                getComparison(),
+                getAIInsights(),
+                canRefreshInsights()
+            ]);
+
+            if (stats.success) setAdherenceStats(stats);
+            if (streakRes.success) setStreak(streakRes);
+            if (timeRes.success) setTimeAnalysis(timeRes);
+            if (compRes.success) setComparison(compRes);
+            if (aiRes.success) setAiInsights(aiRes);
+            if (refreshRes) setCanRefresh(refreshRes);
+        } catch (error) {
+            console.error('Error fetching analytics:', error);
+            toast.error('Failed to load health insights');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Separate fetch for missed doses
+    const fetchMissedDoses = async () => {
+        setIsMissedLoading(true);
         try {
             const end = new Date();
             let start = new Date();
@@ -195,41 +225,25 @@ export function Analytics() {
             const startDateStr = start.toISOString().split('T')[0];
             const endDateStr = end.toISOString().split('T')[0];
 
-            /*
-             * If filtering by 'today', usage of startDate=today and endDate=today 
-             * ensures we only get today's missed doses.
-             */
-
-            const [stats, streakRes, missedRes, timeRes, compRes, aiRes, refreshRes] = await Promise.all([
-                getAdherenceStats(period), // Keep original period for overall stats
-                getStreak(),
-                getMissedDoses(50, undefined, startDateStr, endDateStr), // Apply date filter
-                getTimeAnalysis(period), // Keep original period for time analysis
-                getComparison(),
-                getAIInsights(),
-                canRefreshInsights()
-            ]);
-
-            if (stats.success) setAdherenceStats(stats);
-            if (streakRes.success) setStreak(streakRes);
+            const missedRes = await getMissedDoses(50, undefined, startDateStr, endDateStr);
             if (missedRes.success) setMissedDoses(missedRes);
-            if (timeRes.success) setTimeAnalysis(timeRes);
-            if (compRes.success) setComparison(compRes);
-            if (aiRes.success) {
-                setAiInsights(aiRes);
-            }
-            if (refreshRes) setCanRefresh(refreshRes);
         } catch (error) {
-            console.error('Error fetching analytics:', error);
-            toast.error('Failed to load health insights');
+            console.error('Error fetching missed doses:', error);
+            // Don't toast here to avoid navigation spam
         } finally {
-            setIsLoading(false);
+            setIsMissedLoading(false);
         }
     };
 
+    // Initial load and period change
     useEffect(() => {
-        fetchData();
-    }, [period, missedFilter]);
+        fetchInitialData();
+    }, [period]);
+
+    // Missed doses filter change
+    useEffect(() => {
+        fetchMissedDoses();
+    }, [missedFilter]);
 
 
     // Handler for refreshing AI insights
@@ -855,7 +869,7 @@ export function Analytics() {
                     </div>
 
                     <div className={`transition-all duration-300 ease-in-out ${missedSectionExpanded ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                        <div className="px-6 pb-6">
+                        <div className={`px-6 pb-6 transition-opacity duration-200 ${isMissedLoading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
                             {/* Filter Tabs */}
                             <div className="flex p-1 bg-[#EEF2FF] rounded-xl mb-4 w-fit">
                                 {(['today', '7d', '14d', '30d'] as const).map((filter) => (
@@ -876,7 +890,22 @@ export function Analytics() {
                             </div>
 
                             {missedDoses && missedDoses.missed_doses.length > 0 ? (
-                                <div className="divide-y divide-[#A9B5DF]/20">
+                                <div className="divide-y divide-[#A9B5DF]/20 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                    <style>{`
+                                        .custom-scrollbar::-webkit-scrollbar {
+                                            width: 6px;
+                                        }
+                                        .custom-scrollbar::-webkit-scrollbar-track {
+                                            background: transparent;
+                                        }
+                                        .custom-scrollbar::-webkit-scrollbar-thumb {
+                                            background-color: #CBD5E1;
+                                            border-radius: 20px;
+                                        }
+                                        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                                            background-color: #94A3B8;
+                                        }
+                                    `}</style>
                                     {missedDoses.missed_doses.map((dose, index) => (
                                         <MissedDoseRow
                                             key={index}

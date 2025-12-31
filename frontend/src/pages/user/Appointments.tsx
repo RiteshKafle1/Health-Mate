@@ -1,14 +1,8 @@
 import { useEffect, useState } from 'react';
-import { getUserAppointments, cancelUserAppointment, createRazorpayOrder, verifyRazorpayPayment } from '../../api/user';
+import { getUserAppointments, cancelUserAppointment } from '../../api/user';
 import type { Appointment } from '../../types';
-import { Calendar, Clock, Stethoscope, X, CreditCard, Check, Loader2, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, User, X, Check, Loader2, AlertCircle, Stethoscope } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-declare global {
-    interface Window {
-        Razorpay: any;
-    }
-}
 
 export function UserAppointments() {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -54,185 +48,142 @@ export function UserAppointments() {
         }
     };
 
-    const handlePayment = async (appointmentId: string, _amount: number) => {
-        setProcessingId(appointmentId);
+    // Calculate previous completed visits with a specific doctor
+    const getPreviousVisitCount = (docId: string, currentAptId: string): number => {
+        return appointments.filter(apt =>
+            apt.docId === docId &&
+            apt.isCompleted &&
+            apt._id !== currentAptId
+        ).length;
+    };
 
-        try {
-            const orderResponse = await createRazorpayOrder(appointmentId);
-
-            if (!orderResponse.success || !orderResponse.order) {
-                toast.error('Failed to create payment order');
-                return;
-            }
-
-            const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY;
-
-            if (!razorpayKey) {
-                // If no Razorpay key, simulate payment success
-                toast.success('Payment simulated successfully (Razorpay key not configured)');
-                await verifyRazorpayPayment(orderResponse.order.id);
-                fetchAppointments();
-                return;
-            }
-
-            const options = {
-                key: razorpayKey,
-                amount: orderResponse.order.amount,
-                currency: orderResponse.order.currency,
-                name: 'HealthMate',
-                description: 'Doctor Appointment Payment',
-                order_id: orderResponse.order.id,
-                handler: async function (response: any) {
-                    try {
-                        const verifyResponse = await verifyRazorpayPayment(response.razorpay_order_id);
-                        if (verifyResponse.success) {
-                            toast.success('Payment successful!');
-                            fetchAppointments();
-                        } else {
-                            toast.error('Payment verification failed');
-                        }
-                    } catch (error) {
-                        toast.error('Payment verification failed');
-                    }
-                },
-                theme: {
-                    color: '#6366f1',
-                },
-            };
-
-            const razorpay = new window.Razorpay(options);
-            razorpay.open();
-        } catch (error: any) {
-            toast.error(error.response?.data?.detail?.message || 'Payment failed');
-        } finally {
-            setProcessingId(null);
-        }
+    const getVisitBadge = (count: number) => {
+        if (count === 0) return 'First Visit';
+        if (count === 1) return '2nd Visit';
+        if (count === 2) return '3rd Visit';
+        return `${count + 1}th Visit`;
     };
 
     const getStatusBadge = (apt: Appointment) => {
         if (apt.cancelled) {
-            return <span className="badge-danger">Cancelled</span>;
+            return <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-600 border border-red-200">Cancelled</span>;
         }
         if (apt.isCompleted) {
-            return <span className="badge-success">Completed</span>;
+            return <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">Completed</span>;
         }
-        if (apt.payment) {
-            return <span className="badge-info">Paid</span>;
-        }
-        return <span className="badge-warning">Pending Payment</span>;
+        return <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200">Scheduled</span>;
     };
 
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
-                <Loader2 className="animate-spin text-primary-500" size={48} />
+                <Loader2 className="animate-spin text-emerald-600" size={48} />
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-12">
             <div>
                 <h1 className="text-2xl font-bold text-dark-50">My Appointments</h1>
                 <p className="text-dark-400 mt-1">View and manage your appointments</p>
             </div>
 
             {appointments.length === 0 ? (
-                <div className="glass-card p-16 text-center">
-                    <Calendar className="mx-auto text-dark-500 mb-4" size={64} />
-                    <h3 className="text-xl font-semibold text-dark-200 mb-2">No appointments yet</h3>
-                    <p className="text-dark-400">Book your first appointment with a doctor</p>
+                <div className="bg-white dark:bg-dark-800 rounded-3xl p-16 text-center shadow-lg">
+                    <Calendar className="mx-auto text-dark-300 mb-4" size={64} />
+                    <h3 className="text-xl font-semibold text-dark-100 mb-2">No appointments yet</h3>
+                    <p className="text-dark-400">Book your first free appointment with a doctor</p>
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {appointments.map((apt) => (
-                        <div key={apt._id} className="glass-card p-6">
-                            <div className="flex flex-col md:flex-row gap-6">
-                                {/* Doctor Image */}
-                                <div className="w-full md:w-28 h-28 rounded-xl overflow-hidden bg-dark-700 flex-shrink-0">
-                                    {apt.docData?.image ? (
-                                        <img src={apt.docData.image} alt={apt.docData.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            <Stethoscope className="text-dark-400" size={32} />
-                                        </div>
-                                    )}
-                                </div>
+                    {appointments.map((apt) => {
+                        const visitCount = getPreviousVisitCount(apt.docId, apt._id);
 
-                                {/* Appointment Details */}
-                                <div className="flex-1">
-                                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                                        <div>
-                                            <h3 className="text-lg font-semibold text-dark-100">Dr. {apt.docData?.name}</h3>
-                                            <p className="text-sm text-primary-400">{apt.docData?.speciality}</p>
+                        return (
+                            <div key={apt._id} className="bg-white dark:bg-dark-800 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                                <div className="flex flex-col md:flex-row gap-6">
+                                    {/* Doctor Image */}
+                                    <div className="w-full md:w-28 h-28 rounded-2xl overflow-hidden bg-emerald-50 dark:bg-dark-700 flex-shrink-0 shadow-md">
+                                        {apt.docData?.image ? (
+                                            <img src={apt.docData.image} alt={apt.docData.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-100 to-teal-100">
+                                                <Stethoscope className="text-emerald-400" size={32} />
+                                            </div>
+                                        )}
+                                    </div>
 
-                                            <div className="flex flex-wrap gap-4 mt-3 text-sm text-dark-300">
-                                                <div className="flex items-center gap-2">
-                                                    <Calendar size={16} className="text-dark-400" />
-                                                    <span>{apt.slotDate}</span>
+                                    {/* Appointment Details */}
+                                    <div className="flex-1">
+                                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <h3 className="text-xl font-bold text-dark-50">Dr. {apt.docData?.name}</h3>
+                                                    {/* Visit Counter Badge */}
+                                                    <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-purple-50 text-purple-600 border border-purple-200">
+                                                        {getVisitBadge(visitCount)}
+                                                    </span>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Clock size={16} className="text-dark-400" />
-                                                    <span>{apt.slotTime}</span>
+                                                <p className="text-sm text-emerald-600 font-medium mb-4">{apt.docData?.speciality}</p>
+
+                                                <div className="flex flex-wrap gap-4 text-sm text-dark-300">
+                                                    <div className="flex items-center gap-2 bg-gray-50 dark:bg-dark-700 px-3 py-1.5 rounded-lg">
+                                                        <Calendar size={16} className="text-emerald-500" />
+                                                        <span className="font-medium">{apt.slotDate}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 bg-gray-50 dark:bg-dark-700 px-3 py-1.5 rounded-lg">
+                                                        <Clock size={16} className="text-emerald-500" />
+                                                        <span className="font-medium">{apt.slotTime}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col items-start md:items-end gap-3">
+                                                {getStatusBadge(apt)}
+                                                {/* Free Consultation Badge */}
+                                                <div className="px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+                                                    <span className="text-emerald-600 dark:text-emerald-400 font-bold text-sm">Free Consultation</span>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="flex flex-col items-start md:items-end gap-3">
-                                            {getStatusBadge(apt)}
-                                            <p className="text-lg font-semibold text-dark-100">₹{apt.amount}</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Actions */}
-                                    {!apt.cancelled && !apt.isCompleted && (
-                                        <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-dark-700">
-                                            {!apt.payment && (
+                                        {/* Actions */}
+                                        {!apt.cancelled && !apt.isCompleted && (
+                                            <div className="flex flex-wrap gap-3 mt-5 pt-5 border-t border-dashed border-gray-200 dark:border-dark-700">
                                                 <button
-                                                    onClick={() => handlePayment(apt._id, apt.amount)}
+                                                    onClick={() => handleCancel(apt._id)}
                                                     disabled={processingId === apt._id}
-                                                    className="btn-primary flex items-center gap-2 text-sm"
+                                                    className="bg-red-50 text-red-600 border-2 border-red-500 hover:bg-red-500 hover:text-white px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 text-sm font-semibold shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     {processingId === apt._id ? (
                                                         <Loader2 className="animate-spin" size={16} />
                                                     ) : (
-                                                        <CreditCard size={16} />
+                                                        <X size={16} />
                                                     )}
-                                                    Pay Now
+                                                    Cancel Appointment
                                                 </button>
-                                            )}
-                                            <button
-                                                onClick={() => handleCancel(apt._id)}
-                                                disabled={processingId === apt._id}
-                                                className="btn-danger flex items-center gap-2 text-sm"
-                                            >
-                                                {processingId === apt._id ? (
-                                                    <Loader2 className="animate-spin" size={16} />
-                                                ) : (
-                                                    <X size={16} />
-                                                )}
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    )}
+                                            </div>
+                                        )}
 
-                                    {apt.isCompleted && (
-                                        <div className="flex items-center gap-2 mt-4 pt-4 border-t border-dark-700 text-emerald-400">
-                                            <Check size={16} />
-                                            <span className="text-sm">This appointment has been completed</span>
-                                        </div>
-                                    )}
+                                        {apt.isCompleted && (
+                                            <div className="flex items-center gap-2 mt-5 pt-5 border-t border-dashed border-gray-200 dark:border-dark-700 text-emerald-500">
+                                                <Check size={18} className="flex-shrink-0" />
+                                                <span className="text-sm font-medium">This appointment has been completed</span>
+                                            </div>
+                                        )}
 
-                                    {apt.cancelled && (
-                                        <div className="flex items-center gap-2 mt-4 pt-4 border-t border-dark-700 text-red-400">
-                                            <AlertCircle size={16} />
-                                            <span className="text-sm">This appointment was cancelled</span>
-                                        </div>
-                                    )}
+                                        {apt.cancelled && (
+                                            <div className="flex items-center gap-2 mt-5 pt-5 border-t border-dashed border-gray-200 dark:border-dark-700 text-red-500">
+                                                <AlertCircle size={18} className="flex-shrink-0" />
+                                                <span className="text-sm font-medium">This appointment was cancelled</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>

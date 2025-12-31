@@ -36,7 +36,7 @@ async def add_doctor(
     degree: str = Form(...),
     experience: str = Form(...),
     about: str = Form(...),
-    fees: float = Form(...),
+    fees: float = Form(0.0),
     address: str = Form(...),
     image: Optional[UploadFile] = File(None),
     _: bool = Depends(get_current_admin)

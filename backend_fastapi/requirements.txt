@@ -42,3 +42,6 @@ chromadb
 torch
 transformers
 tf-keras
+
+# Notification & Scheduling
+apscheduler>=3.10.0

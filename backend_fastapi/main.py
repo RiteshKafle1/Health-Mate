@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
 
 from app.core.database import connect_to_mongo, close_mongo_connection
 from app.core.redis import connect_to_redis, close_redis_connection
@@ -21,15 +20,21 @@ from app.routers.user import (
 
 from app.services.shared.chatbot_service import init_chatbot_service
 from app.healthmate_assist.chatbot_manager import initialize_assist
+from app.services import scheduler_service
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Startup and shutdown events."""
-    # Startup
+app = FastAPI(
+    title="Appointy API",
+    description="Doctor Appointment Booking System API",
+    version="1.0.0",
+)
+
+@app.on_event("startup")
+async def startup_event():
+    """Connect to external services on startup."""
     await connect_to_mongo()
-    await connect_to_redis()
     configure_cloudinary()
+    await connect_to_redis()
     
     # Initialize MediGenius chatbot (lazy loading)
     try:
@@ -44,19 +49,25 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"Warning: HealthMate Assist initialization deferred: {e}")
     
+    # Start notification scheduler
+    try:
+        scheduler_service.start_scheduler()
+    except Exception as e:
+        print(f"❌ Failed to start notification scheduler: {e}")
+        # Continue startup even if scheduler fails
+    
     print(f"Server started on PORT:{settings.PORT}")
-    yield
-    # Shutdown
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Close connections on shutdown."""
+    # Stop notification scheduler
+    scheduler_service.stop_scheduler()
+    
     await close_mongo_connection()
     await close_redis_connection()
 
-
-app = FastAPI(
-    title="Appointy API",
-    description="Doctor Appointment Booking System API",
-    version="1.0.0",
-    lifespan=lifespan
-)
 
 # CORS middleware
 app.add_middleware(

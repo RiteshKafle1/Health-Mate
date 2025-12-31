@@ -22,6 +22,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         if (path.includes('/reports')) return role === 'doctor' ? 'Patient Reports' : 'My Lab Reports';
         if (path.includes('/chatbot')) return 'HealthMate Clinician';
         if (path.includes('/profile')) return 'Profile Settings';
+        if (path.includes('/book/')) return 'Book Appointment';
 
         // Fallback to capitalizing URL
         return path.split('/').pop()?.replace('-', ' ')?.replace(/^\w/, c => c.toUpperCase()) || 'Dashboard';
@@ -46,7 +47,6 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                     <div className="p-1.5 bg-white/50 rounded-xl shadow-sm border border-white/60">
                         <Cross className="h-5 w-5" />
                     </div>
-                    {/* Optional: Add Text if desired, but minimalism requested */}
                 </div>
 
                 {/* Vertical Divider */}
@@ -65,8 +65,6 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                     </h2>
                 </div>
             </div>
-
-            {/* Center: Optional Search? Keeping it minimal as requested, so skipping. */}
 
             {/* Right: Actions & Profile */}
             <div className="flex items-center gap-5">
@@ -87,8 +85,16 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                         {/* User Profile */}
                         <div className="flex items-center gap-3 pl-2 group cursor-pointer">
                             {/* Initials Avatar with Premium styling */}
-                            <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm shadow-md ring-2 ring-white group-hover:ring-primary/20 transition-all">
-                                {user?.name?.[0]?.toUpperCase() || <User size={18} />}
+                            <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm shadow-md ring-2 ring-white group-hover:ring-primary/20 transition-all overflow-hidden">
+                                {user?.image ? (
+                                    <img
+                                        src={user.image}
+                                        alt={user.name || 'User'}
+                                        className="h-full w-full object-cover"
+                                    />
+                                ) : (
+                                    user?.name?.[0]?.toUpperCase() || <User size={18} />
+                                )}
                             </div>
 
                             <div className="hidden sm:block text-left">

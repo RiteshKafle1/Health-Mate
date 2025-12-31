@@ -9,7 +9,7 @@ export function DashboardLayout() {
     const [isCollapsed, setIsCollapsed] = useState(true);
 
     return (
-        <div className="min-h-screen bg-background flex flex-col md:flex-row font-sans text-text">
+        <div className="min-h-screen bg-background font-sans text-text relative">
             {/* Mobile Sidebar Overlay */}
             {sidebarOpen && (
                 <div
@@ -26,7 +26,7 @@ export function DashboardLayout() {
             />
 
             {/* Main Content Area */}
-            <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${isCollapsed ? 'md:ml-20' : 'md:ml-72'}`}>
+            <div className={`flex flex-col min-h-screen transition-all duration-300 ${isCollapsed ? 'md:ml-20' : 'md:ml-72'}`}>
                 <Navbar onMenuClick={() => setSidebarOpen(true)} />
 
                 <main className="flex-1 p-4 md:p-8 overflow-y-auto w-full">

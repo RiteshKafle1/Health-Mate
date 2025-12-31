@@ -5,6 +5,7 @@ import type { User } from '../../types';
 import { Camera, Loader2, Save, Edit2, Mail, Phone, Calendar, MapPin, User as UserIcon, Shield, X, Activity } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '../../components/ui/Button';
+import { ProfileCompletion } from '../../components/ProfileCompletion';
 
 export function UserProfile() {
     const { setUser } = useAuth();
@@ -228,6 +229,9 @@ export function UserProfile() {
                                     <p className="text-[#2D336B] font-bold">2024</p>
                                 </div>
                             </div>
+
+                            {/* Profile Completion */}
+                            <ProfileCompletion completion={profile?.profile_completion_percentage || 0} />
                         </div>
 
                         {/* Quick Contact Card (Left column part 2) w/ Map aesthetic */}

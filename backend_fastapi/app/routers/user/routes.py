@@ -5,7 +5,7 @@ from bson import ObjectId
 from ...dependencies.auth import get_current_user
 from ...services import user_service, payment_service, report_service
 from ...models.user import UserCreate, UserLogin
-from ...models.appointment import AppointmentCreate, AppointmentCancel, PaymentRequest, RazorpayVerify
+from ...models.appointment import AppointmentCreate, AppointmentCancel
 from ...middleware.rate_limiter import rate_limit_login, rate_limit_registration
 from ...core.database import get_notifications_collection
 
@@ -128,18 +128,10 @@ async def cancel_appointment(data: AppointmentCancel, user_id: str = Depends(get
     return await user_service.cancel_user_appointment(user_id, data.appointmentId)
 
 
-# ==================== PAYMENTS ====================
-
-@router.post("/payment-razorpay")
-async def payment_razorpay(data: PaymentRequest, user_id: str = Depends(get_current_user)):
-    """Create Razorpay order."""
-    return await payment_service.create_razorpay_order(data.appointmentId)
-
-
-@router.post("/verifyRazorpay")
-async def verify_razorpay(data: RazorpayVerify, user_id: str = Depends(get_current_user)):
-    """Verify Razorpay payment."""
-    return await payment_service.verify_razorpay_payment(data.razorpay_order_id)
+# ==================== PAYMENTS (Disabled - Free Service) ====================
+# Payment endpoints removed as the service is now free
+# If payment functionality is needed in the future, re-add PaymentRequest
+# and RazorpayVerify models and uncomment these endpoints
 
 
 # ==================== REPORT ACCESS REQUESTS ====================

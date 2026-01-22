@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from ...dependencies.auth import get_current_doctor
 from ...services import doctor_service, report_service
 from ...models.doctor import DoctorLogin, DoctorUpdate
-from ...models.appointment import AppointmentCancel
+from ...models.appointment import AppointmentCancel, AppointmentAction, AppointmentReject
 
 router = APIRouter(prefix="/api/doctor", tags=["Doctor"])
 
@@ -32,6 +32,18 @@ async def get_appointments(doc_id: str = Depends(get_current_doctor)):
     return await doctor_service.get_doctor_appointments(doc_id)
 
 
+@router.post("/accept-appointment")
+async def accept_appointment(data: AppointmentAction, doc_id: str = Depends(get_current_doctor)):
+    """Accept a pending appointment."""
+    return await doctor_service.accept_doctor_appointment(doc_id, data.appointmentId)
+
+
+@router.post("/reject-appointment")
+async def reject_appointment(data: AppointmentReject, doc_id: str = Depends(get_current_doctor)):
+    """Reject a pending appointment with optional reason."""
+    return await doctor_service.reject_doctor_appointment(doc_id, data.appointmentId, data.reason)
+
+
 @router.post("/cancel-appointment")
 async def cancel_appointment(data: AppointmentCancel, doc_id: str = Depends(get_current_doctor)):
     """Cancel an appointment."""
@@ -40,7 +52,7 @@ async def cancel_appointment(data: AppointmentCancel, doc_id: str = Depends(get_
 
 @router.post("/complete-appointment")
 async def complete_appointment(data: AppointmentCancel, doc_id: str = Depends(get_current_doctor)):
-    """Mark appointment as completed."""
+    """Mark appointment as completed. Only works for accepted appointments."""
     return await doctor_service.complete_doctor_appointment(doc_id, data.appointmentId)
 
 
@@ -67,10 +79,10 @@ async def update_profile(data: DoctorUpdate, doc_id: str = Depends(get_current_d
     """Update doctor profile."""
     return await doctor_service.update_doctor_profile(
         doc_id=doc_id,
-        fees=data.fees,
         address=data.address,
         available=data.available,
-        about=data.about
+        about=data.about,
+        availability_schedule=data.availability_schedule
     )
 
 

@@ -2,7 +2,7 @@
 from ..core.state import AgentState
 from ..tools.llm_client import get_llm
 
-LLM_PROMPT = """You are HealthMate Clinician, a medical AI assistant using the Follow-up Question Strategy.
+LLM_PROMPT = """<Role> You are HealthMate Clinician, a medical AI assistant using the Follow-up Question Strategy.
 
 RULES:
 1. If the question is ambiguous, ask up to TWO clarifying questions first

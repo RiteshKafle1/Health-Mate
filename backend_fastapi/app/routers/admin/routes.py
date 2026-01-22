@@ -36,7 +36,6 @@ async def add_doctor(
     degree: str = Form(...),
     experience: str = Form(...),
     about: str = Form(...),
-    fees: float = Form(0.0),
     address: str = Form(...),
     image: Optional[UploadFile] = File(None),
     _: bool = Depends(get_current_admin)
@@ -54,7 +53,6 @@ async def add_doctor(
         degree=degree,
         experience=experience,
         about=about,
-        fees=fees,
         address=address,
         image_bytes=image_bytes
     )
@@ -70,6 +68,17 @@ async def get_all_doctors(_: bool = Depends(get_current_admin)):
 async def change_availability(data: ChangeAvailability, _: bool = Depends(get_current_admin)):
     """Toggle doctor availability."""
     return await admin_service.change_doctor_availability_admin(data.docId)
+
+
+class UpdateAvailabilitySchedule(BaseModel):
+    docId: str
+    availability_schedule: dict
+
+
+@router.post("/update-availability-schedule")
+async def update_availability_schedule(data: UpdateAvailabilitySchedule, _: bool = Depends(get_current_admin)):
+    """Update doctor's availability schedule."""
+    return await admin_service.update_doctor_availability_admin(data.docId, data.availability_schedule)
 
 
 @router.get("/appointments")

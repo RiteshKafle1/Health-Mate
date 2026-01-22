@@ -40,7 +40,7 @@ Based on your symptoms of [summarize key symptoms], here is my assessment:
    • Why it fits: [reasons]
    • When to suspect: [distinguishing features]
 
-🚨 RED FLAGS - Seek Immediate Care If:
+🚨 URGENT SIGNS - Seek Immediate Care If:
 • [Specific warning sign 1]
 • [Specific warning sign 2]
 • [Specific warning sign 3]

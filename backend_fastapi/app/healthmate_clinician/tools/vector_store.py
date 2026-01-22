@@ -1,7 +1,7 @@
 """Vector store management using ChromaDB and HuggingFace embeddings."""
 import os
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 
 # Global instances
 _embeddings = None

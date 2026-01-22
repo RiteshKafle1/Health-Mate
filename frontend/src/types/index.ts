@@ -43,7 +43,7 @@ export interface Doctor {
     experience: string;
     about: string;
     available: boolean;
-    fees: number;
+    availability_schedule: Record<string, string[]>;
     slots_booked: Record<string, string[]>;
     address: Address;
     date: number;
@@ -60,13 +60,15 @@ export interface DoctorLogin {
 }
 
 export interface DoctorUpdate {
-    fees?: number;
     address?: Address;
     available?: boolean;
     about?: string;
+    availability_schedule?: Record<string, string[]>;
 }
 
 // Appointment types
+export type AppointmentStatus = 'pending' | 'accepted' | 'rejected' | 'completed' | 'cancelled';
+
 export interface Appointment {
     _id: string;
     userId: string;
@@ -75,10 +77,10 @@ export interface Appointment {
     slotTime: string;
     userData: User;
     docData: Doctor;
-    amount: number;
     date: number;
+    status: AppointmentStatus;
+    rejection_reason?: string;
     cancelled: boolean;
-    payment: boolean;
     isCompleted: boolean;
 }
 
@@ -90,6 +92,15 @@ export interface AppointmentCreate {
 
 export interface AppointmentCancel {
     appointmentId: string;
+}
+
+export interface AppointmentAction {
+    appointmentId: string;
+}
+
+export interface AppointmentReject {
+    appointmentId: string;
+    reason?: string;
 }
 
 // Admin types
@@ -106,7 +117,6 @@ export interface DoctorCreate {
     degree: string;
     experience: string;
     about: string;
-    fees: number;
     address: string;
 }
 

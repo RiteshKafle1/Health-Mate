@@ -1,5 +1,15 @@
 from pydantic import BaseModel, Field
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+from enum import Enum
+
+
+class AppointmentStatus(str, Enum):
+    """Appointment status states."""
+    pending = "pending"          # Waiting for doctor acceptance
+    accepted = "accepted"        # Doctor accepted, awaiting completion
+    rejected = "rejected"        # Doctor rejected
+    completed = "completed"      # Appointment completed
+    cancelled = "cancelled"      # Cancelled by either party
 
 
 class AppointmentBase(BaseModel):
@@ -9,11 +19,10 @@ class AppointmentBase(BaseModel):
     slotTime: str
     userData: Dict[str, Any]
     docData: Dict[str, Any]
-    amount: float
     date: int
-    cancelled: bool = False
-    payment: bool = False
-    isCompleted: bool = False
+    status: AppointmentStatus = AppointmentStatus.pending
+    cancelled: bool = False      # Keep for backward compatibility
+    isCompleted: bool = False    # Keep for backward compatibility
 
 
 class AppointmentCreate(BaseModel):
@@ -37,10 +46,9 @@ class AppointmentResponse(BaseModel):
     slotTime: str
     userData: Dict[str, Any]
     docData: Dict[str, Any]
-    amount: float
     date: int
+    status: AppointmentStatus = AppointmentStatus.pending
     cancelled: bool
-    payment: bool
     isCompleted: bool
     
     class Config:
@@ -51,9 +59,12 @@ class AppointmentCancel(BaseModel):
     appointmentId: str
 
 
-class PaymentRequest(BaseModel):
+class AppointmentAction(BaseModel):
+    """For accept appointment action."""
     appointmentId: str
 
 
-class RazorpayVerify(BaseModel):
-    razorpay_order_id: str
+class AppointmentReject(BaseModel):
+    """For reject appointment with optional reason."""
+    appointmentId: str
+    reason: Optional[str] = None

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 
 class DoctorAddress(BaseModel):
@@ -16,7 +16,8 @@ class DoctorBase(BaseModel):
     experience: str
     about: str
     available: bool = True
-    fees: float
+    # Weekly recurring availability schedule: {"monday": ["9:00 AM", "9:30 AM"], ...}
+    availability_schedule: Dict[str, List[str]] = Field(default_factory=dict)
     slots_booked: Dict[str, Any] = Field(default_factory=dict)
     address: Dict[str, str] = Field(default_factory=dict)
     date: int
@@ -30,8 +31,8 @@ class DoctorCreate(BaseModel):
     degree: str
     experience: str
     about: str
-    fees: float
     address: str  # JSON string from frontend
+    availability_schedule: Optional[Dict[str, List[str]]] = None
 
 
 class DoctorLogin(BaseModel):
@@ -40,10 +41,10 @@ class DoctorLogin(BaseModel):
 
 
 class DoctorUpdate(BaseModel):
-    fees: Optional[float] = None
     address: Optional[Dict[str, str]] = None
     available: Optional[bool] = None
     about: Optional[str] = None
+    availability_schedule: Optional[Dict[str, List[str]]] = None
 
 
 class DoctorInDB(DoctorBase):
@@ -64,7 +65,7 @@ class DoctorResponse(BaseModel):
     experience: str
     about: str
     available: bool
-    fees: float
+    availability_schedule: Dict[str, List[str]] = Field(default_factory=dict)
     slots_booked: Dict[str, Any] = Field(default_factory=dict)
     address: Dict[str, str]
     date: int
@@ -83,7 +84,7 @@ class DoctorPublicResponse(BaseModel):
     experience: str
     about: str
     available: bool
-    fees: float
+    availability_schedule: Dict[str, List[str]] = Field(default_factory=dict)
     address: Dict[str, str]
     
     class Config:

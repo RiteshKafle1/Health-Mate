@@ -64,7 +64,7 @@ export function BookAppointment() {
         }
     }, [doctorId, navigate]);
 
-    // Generate time slots based on selected date and group them
+    // Generate time slots based on selected date and doctor's availability schedule
     useEffect(() => {
         if (!doctor) return;
 
@@ -74,30 +74,36 @@ export function BookAppointment() {
             return;
         }
 
-        const allSlots: string[] = [];
+        // Get day of week from selected date
+        const dayOfWeek = new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+
+        // Get doctor's available slots for this day from their schedule
+        const doctorSlots = doctor.availability_schedule?.[dayOfWeek] || [];
         const bookedSlots = doctor.slots_booked?.[selectedDate] || [];
 
         // Grouping
         const groups: TimeGroup = { morning: [], afternoon: [], evening: [] };
+        const allSlots: string[] = [];
 
-        // Generate time slots from 9 AM to 8 PM
-        for (let hour = 9; hour <= 20; hour++) {
-            const time12 = hour > 12 ? `${hour - 12}:00 PM` : hour === 12 ? '12:00 PM' : `${hour}:00 AM`;
-            const time12_30 = hour > 12 ? `${hour - 12}:30 PM` : hour === 12 ? '12:30 PM' : `${hour}:30 AM`;
+        // Helper to convert time string to hour number for grouping
+        const getHour = (time: string): number => {
+            const [hourMin, period] = time.split(' ');
+            let [hours] = hourMin.split(':').map(Number);
+            if (period === 'PM' && hours !== 12) hours += 12;
+            if (period === 'AM' && hours === 12) hours = 0;
+            return hours;
+        };
 
-            // Function to add slot if not booked
-            const addSlot = (time: string) => {
-                if (!bookedSlots.includes(time)) {
-                    allSlots.push(time);
-                    if (hour < 12) groups.morning.push(time);
-                    else if (hour < 17) groups.afternoon.push(time);
-                    else groups.evening.push(time);
-                }
-            };
-
-            addSlot(time12);
-            if (hour < 20) addSlot(time12_30); // Don't add 8:30 PM if closing is 8
-        }
+        // Filter out booked slots and group by time of day
+        doctorSlots.forEach(time => {
+            if (!bookedSlots.includes(time)) {
+                allSlots.push(time);
+                const hour = getHour(time);
+                if (hour < 12) groups.morning.push(time);
+                else if (hour < 17) groups.afternoon.push(time);
+                else groups.evening.push(time);
+            }
+        });
 
         setAvailableSlots(allSlots);
         setGroupedSlots(groups);
@@ -244,15 +250,6 @@ export function BookAppointment() {
                 {/* RIGHT COLUMN: Booking Flow */}
                 <div className="lg:w-2/3">
                     <div className="bg-white dark:bg-dark-800 rounded-3xl p-6 border-none shadow-xl shadow-dark-200/50 dark:shadow-none transition-shadow duration-300 hover:shadow-2xl">
-                        <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-dark-700 dark:to-dark-700 rounded-2xl flex items-center justify-between">
-                            <div>
-                                <h3 className="text-lg font-bold text-emerald-800 dark:text-emerald-400">Consultation Fee</h3>
-                                <p className="text-xs text-emerald-600 dark:text-emerald-300">Professional service charges waived</p>
-                            </div>
-                            <div className="bg-white dark:bg-dark-800 px-4 py-2 rounded-xl shadow-sm">
-                                <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">Free</span>
-                            </div>
-                        </div>
 
                         {/* Step 1: Date */}
                         <div className="mb-8">

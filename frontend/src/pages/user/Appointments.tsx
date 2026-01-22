@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getUserAppointments, cancelUserAppointment } from '../../api/user';
-import type { Appointment } from '../../types';
-import { Calendar, Clock, User, X, Check, Loader2, AlertCircle, Stethoscope } from 'lucide-react';
+import type { Appointment, AppointmentStatus } from '../../types';
+import { Calendar, Clock, X, Check, Loader2, AlertCircle, Stethoscope, HourglassIcon, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export function UserAppointments() {
@@ -48,6 +48,15 @@ export function UserAppointments() {
         }
     };
 
+    // Helper to get normalized status (handles legacy data without status field)
+    const getAppointmentStatus = (apt: Appointment): AppointmentStatus => {
+        if (apt.status) return apt.status;
+        // Legacy fallback
+        if (apt.cancelled) return 'cancelled';
+        if (apt.isCompleted) return 'completed';
+        return 'pending';
+    };
+
     // Calculate previous completed visits with a specific doctor
     const getPreviousVisitCount = (docId: string, currentAptId: string): number => {
         return appointments.filter(apt =>
@@ -65,13 +74,37 @@ export function UserAppointments() {
     };
 
     const getStatusBadge = (apt: Appointment) => {
-        if (apt.cancelled) {
-            return <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-600 border border-red-200">Cancelled</span>;
+        const status = getAppointmentStatus(apt);
+
+        switch (status) {
+            case 'pending':
+                return (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-600 border border-amber-200 flex items-center gap-1">
+                        <HourglassIcon size={12} />
+                        Awaiting Confirmation
+                    </span>
+                );
+            case 'accepted':
+                return (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200 flex items-center gap-1">
+                        <Check size={12} />
+                        Confirmed
+                    </span>
+                );
+            case 'completed':
+                return <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">Completed</span>;
+            case 'cancelled':
+                return <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-600 border border-red-200">Cancelled</span>;
+            case 'rejected':
+                return (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200 flex items-center gap-1">
+                        <XCircle size={12} />
+                        Declined
+                    </span>
+                );
+            default:
+                return <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-50 text-gray-600 border border-gray-200">Unknown</span>;
         }
-        if (apt.isCompleted) {
-            return <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">Completed</span>;
-        }
-        return <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200">Scheduled</span>;
     };
 
     if (isLoading) {
@@ -148,9 +181,14 @@ export function UserAppointments() {
                                             </div>
                                         </div>
 
-                                        {/* Actions */}
-                                        {!apt.cancelled && !apt.isCompleted && (
-                                            <div className="flex flex-wrap gap-3 mt-5 pt-5 border-t border-dashed border-gray-200 dark:border-dark-700">
+                                        {/* Actions - Show cancel for pending and accepted */}
+                                        {(getAppointmentStatus(apt) === 'pending' || getAppointmentStatus(apt) === 'accepted') && (
+                                            <div className="mt-5 pt-5 border-t border-dashed border-gray-200 dark:border-dark-700">
+                                                {getAppointmentStatus(apt) === 'pending' && (
+                                                    <p className="text-xs text-amber-600 mb-3">
+                                                        ⏳ Waiting for the doctor to confirm your appointment
+                                                    </p>
+                                                )}
                                                 <button
                                                     onClick={() => handleCancel(apt._id)}
                                                     disabled={processingId === apt._id}
@@ -166,17 +204,29 @@ export function UserAppointments() {
                                             </div>
                                         )}
 
-                                        {apt.isCompleted && (
+                                        {getAppointmentStatus(apt) === 'completed' && (
                                             <div className="flex items-center gap-2 mt-5 pt-5 border-t border-dashed border-gray-200 dark:border-dark-700 text-emerald-500">
                                                 <Check size={18} className="flex-shrink-0" />
                                                 <span className="text-sm font-medium">This appointment has been completed</span>
                                             </div>
                                         )}
 
-                                        {apt.cancelled && (
+                                        {getAppointmentStatus(apt) === 'cancelled' && (
                                             <div className="flex items-center gap-2 mt-5 pt-5 border-t border-dashed border-gray-200 dark:border-dark-700 text-red-500">
                                                 <AlertCircle size={18} className="flex-shrink-0" />
                                                 <span className="text-sm font-medium">This appointment was cancelled</span>
+                                            </div>
+                                        )}
+
+                                        {getAppointmentStatus(apt) === 'rejected' && (
+                                            <div className="mt-5 pt-5 border-t border-dashed border-gray-200 dark:border-dark-700">
+                                                <div className="flex items-center gap-2 text-gray-500">
+                                                    <XCircle size={18} className="flex-shrink-0" />
+                                                    <span className="text-sm font-medium">The doctor was unable to accept this appointment</span>
+                                                </div>
+                                                {apt.rejection_reason && (
+                                                    <p className="text-xs text-gray-400 mt-1 ml-6">Reason: {apt.rejection_reason}</p>
+                                                )}
                                             </div>
                                         )}
                                     </div>

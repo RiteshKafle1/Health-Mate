@@ -2,9 +2,16 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getUserProfile, getUserAppointments } from '../../api/user';
+import {
+    getPendingAccessRequests,
+    approveAccessRequest,
+    denyAccessRequest
+} from '../../api/accessRequests';
+import type { AccessRequest } from '../../api/accessRequests';
 import type { User, Appointment } from '../../types';
 import {
-    Calendar, Clock, Stethoscope, Loader2, Pill, CheckCircle2, ChevronRight, Zap
+    Calendar, Clock, Stethoscope, Loader2, Pill, CheckCircle2, ChevronRight, Zap,
+    Shield, Check, X, FileText
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Card } from '../../components/ui/Card';
@@ -20,6 +27,8 @@ export function UserDashboard() {
     const [nextAppointment, setNextAppointment] = useState<Appointment | null>(null);
     const [adherenceScore, setAdherenceScore] = useState(0);
     const [streak, setStreak] = useState(0);
+    const [accessRequests, setAccessRequests] = useState<AccessRequest[]>([]);
+    const [processingRequestId, setProcessingRequestId] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -29,11 +38,12 @@ export function UserDashboard() {
                 const last7Days = new Date(today);
                 last7Days.setDate(today.getDate() - 7);
 
-                const [profileRes, appointmentsRes, dosesRes, historyRes] = await Promise.all([
+                const [profileRes, appointmentsRes, dosesRes, historyRes, accessReqRes] = await Promise.all([
                     getUserProfile(),
                     getUserAppointments(),
                     getTodayDoses(),
-                    getDoseHistory(last7Days.toISOString().split('T')[0], today.toISOString().split('T')[0])
+                    getDoseHistory(last7Days.toISOString().split('T')[0], today.toISOString().split('T')[0]),
+                    getPendingAccessRequests()
                 ]);
 
                 if (profileRes.success && profileRes.userData) {
@@ -99,6 +109,11 @@ export function UserDashboard() {
                     setStreak(currentStreak);
                 }
 
+                // 5. Access Requests from Doctors
+                if (accessReqRes.success) {
+                    setAccessRequests(accessReqRes.requests);
+                }
+
             } catch {
                 toast.error('Failed to load dashboard data');
             } finally {
@@ -108,6 +123,37 @@ export function UserDashboard() {
 
         fetchData();
     }, [setUser]);
+
+    const handleApproveRequest = async (requestId: string) => {
+        setProcessingRequestId(requestId);
+        try {
+            const response = await approveAccessRequest(requestId);
+            if (response.success) {
+                toast.success('Access approved! Doctor can now view your reports.');
+                setAccessRequests(prev => prev.filter(r => r.id !== requestId));
+            }
+        } catch (error) {
+            toast.error('Failed to approve request');
+        } finally {
+            setProcessingRequestId(null);
+        }
+    };
+
+    const handleDenyRequest = async (requestId: string) => {
+        setProcessingRequestId(requestId);
+        try {
+            const response = await denyAccessRequest(requestId);
+            if (response.success) {
+                toast.success('Access request denied');
+                setAccessRequests(prev => prev.filter(r => r.id !== requestId));
+            }
+        } catch (error) {
+            toast.error('Failed to deny request');
+        } finally {
+            setProcessingRequestId(null);
+        }
+    };
+
 
     const handleMarkNextTaken = async () => {
         if (!nextMedication) return;
@@ -325,6 +371,78 @@ export function UserDashboard() {
                         )}
                     </Card>
                 </div>
+
+                {/* Access Requests Section - Only show if there are pending requests */}
+                {accessRequests.length > 0 && (
+                    <div className="lg:col-span-12">
+                        <h3 className="text-text-muted text-sm font-semibold uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <Shield size={16} className="text-primary" />
+                            Report Access Requests ({accessRequests.length})
+                        </h3>
+
+                        <Card className="p-0 overflow-hidden bg-white border-none shadow-card">
+                            <div className="divide-y divide-surface/30">
+                                {accessRequests.map((request) => (
+                                    <div
+                                        key={request.id}
+                                        className="p-4 md:p-6 flex flex-col md:flex-row items-start md:items-center gap-4"
+                                    >
+                                        {/* Doctor Info */}
+                                        <div className="flex items-center gap-4 flex-1">
+                                            <div className="w-12 h-12 rounded-full overflow-hidden bg-surface flex-shrink-0">
+                                                {request.doctor_image ? (
+                                                    <img
+                                                        src={request.doctor_image}
+                                                        alt={request.doctor_name}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary">
+                                                        <Stethoscope size={20} />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="font-semibold text-text flex items-center gap-2">
+                                                    <FileText size={16} className="text-primary flex-shrink-0" />
+                                                    Dr. {request.doctor_name}
+                                                    <span className="text-xs text-text-muted font-normal">wants to view your reports</span>
+                                                </h4>
+                                                {request.doctor_speciality && (
+                                                    <p className="text-sm text-text-muted">{request.doctor_speciality}</p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Action Buttons */}
+                                        <div className="flex items-center gap-2 w-full md:w-auto">
+                                            <button
+                                                onClick={() => handleApproveRequest(request.id)}
+                                                disabled={processingRequestId === request.id}
+                                                className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-xl text-sm font-medium hover:bg-green-600 transition-colors disabled:opacity-50"
+                                            >
+                                                {processingRequestId === request.id ? (
+                                                    <Loader2 size={16} className="animate-spin" />
+                                                ) : (
+                                                    <Check size={16} />
+                                                )}
+                                                Approve
+                                            </button>
+                                            <button
+                                                onClick={() => handleDenyRequest(request.id)}
+                                                disabled={processingRequestId === request.id}
+                                                className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-500 text-white rounded-xl text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+                                            >
+                                                <X size={16} />
+                                                Deny
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </Card>
+                    </div>
+                )}
 
             </div>
         </div>

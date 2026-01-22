@@ -85,3 +85,14 @@ export const deleteDoctorAdmin = async (docId: string): Promise<ApiResponse> => 
     const response = await api.post('/api/admin/delete-doctor', { docId });
     return response.data;
 };
+
+export const updateDoctorAvailabilityAdmin = async (
+    docId: string,
+    availability_schedule: Record<string, string[]>
+): Promise<ApiResponse> => {
+    const response = await api.post('/api/admin/update-availability-schedule', {
+        docId,
+        availability_schedule
+    });
+    return response.data;
+};

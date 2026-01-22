@@ -40,6 +40,16 @@ export const completeDoctorAppointment = async (appointmentId: string): Promise<
     return response.data;
 };
 
+export const acceptDoctorAppointment = async (appointmentId: string): Promise<ApiResponse> => {
+    const response = await api.post('/api/doctor/accept-appointment', { appointmentId });
+    return response.data;
+};
+
+export const rejectDoctorAppointment = async (appointmentId: string, reason?: string): Promise<ApiResponse> => {
+    const response = await api.post('/api/doctor/reject-appointment', { appointmentId, reason });
+    return response.data;
+};
+
 // Doctor availability
 export const changeDoctorAvailability = async (): Promise<ApiResponse> => {
     const response = await api.post('/api/doctor/change-availability');

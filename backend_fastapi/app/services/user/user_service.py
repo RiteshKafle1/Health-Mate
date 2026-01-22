@@ -277,21 +277,44 @@ async def update_user_profile(
 
 async def book_appointment(user_id: str, doc_id: str, slot_date: str, slot_time: str) -> dict:
     """Book an appointment."""
+    from datetime import datetime
+    
     users = get_users_collection()
     doctors = get_doctors_collection()
     appointments = get_appointments_collection()
     
-    # Get doctor data
-    doc_data = await doctors.find_one({"_id": ObjectId(doc_id)})
+    # Get doctor data with error handling
+    try:
+        doc_data = await doctors.find_one({"_id": ObjectId(doc_id)})
+    except Exception:
+        return {"success": False, "message": "Invalid doctor ID"}
+    
     if not doc_data:
         return {"success": False, "message": "Doctor not found"}
     
     if not doc_data.get("available", True):
         return {"success": False, "message": "Doctor Not Available"}
     
+    # Validate against doctor's availability schedule
+    availability_schedule = doc_data.get("availability_schedule", {})
+    if availability_schedule:
+        # Get day of week from slot_date (format: YYYY-MM-DD)
+        try:
+            day_of_week = datetime.strptime(slot_date, "%Y-%m-%d").strftime("%A").lower()
+        except ValueError:
+            return {"success": False, "message": "Invalid date format"}
+        
+        # Check if doctor works on this day
+        if day_of_week not in availability_schedule:
+            return {"success": False, "message": f"Doctor not available on {day_of_week.capitalize()}"}
+        
+        # Check if the requested time is in doctor's schedule
+        if slot_time not in availability_schedule[day_of_week]:
+            return {"success": False, "message": "This time slot is not in doctor's schedule"}
+    
     slots_booked = doc_data.get("slots_booked", {})
     
-    # Check slot availability
+    # Check slot availability (prevent double booking)
     if slot_date in slots_booked:
         if slot_time in slots_booked[slot_date]:
             return {"success": False, "message": "Slot Not Available"}
@@ -299,14 +322,18 @@ async def book_appointment(user_id: str, doc_id: str, slot_date: str, slot_time:
     else:
         slots_booked[slot_date] = [slot_time]
     
-    # Get user data
-    user_data = await users.find_one({"_id": ObjectId(user_id)})
+    # Get user data with error handling
+    try:
+        user_data = await users.find_one({"_id": ObjectId(user_id)})
+    except Exception:
+        return {"success": False, "message": "Invalid user ID"}
+    
     if not user_data:
         return {"success": False, "message": "User not found"}
     
     # Prepare data for appointment
     user_data["_id"] = str(user_data["_id"])
-    del user_data["password"]
+    user_data.pop("password", None)  # Use pop to avoid KeyError if password doesn't exist
     
     doc_data_clean = {k: v for k, v in doc_data.items() if k != "password" and k != "slots_booked"}
     doc_data_clean["_id"] = str(doc_data_clean["_id"])
@@ -316,22 +343,24 @@ async def book_appointment(user_id: str, doc_id: str, slot_date: str, slot_time:
         "docId": doc_id,
         "userData": user_data,
         "docData": doc_data_clean,
-        "amount": doc_data["fees"],
         "slotTime": slot_time,
         "slotDate": slot_date,
         "date": int(time.time() * 1000),
+        "status": "pending",  # Awaiting doctor acceptance
         "cancelled": False,
-        "payment": False,
         "isCompleted": False
     }
     
-    await appointments.insert_one(appointment_data)
-    
-    # Update doctor's slots_booked
-    await doctors.update_one(
-        {"_id": ObjectId(doc_id)},
-        {"$set": {"slots_booked": slots_booked}}
-    )
+    try:
+        await appointments.insert_one(appointment_data)
+        
+        # Update doctor's slots_booked
+        await doctors.update_one(
+            {"_id": ObjectId(doc_id)},
+            {"$set": {"slots_booked": slots_booked}}
+        )
+    except Exception as e:
+        return {"success": False, "message": f"Booking failed: {str(e)}"}
     
     return {"success": True, "message": "Appointment Booked"}
 

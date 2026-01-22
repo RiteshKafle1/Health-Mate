@@ -28,7 +28,7 @@ async def add_doctor(
     experience: str,
     about: str,
     address: str,
-    fees: float = 0.0,
+    availability_schedule: dict = None,
     image_bytes: bytes = None
 ) -> dict:
     """Add a new doctor."""
@@ -75,9 +75,9 @@ async def add_doctor(
         "degree": degree,
         "experience": experience,
         "about": about,
-        "fees": float(fees),
         "address": address_dict,
         "available": True,
+        "availability_schedule": availability_schedule or {},
         "slots_booked": {},
         "date": int(time.time() * 1000)
     }
@@ -92,39 +92,45 @@ async def get_all_doctors_admin() -> dict:
     doctors = get_doctors_collection()
     appointments = get_appointments_collection()
     
-    # 1. Aggregate appointment stats per doctor
-    stats = {} # doc_id -> {total: 0, pending: 0, completed: 0}
-    
-    async for appt in appointments.find({}):
-        doc_id = appt.get("docId")
-        if not doc_id:
-            continue
-            
-        if doc_id not in stats:
-            stats[doc_id] = {"total": 0, "pending": 0, "completed": 0}
-            
-        stats[doc_id]["total"] += 1
+    try:
+        # 1. Aggregate appointment stats per doctor
+        stats = {} # doc_id -> {total: 0, pending: 0, completed: 0}
         
-        if appt.get("isCompleted"):
-            stats[doc_id]["completed"] += 1
-        elif not appt.get("cancelled"):
-            stats[doc_id]["pending"] += 1
+        async for appt in appointments.find({}):
+            doc_id = appt.get("docId")
+            if not doc_id:
+                continue
+                
+            if doc_id not in stats:
+                stats[doc_id] = {"total": 0, "pending": 0, "completed": 0}
+                
+            stats[doc_id]["total"] += 1
+            
+            if appt.get("isCompleted"):
+                stats[doc_id]["completed"] += 1
+            elif not appt.get("cancelled"):
+                stats[doc_id]["pending"] += 1
 
-    # 2. Get doctors and attach stats
-    cursor = doctors.find({})
-    docs = []
-    async for doc in cursor:
-        doc_id = str(doc["_id"])
-        doc["_id"] = doc_id
-        doc.pop("password", None)
+        # 2. Get doctors and attach stats
+        cursor = doctors.find({})
+        docs = []
+        async for doc in cursor:
+            doc_id = str(doc["_id"])
+            doc["_id"] = doc_id
+            doc.pop("password", None)
+            
+            # Ensure availability_schedule has a default
+            doc["availability_schedule"] = doc.get("availability_schedule", {})
+            
+            # Attach stats using get() to handle cases with no appointments
+            doc_stats = stats.get(doc_id, {"total": 0, "pending": 0, "completed": 0})
+            doc["appointmentStats"] = doc_stats
+            
+            docs.append(doc)
         
-        # Attach stats using get() to handle cases with no appointments
-        doc_stats = stats.get(doc_id, {"total": 0, "pending": 0, "completed": 0})
-        doc["appointmentStats"] = doc_stats
-        
-        docs.append(doc)
-    
-    return {"success": True, "doctors": docs}
+        return {"success": True, "doctors": docs}
+    except Exception as e:
+        return {"success": False, "message": f"Failed to fetch doctors: {str(e)}"}
 
 
 async def get_all_appointments_admin() -> dict:
@@ -191,6 +197,32 @@ async def change_doctor_availability_admin(doc_id: str) -> dict:
     )
     
     return {"success": True, "message": "Availability changed successfully"}
+
+
+async def update_doctor_availability_admin(doc_id: str, availability_schedule: dict) -> dict:
+    """Update doctor's availability schedule (admin)."""
+    doctors = get_doctors_collection()
+    
+    if not doc_id:
+        return {"success": False, "message": "Doctor ID missing"}
+    
+    try:
+        doctor = await doctors.find_one({"_id": ObjectId(doc_id)})
+    except Exception:
+        return {"success": False, "message": "Invalid doctor ID format"}
+    
+    if not doctor:
+        return {"success": False, "message": "Doctor not found"}
+    
+    try:
+        await doctors.update_one(
+            {"_id": ObjectId(doc_id)},
+            {"$set": {"availability_schedule": availability_schedule or {}}}
+        )
+    except Exception as e:
+        return {"success": False, "message": f"Database error: {str(e)}"}
+    
+    return {"success": True, "message": "Availability schedule updated successfully"}
 
 
 async def get_admin_dashboard() -> dict:

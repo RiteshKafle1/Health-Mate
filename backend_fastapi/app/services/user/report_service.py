@@ -200,16 +200,33 @@ async def request_report_access(doctor_id: str, user_id: str, appointment_id: st
             raise HTTPException(status_code=400, detail=f"Invalid {id_name} id")
     
     # Verify appointment exists and belongs to this doctor-patient pair
+    # First try with string comparison (how appointments are stored)
     appointment = await appointments.find_one({
         "_id": ObjectId(appointment_id),
-        "docId": ObjectId(doctor_id),
-        "userId": ObjectId(user_id)
+        "docId": doctor_id,
+        "userId": user_id
     })
+    
+    # If not found with strings, try ObjectId format
+    if not appointment:
+        appointment = await appointments.find_one({
+            "_id": ObjectId(appointment_id),
+            "docId": ObjectId(doctor_id),
+            "userId": ObjectId(user_id)
+        })
     
     if not appointment:
         raise HTTPException(
             status_code=403, 
             detail="No valid appointment found. You must have an appointment with this patient."
+        )
+    
+    # Check appointment status - must be accepted
+    appt_status = appointment.get("status", "pending")
+    if appt_status != "accepted":
+        raise HTTPException(
+            status_code=403,
+            detail=f"You can only request report access for ACCEPTED appointments. Current status: {appt_status}. Please accept the appointment first."
         )
     
     # Check for existing pending request

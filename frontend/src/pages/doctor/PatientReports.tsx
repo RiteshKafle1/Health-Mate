@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Card } from '../../components/ui/Card';
+import { ReportViewerModal } from '../../components/ReportViewerModal';
 import {
     getApprovedPatients,
     getPatientReports
@@ -17,6 +18,7 @@ export function PatientReports() {
     const [reports, setReports] = useState<PatientReport[]>([]);
     const [isLoadingPatients, setIsLoadingPatients] = useState(true);
     const [isLoadingReports, setIsLoadingReports] = useState(false);
+    const [viewingReport, setViewingReport] = useState<PatientReport | null>(null);
 
     const fetchPatients = useCallback(async () => {
         try {
@@ -174,7 +176,8 @@ export function PatientReports() {
                                     {reports.map((report) => (
                                         <div
                                             key={report.id}
-                                            className="flex items-center gap-4 p-4 bg-surface/30 rounded-xl hover:bg-surface/50 transition-colors"
+                                            className="flex items-center gap-4 p-4 bg-surface/30 rounded-xl hover:bg-surface/50 transition-colors cursor-pointer"
+                                            onClick={() => setViewingReport(report)}
                                         >
                                             <div className="p-2 bg-white rounded-lg shadow-sm">
                                                 {getFileIcon(report.file_type)}
@@ -198,15 +201,28 @@ export function PatientReports() {
                                                     </p>
                                                 )}
                                             </div>
-                                            <a
-                                                href={report.file_url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                                                title="View/Download"
-                                            >
-                                                <Download size={18} />
-                                            </a>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setViewingReport(report);
+                                                    }}
+                                                    className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                                                    title="View"
+                                                >
+                                                    <Eye size={18} />
+                                                </button>
+                                                <a
+                                                    href={report.file_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="p-2 text-text-muted hover:bg-surface rounded-lg transition-colors"
+                                                    title="Download"
+                                                >
+                                                    <Download size={18} />
+                                                </a>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -215,6 +231,15 @@ export function PatientReports() {
                     )}
                 </Card>
             </div>
+
+            {/* Report Viewer Modal */}
+            <ReportViewerModal
+                isOpen={!!viewingReport}
+                onClose={() => setViewingReport(null)}
+                fileUrl={viewingReport?.file_url || ''}
+                fileName={viewingReport?.original_name || ''}
+                fileType={viewingReport?.file_type || ''}
+            />
         </div>
     );
 }

@@ -1,0 +1,1503 @@
+{
+    "version": "1.0",
+    "source": "ABIM Laboratory Test Reference Ranges - January 2026",
+    "last_updated": "2026-01-23",
+    "biomarkers": [
+        {
+            "id": "hemoglobin",
+            "canonical_name": "Hemoglobin",
+            "synonyms": [
+                "Hb",
+                "Hgb",
+                "Haemoglobin",
+                "HGB"
+            ],
+            "category": "hematology",
+            "specimen_type": "blood",
+            "reference_unit": "g/dL",
+            "reference_ranges": [
+                {
+                    "low": 12.0,
+                    "high": 16.0,
+                    "conditions": {
+                        "sex": "female"
+                    },
+                    "interpretation": {
+                        "low": "Anemia - may indicate iron deficiency, chronic disease, or blood loss",
+                        "high": "Polycythemia - may indicate dehydration or bone marrow disorder"
+                    }
+                },
+                {
+                    "low": 14.0,
+                    "high": 18.0,
+                    "conditions": {
+                        "sex": "male"
+                    },
+                    "interpretation": {
+                        "low": "Anemia - investigate for causes",
+                        "high": "Polycythemia - may need further evaluation"
+                    }
+                }
+            ],
+            "critical_values": {
+                "critical_low": 7.0,
+                "critical_high": 20.0
+            }
+        },
+        {
+            "id": "hematocrit",
+            "canonical_name": "Hematocrit",
+            "synonyms": [
+                "Hct",
+                "HCT",
+                "PCV",
+                "Packed Cell Volume"
+            ],
+            "category": "hematology",
+            "specimen_type": "blood",
+            "reference_unit": "%",
+            "reference_ranges": [
+                {
+                    "low": 36.0,
+                    "high": 44.0,
+                    "conditions": {
+                        "sex": "female"
+                    }
+                },
+                {
+                    "low": 41.0,
+                    "high": 51.0,
+                    "conditions": {
+                        "sex": "male"
+                    }
+                }
+            ],
+            "critical_values": {
+                "critical_low": 20.0,
+                "critical_high": 60.0
+            }
+        },
+        {
+            "id": "rbc_count",
+            "canonical_name": "Red Blood Cell Count",
+            "synonyms": [
+                "RBC",
+                "Erythrocyte Count",
+                "Red Cell Count"
+            ],
+            "category": "hematology",
+            "specimen_type": "blood",
+            "reference_unit": "million/μL",
+            "reference_ranges": [
+                {
+                    "low": 4.0,
+                    "high": 5.5,
+                    "conditions": {
+                        "sex": "female"
+                    }
+                },
+                {
+                    "low": 4.5,
+                    "high": 6.5,
+                    "conditions": {
+                        "sex": "male"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "wbc_count",
+            "canonical_name": "White Blood Cell Count",
+            "synonyms": [
+                "WBC",
+                "Leukocyte Count",
+                "White Cell Count",
+                "TLC",
+                "Total Leukocyte Count"
+            ],
+            "category": "hematology",
+            "specimen_type": "blood",
+            "reference_unit": "×10³/μL",
+            "reference_ranges": [
+                {
+                    "low": 4.5,
+                    "high": 11.0,
+                    "conditions": {}
+                }
+            ],
+            "critical_values": {
+                "critical_low": 2.0,
+                "critical_high": 30.0
+            }
+        },
+        {
+            "id": "platelet_count",
+            "canonical_name": "Platelet Count",
+            "synonyms": [
+                "PLT",
+                "Platelets",
+                "Thrombocyte Count"
+            ],
+            "category": "hematology",
+            "specimen_type": "blood",
+            "reference_unit": "×10³/μL",
+            "reference_ranges": [
+                {
+                    "low": 150.0,
+                    "high": 450.0,
+                    "conditions": {}
+                }
+            ],
+            "critical_values": {
+                "critical_low": 50.0,
+                "critical_high": 1000.0
+            }
+        },
+        {
+            "id": "mcv",
+            "canonical_name": "Mean Corpuscular Volume",
+            "synonyms": [
+                "MCV"
+            ],
+            "category": "hematology",
+            "specimen_type": "blood",
+            "reference_unit": "fL",
+            "reference_ranges": [
+                {
+                    "low": 80.0,
+                    "high": 98.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "mch",
+            "canonical_name": "Mean Corpuscular Hemoglobin",
+            "synonyms": [
+                "MCH"
+            ],
+            "category": "hematology",
+            "specimen_type": "blood",
+            "reference_unit": "pg",
+            "reference_ranges": [
+                {
+                    "low": 28.0,
+                    "high": 32.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "mchc",
+            "canonical_name": "Mean Corpuscular Hemoglobin Concentration",
+            "synonyms": [
+                "MCHC"
+            ],
+            "category": "hematology",
+            "specimen_type": "blood",
+            "reference_unit": "g/dL",
+            "reference_ranges": [
+                {
+                    "low": 33.0,
+                    "high": 36.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "rdw",
+            "canonical_name": "Red Cell Distribution Width",
+            "synonyms": [
+                "RDW",
+                "RDW-CV"
+            ],
+            "category": "hematology",
+            "specimen_type": "blood",
+            "reference_unit": "%",
+            "reference_ranges": [
+                {
+                    "low": 9.0,
+                    "high": 14.5,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "glucose_fasting",
+            "canonical_name": "Glucose, Fasting",
+            "synonyms": [
+                "FBS",
+                "Fasting Blood Sugar",
+                "Fasting Glucose",
+                "FPG",
+                "Fasting Plasma Glucose",
+                "Blood Sugar Fasting"
+            ],
+            "category": "blood_chemistry",
+            "specimen_type": "serum",
+            "reference_unit": "mg/dL",
+            "reference_ranges": [
+                {
+                    "low": 70.0,
+                    "high": 100.0,
+                    "conditions": {
+                        "state": "fasting"
+                    },
+                    "interpretation": {
+                        "low": "Hypoglycemia - may cause confusion, sweating, tremors",
+                        "high": "Prediabetes (100-125) or Diabetes (≥126)"
+                    }
+                }
+            ],
+            "critical_values": {
+                "critical_low": 40.0,
+                "critical_high": 400.0
+            }
+        },
+        {
+            "id": "glucose_random",
+            "canonical_name": "Glucose, Random",
+            "synonyms": [
+                "RBS",
+                "Random Blood Sugar",
+                "Blood Glucose"
+            ],
+            "category": "blood_chemistry",
+            "specimen_type": "serum",
+            "reference_unit": "mg/dL",
+            "reference_ranges": [
+                {
+                    "low": 70.0,
+                    "high": 140.0,
+                    "conditions": {}
+                }
+            ],
+            "critical_values": {
+                "critical_low": 40.0,
+                "critical_high": 400.0
+            }
+        },
+        {
+            "id": "hba1c",
+            "canonical_name": "Hemoglobin A1c",
+            "synonyms": [
+                "HbA1c",
+                "A1C",
+                "Glycated Hemoglobin",
+                "Glycosylated Hemoglobin"
+            ],
+            "category": "blood_chemistry",
+            "specimen_type": "blood",
+            "reference_unit": "%",
+            "reference_ranges": [
+                {
+                    "low": null,
+                    "high": 5.7,
+                    "conditions": {},
+                    "interpretation": {
+                        "high": "Prediabetes (5.7-6.4%) or Diabetes (≥6.5%)"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "bun",
+            "canonical_name": "Blood Urea Nitrogen",
+            "synonyms": [
+                "BUN",
+                "Urea Nitrogen",
+                "Urea"
+            ],
+            "category": "blood_chemistry",
+            "specimen_type": "serum",
+            "reference_unit": "mg/dL",
+            "reference_ranges": [
+                {
+                    "low": 8.0,
+                    "high": 20.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "creatinine",
+            "canonical_name": "Creatinine",
+            "synonyms": [
+                "Creat",
+                "Cr",
+                "Serum Creatinine"
+            ],
+            "category": "blood_chemistry",
+            "specimen_type": "serum",
+            "reference_unit": "mg/dL",
+            "reference_ranges": [
+                {
+                    "low": 0.6,
+                    "high": 1.0,
+                    "conditions": {
+                        "sex": "female"
+                    }
+                },
+                {
+                    "low": 0.7,
+                    "high": 1.2,
+                    "conditions": {
+                        "sex": "male"
+                    }
+                }
+            ],
+            "critical_values": {
+                "critical_high": 10.0
+            }
+        },
+        {
+            "id": "uric_acid",
+            "canonical_name": "Uric Acid",
+            "synonyms": [
+                "Urate"
+            ],
+            "category": "blood_chemistry",
+            "specimen_type": "serum",
+            "reference_unit": "mg/dL",
+            "reference_ranges": [
+                {
+                    "low": 3.0,
+                    "high": 7.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "sodium",
+            "canonical_name": "Sodium",
+            "synonyms": [
+                "Na",
+                "Na+",
+                "Serum Sodium"
+            ],
+            "category": "electrolytes",
+            "specimen_type": "serum",
+            "reference_unit": "mEq/L",
+            "reference_ranges": [
+                {
+                    "low": 136.0,
+                    "high": 145.0,
+                    "conditions": {}
+                }
+            ],
+            "critical_values": {
+                "critical_low": 120.0,
+                "critical_high": 160.0
+            }
+        },
+        {
+            "id": "potassium",
+            "canonical_name": "Potassium",
+            "synonyms": [
+                "K",
+                "K+",
+                "Serum Potassium"
+            ],
+            "category": "electrolytes",
+            "specimen_type": "serum",
+            "reference_unit": "mEq/L",
+            "reference_ranges": [
+                {
+                    "low": 3.5,
+                    "high": 5.0,
+                    "conditions": {}
+                }
+            ],
+            "critical_values": {
+                "critical_low": 2.5,
+                "critical_high": 6.5
+            }
+        },
+        {
+            "id": "chloride",
+            "canonical_name": "Chloride",
+            "synonyms": [
+                "Cl",
+                "Cl-",
+                "Serum Chloride"
+            ],
+            "category": "electrolytes",
+            "specimen_type": "serum",
+            "reference_unit": "mEq/L",
+            "reference_ranges": [
+                {
+                    "low": 98.0,
+                    "high": 106.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "bicarbonate",
+            "canonical_name": "Bicarbonate",
+            "synonyms": [
+                "HCO3",
+                "CO2",
+                "Carbon Dioxide",
+                "TCO2"
+            ],
+            "category": "electrolytes",
+            "specimen_type": "serum",
+            "reference_unit": "mEq/L",
+            "reference_ranges": [
+                {
+                    "low": 23.0,
+                    "high": 28.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "calcium",
+            "canonical_name": "Calcium",
+            "synonyms": [
+                "Ca",
+                "Ca2+",
+                "Serum Calcium",
+                "Total Calcium"
+            ],
+            "category": "electrolytes",
+            "specimen_type": "serum",
+            "reference_unit": "mg/dL",
+            "reference_ranges": [
+                {
+                    "low": 8.6,
+                    "high": 10.2,
+                    "conditions": {}
+                }
+            ],
+            "critical_values": {
+                "critical_low": 6.0,
+                "critical_high": 13.0
+            }
+        },
+        {
+            "id": "magnesium",
+            "canonical_name": "Magnesium",
+            "synonyms": [
+                "Mg",
+                "Mg2+",
+                "Serum Magnesium"
+            ],
+            "category": "electrolytes",
+            "specimen_type": "serum",
+            "reference_unit": "mg/dL",
+            "reference_ranges": [
+                {
+                    "low": 1.6,
+                    "high": 2.6,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "phosphorus",
+            "canonical_name": "Phosphorus",
+            "synonyms": [
+                "Phosphate",
+                "PO4",
+                "Inorganic Phosphorus"
+            ],
+            "category": "electrolytes",
+            "specimen_type": "serum",
+            "reference_unit": "mg/dL",
+            "reference_ranges": [
+                {
+                    "low": 3.0,
+                    "high": 4.5,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "total_protein",
+            "canonical_name": "Total Protein",
+            "synonyms": [
+                "TP",
+                "Serum Protein"
+            ],
+            "category": "blood_chemistry",
+            "specimen_type": "serum",
+            "reference_unit": "g/dL",
+            "reference_ranges": [
+                {
+                    "low": 5.5,
+                    "high": 9.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "albumin",
+            "canonical_name": "Albumin",
+            "synonyms": [
+                "Alb",
+                "Serum Albumin"
+            ],
+            "category": "blood_chemistry",
+            "specimen_type": "serum",
+            "reference_unit": "g/dL",
+            "reference_ranges": [
+                {
+                    "low": 3.5,
+                    "high": 5.5,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "globulin",
+            "canonical_name": "Globulin",
+            "synonyms": [
+                "Serum Globulin"
+            ],
+            "category": "blood_chemistry",
+            "specimen_type": "serum",
+            "reference_unit": "g/dL",
+            "reference_ranges": [
+                {
+                    "low": 2.0,
+                    "high": 3.5,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "bilirubin_total",
+            "canonical_name": "Bilirubin, Total",
+            "synonyms": [
+                "Total Bilirubin",
+                "T.Bili",
+                "TBIL"
+            ],
+            "category": "liver_function",
+            "specimen_type": "serum",
+            "reference_unit": "mg/dL",
+            "reference_ranges": [
+                {
+                    "low": 0.3,
+                    "high": 1.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "bilirubin_direct",
+            "canonical_name": "Bilirubin, Direct",
+            "synonyms": [
+                "Direct Bilirubin",
+                "Conjugated Bilirubin",
+                "D.Bili",
+                "DBIL"
+            ],
+            "category": "liver_function",
+            "specimen_type": "serum",
+            "reference_unit": "mg/dL",
+            "reference_ranges": [
+                {
+                    "low": 0.1,
+                    "high": 0.3,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "bilirubin_indirect",
+            "canonical_name": "Bilirubin, Indirect",
+            "synonyms": [
+                "Indirect Bilirubin",
+                "Unconjugated Bilirubin"
+            ],
+            "category": "liver_function",
+            "specimen_type": "serum",
+            "reference_unit": "mg/dL",
+            "reference_ranges": [
+                {
+                    "low": 0.2,
+                    "high": 0.7,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "ast",
+            "canonical_name": "Aspartate Aminotransferase",
+            "synonyms": [
+                "AST",
+                "SGOT",
+                "Aminotransferase, serum aspartate",
+                "GOT"
+            ],
+            "category": "liver_function",
+            "specimen_type": "serum",
+            "reference_unit": "U/L",
+            "reference_ranges": [
+                {
+                    "low": 10.0,
+                    "high": 40.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "alt",
+            "canonical_name": "Alanine Aminotransferase",
+            "synonyms": [
+                "ALT",
+                "SGPT",
+                "Aminotransferase, serum alanine",
+                "GPT"
+            ],
+            "category": "liver_function",
+            "specimen_type": "serum",
+            "reference_unit": "U/L",
+            "reference_ranges": [
+                {
+                    "low": 10.0,
+                    "high": 40.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "alp",
+            "canonical_name": "Alkaline Phosphatase",
+            "synonyms": [
+                "ALP",
+                "Alk Phos",
+                "Alkaline Phos"
+            ],
+            "category": "liver_function",
+            "specimen_type": "serum",
+            "reference_unit": "U/L",
+            "reference_ranges": [
+                {
+                    "low": 30.0,
+                    "high": 120.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "ggt",
+            "canonical_name": "Gamma-Glutamyl Transferase",
+            "synonyms": [
+                "GGT",
+                "GGTP",
+                "Gamma GT"
+            ],
+            "category": "liver_function",
+            "specimen_type": "serum",
+            "reference_unit": "U/L",
+            "reference_ranges": [
+                {
+                    "low": 8.0,
+                    "high": 61.0,
+                    "conditions": {
+                        "sex": "male"
+                    }
+                },
+                {
+                    "low": 5.0,
+                    "high": 36.0,
+                    "conditions": {
+                        "sex": "female"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "ldh",
+            "canonical_name": "Lactate Dehydrogenase",
+            "synonyms": [
+                "LDH",
+                "LD"
+            ],
+            "category": "blood_chemistry",
+            "specimen_type": "serum",
+            "reference_unit": "U/L",
+            "reference_ranges": [
+                {
+                    "low": 60.0,
+                    "high": 100.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "cholesterol_total",
+            "canonical_name": "Cholesterol, Total",
+            "synonyms": [
+                "Total Cholesterol",
+                "TC",
+                "Cholesterol"
+            ],
+            "category": "lipid_panel",
+            "specimen_type": "serum",
+            "reference_unit": "mg/dL",
+            "reference_ranges": [
+                {
+                    "low": null,
+                    "high": 200.0,
+                    "conditions": {},
+                    "interpretation": {
+                        "high": "Borderline high (200-239), High (≥240)"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "hdl",
+            "canonical_name": "HDL Cholesterol",
+            "synonyms": [
+                "HDL",
+                "HDL-C",
+                "High-Density Lipoprotein",
+                "Good Cholesterol"
+            ],
+            "category": "lipid_panel",
+            "specimen_type": "serum",
+            "reference_unit": "mg/dL",
+            "reference_ranges": [
+                {
+                    "low": 40.0,
+                    "high": null,
+                    "conditions": {
+                        "sex": "male"
+                    },
+                    "interpretation": {
+                        "low": "Low HDL increases cardiovascular risk"
+                    }
+                },
+                {
+                    "low": 50.0,
+                    "high": null,
+                    "conditions": {
+                        "sex": "female"
+                    },
+                    "interpretation": {
+                        "low": "Low HDL increases cardiovascular risk"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "ldl",
+            "canonical_name": "LDL Cholesterol",
+            "synonyms": [
+                "LDL",
+                "LDL-C",
+                "Low-Density Lipoprotein",
+                "Bad Cholesterol"
+            ],
+            "category": "lipid_panel",
+            "specimen_type": "serum",
+            "reference_unit": "mg/dL",
+            "reference_ranges": [
+                {
+                    "low": null,
+                    "high": 100.0,
+                    "conditions": {},
+                    "interpretation": {
+                        "high": "Near optimal (100-129), Borderline high (130-159), High (160-189), Very high (≥190)"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "vldl",
+            "canonical_name": "VLDL Cholesterol",
+            "synonyms": [
+                "VLDL",
+                "Very Low-Density Lipoprotein"
+            ],
+            "category": "lipid_panel",
+            "specimen_type": "serum",
+            "reference_unit": "mg/dL",
+            "reference_ranges": [
+                {
+                    "low": null,
+                    "high": 30.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "triglycerides",
+            "canonical_name": "Triglycerides",
+            "synonyms": [
+                "TG",
+                "Trigs",
+                "TGL"
+            ],
+            "category": "lipid_panel",
+            "specimen_type": "serum",
+            "reference_unit": "mg/dL",
+            "reference_ranges": [
+                {
+                    "low": null,
+                    "high": 150.0,
+                    "conditions": {
+                        "state": "fasting"
+                    },
+                    "interpretation": {
+                        "high": "Borderline high (150-199), High (200-499), Very high (≥500)"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "tsh",
+            "canonical_name": "Thyroid Stimulating Hormone",
+            "synonyms": [
+                "TSH",
+                "Thyrotropin"
+            ],
+            "category": "thyroid",
+            "specimen_type": "serum",
+            "reference_unit": "μU/mL",
+            "reference_ranges": [
+                {
+                    "low": 0.5,
+                    "high": 4.0,
+                    "conditions": {},
+                    "interpretation": {
+                        "low": "May indicate hyperthyroidism",
+                        "high": "May indicate hypothyroidism"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "t4_total",
+            "canonical_name": "Thyroxine, Total",
+            "synonyms": [
+                "T4",
+                "Total T4",
+                "Thyroxine"
+            ],
+            "category": "thyroid",
+            "specimen_type": "serum",
+            "reference_unit": "μg/dL",
+            "reference_ranges": [
+                {
+                    "low": 5.0,
+                    "high": 12.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "t4_free",
+            "canonical_name": "Thyroxine, Free",
+            "synonyms": [
+                "FT4",
+                "Free T4"
+            ],
+            "category": "thyroid",
+            "specimen_type": "serum",
+            "reference_unit": "ng/dL",
+            "reference_ranges": [
+                {
+                    "low": 0.8,
+                    "high": 1.8,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "t3_total",
+            "canonical_name": "Triiodothyronine, Total",
+            "synonyms": [
+                "T3",
+                "Total T3",
+                "Triiodothyronine"
+            ],
+            "category": "thyroid",
+            "specimen_type": "serum",
+            "reference_unit": "ng/dL",
+            "reference_ranges": [
+                {
+                    "low": 80.0,
+                    "high": 180.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "t3_free",
+            "canonical_name": "Triiodothyronine, Free",
+            "synonyms": [
+                "FT3",
+                "Free T3"
+            ],
+            "category": "thyroid",
+            "specimen_type": "serum",
+            "reference_unit": "pg/mL",
+            "reference_ranges": [
+                {
+                    "low": 2.3,
+                    "high": 4.2,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "iron",
+            "canonical_name": "Iron, Serum",
+            "synonyms": [
+                "Fe",
+                "Serum Iron",
+                "Iron"
+            ],
+            "category": "blood_chemistry",
+            "specimen_type": "serum",
+            "reference_unit": "μg/dL",
+            "reference_ranges": [
+                {
+                    "low": 60.0,
+                    "high": 170.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "tibc",
+            "canonical_name": "Total Iron Binding Capacity",
+            "synonyms": [
+                "TIBC"
+            ],
+            "category": "blood_chemistry",
+            "specimen_type": "serum",
+            "reference_unit": "μg/dL",
+            "reference_ranges": [
+                {
+                    "low": 250.0,
+                    "high": 370.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "ferritin",
+            "canonical_name": "Ferritin",
+            "synonyms": [
+                "Serum Ferritin"
+            ],
+            "category": "blood_chemistry",
+            "specimen_type": "serum",
+            "reference_unit": "ng/mL",
+            "reference_ranges": [
+                {
+                    "low": 12.0,
+                    "high": 150.0,
+                    "conditions": {
+                        "sex": "female"
+                    }
+                },
+                {
+                    "low": 12.0,
+                    "high": 300.0,
+                    "conditions": {
+                        "sex": "male"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "vitamin_b12",
+            "canonical_name": "Vitamin B12",
+            "synonyms": [
+                "B12",
+                "Cobalamin",
+                "Cyanocobalamin"
+            ],
+            "category": "vitamins",
+            "specimen_type": "serum",
+            "reference_unit": "pg/mL",
+            "reference_ranges": [
+                {
+                    "low": 200.0,
+                    "high": 800.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "vitamin_d",
+            "canonical_name": "25-Hydroxyvitamin D",
+            "synonyms": [
+                "Vitamin D",
+                "25-OH Vitamin D",
+                "Vit D",
+                "Calcidiol"
+            ],
+            "category": "vitamins",
+            "specimen_type": "serum",
+            "reference_unit": "ng/mL",
+            "reference_ranges": [
+                {
+                    "low": 30.0,
+                    "high": 60.0,
+                    "conditions": {},
+                    "interpretation": {
+                        "low": "Deficiency (<20) or Insufficiency (20-29)"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "folate",
+            "canonical_name": "Folate",
+            "synonyms": [
+                "Folic Acid",
+                "Serum Folate",
+                "Vitamin B9"
+            ],
+            "category": "vitamins",
+            "specimen_type": "serum",
+            "reference_unit": "ng/mL",
+            "reference_ranges": [
+                {
+                    "low": 3.0,
+                    "high": 20.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "psa",
+            "canonical_name": "Prostate-Specific Antigen",
+            "synonyms": [
+                "PSA",
+                "Total PSA"
+            ],
+            "category": "tumor_markers",
+            "specimen_type": "serum",
+            "reference_unit": "ng/mL",
+            "reference_ranges": [
+                {
+                    "low": null,
+                    "high": 4.0,
+                    "conditions": {
+                        "sex": "male"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "esr",
+            "canonical_name": "Erythrocyte Sedimentation Rate",
+            "synonyms": [
+                "ESR",
+                "Sed Rate"
+            ],
+            "category": "inflammatory_markers",
+            "specimen_type": "blood",
+            "reference_unit": "mm/hr",
+            "reference_ranges": [
+                {
+                    "low": 0.0,
+                    "high": 15.0,
+                    "conditions": {
+                        "sex": "male"
+                    }
+                },
+                {
+                    "low": 0.0,
+                    "high": 20.0,
+                    "conditions": {
+                        "sex": "female"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "crp",
+            "canonical_name": "C-Reactive Protein",
+            "synonyms": [
+                "CRP",
+                "hs-CRP",
+                "High-Sensitivity CRP"
+            ],
+            "category": "inflammatory_markers",
+            "specimen_type": "serum",
+            "reference_unit": "mg/L",
+            "reference_ranges": [
+                {
+                    "low": null,
+                    "high": 3.0,
+                    "conditions": {},
+                    "interpretation": {
+                        "high": "Low risk (<1), Average risk (1-3), High risk (>3)"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "pt",
+            "canonical_name": "Prothrombin Time",
+            "synonyms": [
+                "PT",
+                "Pro Time"
+            ],
+            "category": "coagulation",
+            "specimen_type": "plasma",
+            "reference_unit": "seconds",
+            "reference_ranges": [
+                {
+                    "low": 11.0,
+                    "high": 13.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "inr",
+            "canonical_name": "International Normalized Ratio",
+            "synonyms": [
+                "INR"
+            ],
+            "category": "coagulation",
+            "specimen_type": "plasma",
+            "reference_unit": "",
+            "reference_ranges": [
+                {
+                    "low": 0.9,
+                    "high": 1.1,
+                    "conditions": {},
+                    "interpretation": {
+                        "high": "Therapeutic range for warfarin: 2.0-3.0"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "aptt",
+            "canonical_name": "Activated Partial Thromboplastin Time",
+            "synonyms": [
+                "APTT",
+                "aPTT",
+                "PTT"
+            ],
+            "category": "coagulation",
+            "specimen_type": "plasma",
+            "reference_unit": "seconds",
+            "reference_ranges": [
+                {
+                    "low": 25.0,
+                    "high": 35.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "fibrinogen",
+            "canonical_name": "Fibrinogen",
+            "synonyms": [
+                "Factor I"
+            ],
+            "category": "coagulation",
+            "specimen_type": "plasma",
+            "reference_unit": "mg/dL",
+            "reference_ranges": [
+                {
+                    "low": 200.0,
+                    "high": 400.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "ammonia",
+            "canonical_name": "Ammonia",
+            "synonyms": [
+                "NH3",
+                "Plasma Ammonia"
+            ],
+            "category": "blood_chemistry",
+            "specimen_type": "plasma",
+            "reference_unit": "μg/dL",
+            "reference_ranges": [
+                {
+                    "low": 40.0,
+                    "high": 70.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "amylase",
+            "canonical_name": "Amylase",
+            "synonyms": [
+                "Serum Amylase"
+            ],
+            "category": "pancreatic",
+            "specimen_type": "serum",
+            "reference_unit": "U/L",
+            "reference_ranges": [
+                {
+                    "low": 25.0,
+                    "high": 125.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "lipase",
+            "canonical_name": "Lipase",
+            "synonyms": [
+                "Serum Lipase"
+            ],
+            "category": "pancreatic",
+            "specimen_type": "serum",
+            "reference_unit": "U/L",
+            "reference_ranges": [
+                {
+                    "low": 0.0,
+                    "high": 160.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "bnp",
+            "canonical_name": "B-Type Natriuretic Peptide",
+            "synonyms": [
+                "BNP",
+                "Brain Natriuretic Peptide"
+            ],
+            "category": "cardiac",
+            "specimen_type": "plasma",
+            "reference_unit": "pg/mL",
+            "reference_ranges": [
+                {
+                    "low": null,
+                    "high": 100.0,
+                    "conditions": {},
+                    "interpretation": {
+                        "high": "Heart failure likely if >400, intermediate 100-400"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "troponin_i",
+            "canonical_name": "Troponin I",
+            "synonyms": [
+                "cTnI",
+                "Cardiac Troponin I"
+            ],
+            "category": "cardiac",
+            "specimen_type": "serum",
+            "reference_unit": "ng/mL",
+            "reference_ranges": [
+                {
+                    "low": null,
+                    "high": 0.04,
+                    "conditions": {}
+                }
+            ],
+            "critical_values": {
+                "critical_high": 0.1
+            }
+        },
+        {
+            "id": "troponin_t",
+            "canonical_name": "Troponin T",
+            "synonyms": [
+                "cTnT",
+                "Cardiac Troponin T"
+            ],
+            "category": "cardiac",
+            "specimen_type": "serum",
+            "reference_unit": "ng/mL",
+            "reference_ranges": [
+                {
+                    "low": null,
+                    "high": 0.01,
+                    "conditions": {}
+                }
+            ],
+            "critical_values": {
+                "critical_high": 0.1
+            }
+        },
+        {
+            "id": "egfr",
+            "canonical_name": "Estimated Glomerular Filtration Rate",
+            "synonyms": [
+                "eGFR",
+                "GFR"
+            ],
+            "category": "kidney_function",
+            "specimen_type": "calculated",
+            "reference_unit": "mL/min/1.73m²",
+            "reference_ranges": [
+                {
+                    "low": 90.0,
+                    "high": null,
+                    "conditions": {},
+                    "interpretation": {
+                        "low": "Stage 2 CKD (60-89), Stage 3a (45-59), Stage 3b (30-44), Stage 4 (15-29), Stage 5 (<15)"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "urine_protein",
+            "canonical_name": "Urine Protein",
+            "synonyms": [
+                "Protein, Urine",
+                "Proteinuria"
+            ],
+            "category": "urinalysis",
+            "specimen_type": "urine",
+            "reference_unit": "mg/24hr",
+            "reference_ranges": [
+                {
+                    "low": null,
+                    "high": 100.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "urine_glucose",
+            "canonical_name": "Urine Glucose",
+            "synonyms": [
+                "Glucose, Urine",
+                "Glucosuria"
+            ],
+            "category": "urinalysis",
+            "specimen_type": "urine",
+            "reference_unit": "mg/dL",
+            "reference_ranges": [
+                {
+                    "low": null,
+                    "high": 0.0,
+                    "conditions": {},
+                    "interpretation": {
+                        "high": "Presence suggests hyperglycemia or renal glycosuria"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "cortisol_am",
+            "canonical_name": "Cortisol, Morning",
+            "synonyms": [
+                "Cortisol",
+                "AM Cortisol",
+                "8 AM Cortisol"
+            ],
+            "category": "hormones",
+            "specimen_type": "serum",
+            "reference_unit": "μg/dL",
+            "reference_ranges": [
+                {
+                    "low": 6.0,
+                    "high": 23.0,
+                    "conditions": {
+                        "state": "morning"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "testosterone",
+            "canonical_name": "Testosterone",
+            "synonyms": [
+                "Total Testosterone",
+                "Serum Testosterone"
+            ],
+            "category": "hormones",
+            "specimen_type": "serum",
+            "reference_unit": "ng/dL",
+            "reference_ranges": [
+                {
+                    "low": 18.0,
+                    "high": 54.0,
+                    "conditions": {
+                        "sex": "female"
+                    }
+                },
+                {
+                    "low": 291.0,
+                    "high": 1100.0,
+                    "conditions": {
+                        "sex": "male"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "estradiol",
+            "canonical_name": "Estradiol",
+            "synonyms": [
+                "E2",
+                "Estrogen"
+            ],
+            "category": "hormones",
+            "specimen_type": "serum",
+            "reference_unit": "pg/mL",
+            "reference_ranges": [
+                {
+                    "low": 15.0,
+                    "high": 350.0,
+                    "conditions": {
+                        "sex": "female"
+                    }
+                },
+                {
+                    "low": 10.0,
+                    "high": 40.0,
+                    "conditions": {
+                        "sex": "male"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "prolactin",
+            "canonical_name": "Prolactin",
+            "synonyms": [
+                "PRL"
+            ],
+            "category": "hormones",
+            "specimen_type": "serum",
+            "reference_unit": "ng/mL",
+            "reference_ranges": [
+                {
+                    "low": null,
+                    "high": 20.0,
+                    "conditions": {}
+                }
+            ]
+        },
+        {
+            "id": "pth",
+            "canonical_name": "Parathyroid Hormone",
+            "synonyms": [
+                "PTH",
+                "Intact PTH",
+                "iPTH"
+            ],
+            "category": "hormones",
+            "specimen_type": "serum",
+            "reference_unit": "pg/mL",
+            "reference_ranges": [
+                {
+                    "low": 10.0,
+                    "high": 65.0,
+                    "conditions": {}
+                }
+            ]
+        }
+    ]
+}

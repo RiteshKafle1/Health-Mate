@@ -1,0 +1,395 @@
+{
+    "version": "1.0",
+    "description": "Unit conversion factors to convert various units to reference standard units",
+    "conversions": {
+        "glucose": {
+            "reference_unit": "mg/dL",
+            "conversions": {
+                "mmol/L": {
+                    "multiply": 18.0182,
+                    "note": "mmol/L × 18.0182 = mg/dL"
+                },
+                "g/L": {
+                    "multiply": 100.0,
+                    "note": "g/L × 100 = mg/dL"
+                },
+                "mg/L": {
+                    "multiply": 0.1,
+                    "note": "mg/L × 0.1 = mg/dL"
+                }
+            }
+        },
+        "hemoglobin": {
+            "reference_unit": "g/dL",
+            "conversions": {
+                "g/L": {
+                    "multiply": 0.1,
+                    "note": "g/L × 0.1 = g/dL"
+                },
+                "mmol/L": {
+                    "multiply": 1.6114,
+                    "note": "mmol/L × 1.6114 = g/dL"
+                }
+            }
+        },
+        "creatinine": {
+            "reference_unit": "mg/dL",
+            "conversions": {
+                "µmol/L": {
+                    "multiply": 0.0113,
+                    "note": "µmol/L × 0.0113 = mg/dL"
+                },
+                "umol/L": {
+                    "multiply": 0.0113,
+                    "note": "umol/L × 0.0113 = mg/dL"
+                },
+                "μmol/L": {
+                    "multiply": 0.0113,
+                    "note": "μmol/L × 0.0113 = mg/dL"
+                }
+            }
+        },
+        "cholesterol_total": {
+            "reference_unit": "mg/dL",
+            "conversions": {
+                "mmol/L": {
+                    "multiply": 38.67,
+                    "note": "mmol/L × 38.67 = mg/dL"
+                }
+            }
+        },
+        "hdl": {
+            "reference_unit": "mg/dL",
+            "conversions": {
+                "mmol/L": {
+                    "multiply": 38.67,
+                    "note": "mmol/L × 38.67 = mg/dL"
+                }
+            }
+        },
+        "ldl": {
+            "reference_unit": "mg/dL",
+            "conversions": {
+                "mmol/L": {
+                    "multiply": 38.67,
+                    "note": "mmol/L × 38.67 = mg/dL"
+                }
+            }
+        },
+        "triglycerides": {
+            "reference_unit": "mg/dL",
+            "conversions": {
+                "mmol/L": {
+                    "multiply": 88.57,
+                    "note": "mmol/L × 88.57 = mg/dL"
+                }
+            }
+        },
+        "bun": {
+            "reference_unit": "mg/dL",
+            "conversions": {
+                "mmol/L": {
+                    "multiply": 2.8,
+                    "note": "mmol/L × 2.8 = mg/dL (as urea nitrogen)"
+                }
+            }
+        },
+        "uric_acid": {
+            "reference_unit": "mg/dL",
+            "conversions": {
+                "µmol/L": {
+                    "multiply": 0.0168,
+                    "note": "µmol/L × 0.0168 = mg/dL"
+                },
+                "umol/L": {
+                    "multiply": 0.0168,
+                    "note": "umol/L × 0.0168 = mg/dL"
+                },
+                "mmol/L": {
+                    "multiply": 16.8,
+                    "note": "mmol/L × 16.8 = mg/dL"
+                }
+            }
+        },
+        "calcium": {
+            "reference_unit": "mg/dL",
+            "conversions": {
+                "mmol/L": {
+                    "multiply": 4.0,
+                    "note": "mmol/L × 4.0 = mg/dL"
+                },
+                "mEq/L": {
+                    "multiply": 2.0,
+                    "note": "mEq/L × 2.0 = mg/dL"
+                }
+            }
+        },
+        "magnesium": {
+            "reference_unit": "mg/dL",
+            "conversions": {
+                "mmol/L": {
+                    "multiply": 2.43,
+                    "note": "mmol/L × 2.43 = mg/dL"
+                },
+                "mEq/L": {
+                    "multiply": 1.2,
+                    "note": "mEq/L × 1.2 = mg/dL"
+                }
+            }
+        },
+        "phosphorus": {
+            "reference_unit": "mg/dL",
+            "conversions": {
+                "mmol/L": {
+                    "multiply": 3.1,
+                    "note": "mmol/L × 3.1 = mg/dL"
+                }
+            }
+        },
+        "bilirubin_total": {
+            "reference_unit": "mg/dL",
+            "conversions": {
+                "µmol/L": {
+                    "multiply": 0.0585,
+                    "note": "µmol/L × 0.0585 = mg/dL"
+                },
+                "umol/L": {
+                    "multiply": 0.0585,
+                    "note": "umol/L × 0.0585 = mg/dL"
+                }
+            }
+        },
+        "bilirubin_direct": {
+            "reference_unit": "mg/dL",
+            "conversions": {
+                "µmol/L": {
+                    "multiply": 0.0585,
+                    "note": "µmol/L × 0.0585 = mg/dL"
+                },
+                "umol/L": {
+                    "multiply": 0.0585,
+                    "note": "umol/L × 0.0585 = mg/dL"
+                }
+            }
+        },
+        "iron": {
+            "reference_unit": "μg/dL",
+            "conversions": {
+                "µmol/L": {
+                    "multiply": 5.587,
+                    "note": "µmol/L × 5.587 = μg/dL"
+                },
+                "umol/L": {
+                    "multiply": 5.587,
+                    "note": "umol/L × 5.587 = μg/dL"
+                }
+            }
+        },
+        "ferritin": {
+            "reference_unit": "ng/mL",
+            "conversions": {
+                "µg/L": {
+                    "multiply": 1.0,
+                    "note": "µg/L = ng/mL (equivalent)"
+                },
+                "ug/L": {
+                    "multiply": 1.0,
+                    "note": "ug/L = ng/mL (equivalent)"
+                },
+                "pmol/L": {
+                    "multiply": 0.0224,
+                    "note": "pmol/L × 0.0224 = ng/mL"
+                }
+            }
+        },
+        "vitamin_b12": {
+            "reference_unit": "pg/mL",
+            "conversions": {
+                "pmol/L": {
+                    "multiply": 1.355,
+                    "note": "pmol/L × 1.355 = pg/mL"
+                },
+                "ng/L": {
+                    "multiply": 1.0,
+                    "note": "ng/L = pg/mL (equivalent)"
+                }
+            }
+        },
+        "vitamin_d": {
+            "reference_unit": "ng/mL",
+            "conversions": {
+                "nmol/L": {
+                    "multiply": 0.4,
+                    "note": "nmol/L × 0.4 = ng/mL"
+                }
+            }
+        },
+        "folate": {
+            "reference_unit": "ng/mL",
+            "conversions": {
+                "nmol/L": {
+                    "multiply": 0.4413,
+                    "note": "nmol/L × 0.4413 = ng/mL"
+                }
+            }
+        },
+        "hba1c": {
+            "reference_unit": "%",
+            "conversions": {
+                "mmol/mol": {
+                    "formula": "(mmol/mol × 0.0915) + 2.15",
+                    "multiply": 0.0915,
+                    "add": 2.15,
+                    "note": "IFCC to NGSP conversion"
+                }
+            }
+        },
+        "sodium": {
+            "reference_unit": "mEq/L",
+            "conversions": {
+                "mmol/L": {
+                    "multiply": 1.0,
+                    "note": "mmol/L = mEq/L for sodium (monovalent)"
+                }
+            }
+        },
+        "potassium": {
+            "reference_unit": "mEq/L",
+            "conversions": {
+                "mmol/L": {
+                    "multiply": 1.0,
+                    "note": "mmol/L = mEq/L for potassium (monovalent)"
+                }
+            }
+        },
+        "chloride": {
+            "reference_unit": "mEq/L",
+            "conversions": {
+                "mmol/L": {
+                    "multiply": 1.0,
+                    "note": "mmol/L = mEq/L for chloride (monovalent)"
+                }
+            }
+        },
+        "bicarbonate": {
+            "reference_unit": "mEq/L",
+            "conversions": {
+                "mmol/L": {
+                    "multiply": 1.0,
+                    "note": "mmol/L = mEq/L for bicarbonate (monovalent)"
+                }
+            }
+        },
+        "tsh": {
+            "reference_unit": "μU/mL",
+            "conversions": {
+                "mU/L": {
+                    "multiply": 1.0,
+                    "note": "mU/L = μU/mL (equivalent)"
+                },
+                "mIU/L": {
+                    "multiply": 1.0,
+                    "note": "mIU/L = μU/mL (equivalent)"
+                }
+            }
+        },
+        "t4_free": {
+            "reference_unit": "ng/dL",
+            "conversions": {
+                "pmol/L": {
+                    "multiply": 0.0777,
+                    "note": "pmol/L × 0.0777 = ng/dL"
+                }
+            }
+        },
+        "t3_free": {
+            "reference_unit": "pg/mL",
+            "conversions": {
+                "pmol/L": {
+                    "multiply": 0.651,
+                    "note": "pmol/L × 0.651 = pg/mL"
+                }
+            }
+        },
+        "cortisol_am": {
+            "reference_unit": "μg/dL",
+            "conversions": {
+                "nmol/L": {
+                    "multiply": 0.0362,
+                    "note": "nmol/L × 0.0362 = μg/dL"
+                }
+            }
+        },
+        "testosterone": {
+            "reference_unit": "ng/dL",
+            "conversions": {
+                "nmol/L": {
+                    "multiply": 28.84,
+                    "note": "nmol/L × 28.84 = ng/dL"
+                }
+            }
+        },
+        "estradiol": {
+            "reference_unit": "pg/mL",
+            "conversions": {
+                "pmol/L": {
+                    "multiply": 0.2724,
+                    "note": "pmol/L × 0.2724 = pg/mL"
+                }
+            }
+        },
+        "psa": {
+            "reference_unit": "ng/mL",
+            "conversions": {
+                "µg/L": {
+                    "multiply": 1.0,
+                    "note": "µg/L = ng/mL (equivalent)"
+                }
+            }
+        },
+        "crp": {
+            "reference_unit": "mg/L",
+            "conversions": {
+                "mg/dL": {
+                    "multiply": 10.0,
+                    "note": "mg/dL × 10 = mg/L"
+                },
+                "nmol/L": {
+                    "multiply": 0.105,
+                    "note": "nmol/L × 0.105 = mg/L"
+                }
+            }
+        },
+        "ammonia": {
+            "reference_unit": "μg/dL",
+            "conversions": {
+                "µmol/L": {
+                    "multiply": 1.703,
+                    "note": "µmol/L × 1.703 = μg/dL"
+                },
+                "umol/L": {
+                    "multiply": 1.703,
+                    "note": "umol/L × 1.703 = μg/dL"
+                }
+            }
+        },
+        "albumin": {
+            "reference_unit": "g/dL",
+            "conversions": {
+                "g/L": {
+                    "multiply": 0.1,
+                    "note": "g/L × 0.1 = g/dL"
+                }
+            }
+        },
+        "total_protein": {
+            "reference_unit": "g/dL",
+            "conversions": {
+                "g/L": {
+                    "multiply": 0.1,
+                    "note": "g/L × 0.1 = g/dL"
+                }
+            }
+        }
+    }
+}

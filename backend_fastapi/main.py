@@ -18,6 +18,9 @@ from app.routers.user import (
     healthmate_assist_router
 )
 
+# Lab Report Interpretation module
+from app.lab_interpreter import lab_router, enrich_router
+
 from app.services.shared.chatbot_service import init_chatbot_service
 from app.healthmate_assist.chatbot_manager import initialize_assist
 from app.services import scheduler_service
@@ -95,6 +98,10 @@ app.include_router(user_chatbot_router)  # MediGenius chatbot for Users
 app.include_router(medication_router)  # Medication management
 app.include_router(dose_router)  # Dose scheduling and tracking
 app.include_router(healthmate_assist_router)  # HealthMate Assist chatbot
+
+# Include routers - Lab Interpretation
+app.include_router(lab_router)  # AI-powered lab report interpretation
+app.include_router(enrich_router, prefix="/api")  # On-demand biomarker enrichment
 
 
 @app.get("/")

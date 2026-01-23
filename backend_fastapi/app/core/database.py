@@ -86,3 +86,8 @@ def get_dose_history_collection():
 def get_ai_insights_cache_collection():
     """Get AI insights cache collection for storing generated insights."""
     return db.ai_insights_cache
+
+
+def get_biomarker_definitions_collection():
+    """Get biomarker definitions collection for storing medical knowledge."""
+    return db.biomarker_definitions

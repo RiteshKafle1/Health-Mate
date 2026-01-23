@@ -10,6 +10,7 @@ export interface Report {
     report_type: string;
     file_size: number;
     uploaded_at: number;
+    is_interpreted?: boolean;
 }
 
 export interface ReportsResponse extends ApiResponse {

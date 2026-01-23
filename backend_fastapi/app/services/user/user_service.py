@@ -352,12 +352,15 @@ async def book_appointment(user_id: str, doc_id: str, slot_date: str, slot_time:
     }
     
     try:
+        # 1. Insert appointment
         await appointments.insert_one(appointment_data)
         
-        # Update doctor's slots_booked
+        # 2. Update doctor's slots_booked atomically
+        # $addToSet prevents duplicates and is atomic
+        field_path = f"slots_booked.{slot_date}"
         await doctors.update_one(
             {"_id": ObjectId(doc_id)},
-            {"$set": {"slots_booked": slots_booked}}
+            {"$addToSet": {field_path: slot_time}}
         )
     except Exception as e:
         return {"success": False, "message": f"Booking failed: {str(e)}"}
@@ -369,7 +372,7 @@ async def list_user_appointments(user_id: str) -> dict:
     """Get all appointments for a user."""
     appointments = get_appointments_collection()
     
-    cursor = appointments.find({"userId": user_id})
+    cursor = appointments.find({"userId": user_id, "user_deleted": {"$ne": True}})
     appts = []
     async for appt in cursor:
         appt["_id"] = str(appt["_id"])
@@ -379,39 +382,84 @@ async def list_user_appointments(user_id: str) -> dict:
 
 
 async def cancel_user_appointment(user_id: str, appointment_id: str) -> dict:
-    """Cancel a user's appointment."""
+    """Cancel a user's appointment with atomic updates."""
     appointments = get_appointments_collection()
     doctors = get_doctors_collection()
     
-    appt = await appointments.find_one({"_id": ObjectId(appointment_id)})
+    try:
+        appt_oid = ObjectId(appointment_id)
+    except Exception:
+        return {"success": False, "message": "Invalid appointment ID"}
+    
+    appt = await appointments.find_one({"_id": appt_oid})
     if not appt:
         return {"success": False, "message": "Appointment not found"}
     
-    if appt["userId"] != user_id:
+    if appt.get("userId") != user_id:
         return {"success": False, "message": "Unauthorized action"}
     
-    # Cancel the appointment
+    if appt.get("cancelled", False):
+        return {"success": False, "message": "Appointment already cancelled"}
+
+    # 1. atomic update to cancel the appointment first
     await appointments.update_one(
-        {"_id": ObjectId(appointment_id)},
-        {"$set": {"cancelled": True}}
+        {"_id": appt_oid},
+        {"$set": {"cancelled": True, "status": "cancelled"}}
     )
     
-    # Release doctor slot
-    doc_id = appt["docId"]
-    slot_date = appt["slotDate"]
-    slot_time = appt["slotTime"]
+    # 2. release doctor slot atomically
+    doc_id = appt.get("docId")
+    slot_date = appt.get("slotDate")
+    slot_time = appt.get("slotTime")
     
-    doctor = await doctors.find_one({"_id": ObjectId(doc_id)})
-    if doctor:
-        slots_booked = doctor.get("slots_booked", {})
-        if slot_date in slots_booked and slot_time in slots_booked[slot_date]:
-            slots_booked[slot_date].remove(slot_time)
+    if doc_id and slot_date and slot_time:
+        try:
+            # Use atomic $pull to remove the specific time slot
+            # This is thread-safe and won't overwrite other concurrent bookings
+            field_path = f"slots_booked.{slot_date}"
             await doctors.update_one(
                 {"_id": ObjectId(doc_id)},
-                {"$set": {"slots_booked": slots_booked}}
+                {"$pull": {field_path: slot_time}}
             )
+        except Exception as e:
+            # Log error but don't fail the request (cancellation is the priority)
+            print(f"Error releasing doctor slot: {e}")
     
     return {"success": True, "message": "Appointment Cancelled"}
+
+
+async def delete_user_appointment(user_id: str, appointment_id: str) -> dict:
+    """Soft delete a user's appointment (hide from user view)."""
+    appointments = get_appointments_collection()
+    
+    try:
+        appt_oid = ObjectId(appointment_id)
+    except Exception:
+        return {"success": False, "message": "Invalid appointment ID"}
+        
+    appt = await appointments.find_one({"_id": appt_oid})
+    if not appt:
+        return {"success": False, "message": "Appointment not found"}
+        
+    if appt.get("userId") != user_id:
+        return {"success": False, "message": "Unauthorized action"}
+        
+    status = appt.get("status", "pending")
+    # Allow deleting cancelled, completed, or rejected appointments
+    # Also support legacy flags
+    is_cancelled = appt.get("cancelled", False) or status == "cancelled"
+    is_completed = appt.get("isCompleted", False) or status == "completed"
+    is_rejected = status == "rejected"
+    
+    if not (is_cancelled or is_completed or is_rejected):
+         return {"success": False, "message": "Cannot delete active appointments"}
+
+    await appointments.update_one(
+        {"_id": appt_oid},
+        {"$set": {"user_deleted": True}}
+    )
+    
+    return {"success": True, "message": "Appointment removed from history"}
 
 
 

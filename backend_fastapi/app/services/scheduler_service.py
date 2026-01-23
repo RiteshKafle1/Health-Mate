@@ -218,8 +218,88 @@ async def check_health_checkins():
                 print(f"[Scheduler] Error sending health check-in: {e}")
         
         print(f"[Scheduler] Sent {checkins_sent} health check-ins")
+
     except Exception as e:
         print(f"❌ [Scheduler] Critical error in check_health_checkins: {e}")
+
+async def check_missed_appointments():
+    """
+    Hourly job to check for appointments that have passed their scheduled time
+    without being completed or cancelled. Marks them as 'missed'.
+    """
+    print(f"[Scheduler] Checking missed appointments at {datetime.now()}")
+    
+    try:
+        appointments = get_appointments_collection()
+        
+        # Get current time info
+        now = datetime.now()
+        today_dash = now.strftime("%Y-%m-%d")    # 2024-01-20
+        today_under = now.strftime("%d_%m_%Y")   # 20_01_2024 (Legacy format)
+        current_time = now.strftime("%H:%M")
+        
+        # Find potential missed appointments
+        # Logic: 
+        # 1. Date is in the past (before today)
+        # 2. Date is today AND Time is in the past
+        # 3. Status is pending or accepted
+        # 4. Not cancelled or completed
+        
+        cursor = appointments.find({
+            "isCompleted": False,
+            "cancelled": False,
+            "status": {"$in": ["pending", "accepted"]}
+        })
+        
+        missed_count = 0
+        async for appt in cursor:
+            # Check DB date format (could be YYYY-MM-DD or D_M_YYYY)
+            slot_date = appt.get("slotDate", "")
+            slot_time = appt.get("slotTime", "")
+            
+            is_past = False
+            
+            try:
+                # Parse date
+                appt_date = None
+                if "-" in slot_date:
+                    appt_date = datetime.strptime(slot_date, "%Y-%m-%d").date()
+                elif "_" in slot_date:
+                    # Handle legacy D_M_YYYY or DD_MM_YYYY
+                    parts = slot_date.split("_")
+                    if len(parts) == 3:
+                        # Pad day/month if needed
+                        day = parts[0].zfill(2)
+                        month = parts[1].zfill(2)
+                        year = parts[2]
+                        appt_date = datetime.strptime(f"{day}_{month}_{year}", "%d_%m_%Y").date()
+
+                if appt_date:
+                    if appt_date < now.date():
+                        is_past = True
+                    elif appt_date == now.date():
+                        # Same day, check time
+                        if slot_time < current_time:
+                            is_past = True
+                            
+                if is_past:
+                    # Mark as missed
+                    await appointments.update_one(
+                        {"_id": appt["_id"]},
+                        {"$set": {"status": "missed"}}
+                    )
+                    missed_count += 1
+                    
+            except Exception as e:
+                print(f"[Scheduler] Error parsing date for appt {appt['_id']}: {e}")
+                continue
+                
+        if missed_count > 0:
+            print(f"[Scheduler] Marked {missed_count} appointments as missed")
+            
+    except Exception as e:
+        print(f"❌ [Scheduler] Critical error in check_missed_appointments: {e}")
+
 
 
 # ==================== SCHEDULER MANAGEMENT ====================
@@ -282,6 +362,15 @@ def start_scheduler():
             name="Send health check-ins",
             replace_existing=True
         )
+
+        # Missed appointment check - every hour
+        scheduler.add_job(
+            check_missed_appointments,
+            trigger=IntervalTrigger(hours=1),
+            id="missed_appointments",
+            name="Check missed appointments",
+            replace_existing=True
+        )
         
         scheduler.start()
         print("✓ Notification scheduler started")
@@ -290,6 +379,7 @@ def start_scheduler():
         print("  - Appointment reminders: Daily at 9 AM")
         print("  - Low stock alerts: Daily at 10 AM")
         print("  - Health check-ins: Daily at 8 AM")
+        print("  - Missed appointments: Every hour")
         
     except Exception as e:
         print(f"❌ [Scheduler] Error starting scheduler: {e}")

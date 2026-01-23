@@ -10,6 +10,7 @@ class AppointmentStatus(str, Enum):
     rejected = "rejected"        # Doctor rejected
     completed = "completed"      # Appointment completed
     cancelled = "cancelled"      # Cancelled by either party
+    missed = "missed"            # Date passed without completion
 
 
 class AppointmentBase(BaseModel):

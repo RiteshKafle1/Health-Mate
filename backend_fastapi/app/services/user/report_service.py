@@ -4,7 +4,7 @@ Report Service - Handles lab report uploads and management
 from bson import ObjectId
 from fastapi import UploadFile, HTTPException
 import time
-from ...core.database import get_reports_collection, get_users_collection
+from ...core.database import get_reports_collection, get_users_collection, get_database
 from ...core.cloudinary_config import upload_image_from_bytes
 
 
@@ -110,6 +110,27 @@ async def get_user_reports(user_id: str, skip: int = 0, limit: int = 20) -> dict
             "uploaded_at": report.get("uploaded_at", 0)
         })
     
+    # Check for interpretations
+    if report_list:
+        db = get_database()
+        interpretations = db["lab_interpretations"]
+        img_reports_ids = [r["id"] for r in report_list]
+        
+        # Find which reports have interpretations
+        interpreted_cursor = interpretations.find(
+            {"report_id": {"$in": img_reports_ids}},
+            {"report_id": 1}
+        )
+        
+        interpreted_ids = set()
+        async for doc in interpreted_cursor:
+            interpreted_ids.add(doc["report_id"])
+            
+        # Add flag to reports
+        for r in report_list:
+            r["is_interpreted"] = r["id"] in interpreted_ids
+    
+    
     # Get total count
     total = await reports.count_documents({"user_id": user_id})
     
@@ -139,7 +160,15 @@ async def delete_report(user_id: str, report_id: str) -> dict:
         raise HTTPException(status_code=403, detail="You can only delete your own reports")
     
     # Delete from database (Cloudinary cleanup can be done separately)
+    # Delete from database (Cloudinary cleanup can be done separately)
     await reports.delete_one({"_id": ObjectId(report_id)})
+    
+    # Also delete associated interpretation if exists
+    try:
+        db = get_database()
+        await db["lab_interpretations"].delete_many({"report_id": report_id})
+    except Exception:
+        pass # Ignore error if cleanup fails
     
     return {"success": True, "message": "Report deleted successfully"}
 

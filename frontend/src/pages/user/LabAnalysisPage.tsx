@@ -1,0 +1,405 @@
+import { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    ArrowLeft, AlertTriangle, CheckCircle, AlertCircle,
+    Clock, Building2, Calendar, Printer, Share2
+} from 'lucide-react';
+import { BiomarkerTable } from '../../components/BiomarkerTable';
+import { getInterpretation, startInterpretationJob, getJobStatus } from '../../api/labInterpret';
+import type { InterpretResponse, PatientContext, JobStatus } from '../../api/labInterpret';
+import { Button } from '../../components/ui/Button';
+import toast from 'react-hot-toast';
+
+export function LabAnalysisPage() {
+    const { reportId } = useParams();
+    const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(true);
+    const [interpretation, setInterpretation] = useState<InterpretResponse | null>(null);
+    const [activeTab, setActiveTab] = useState<'results' | 'summary'>('results');
+    const [patientContext, setPatientContext] = useState<PatientContext | undefined>(undefined);
+
+    // Progress tracking state
+    const [jobId, setJobId] = useState<string | null>(null);
+    const [progress, setProgress] = useState(0);
+    const [currentStep, setCurrentStep] = useState("Initializing...");
+    const [jobStatus, setJobStatus] = useState<JobStatus | null>(null);
+    const pollingIntervalRef = useRef<number | null>(null);
+
+    useEffect(() => {
+        if (reportId) {
+            loadInterpretation();
+        }
+
+        // Cleanup polling on unmount
+        return () => {
+            if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+            }
+        };
+    }, [reportId]);
+
+    const loadInterpretation = async () => {
+        if (!reportId) return;
+
+        try {
+            setIsLoading(true);
+
+            // First, try to get cached interpretation
+            try {
+                const cached = await getInterpretation(reportId);
+                setInterpretation(cached);
+                setPatientContext(cached.patient_context);
+                setIsLoading(false);
+                return;
+            } catch (error: any) {
+                // Not cached, start async job
+                if (error.response?.status === 404) {
+                    const context_payload = {
+                        sex: 'unknown' as const,
+                        is_fasting: false
+                    };
+
+                    // Start background job
+                    const jobResponse = await startInterpretationJob(reportId, context_payload);
+
+                    if (jobResponse.job_id === "cached") {
+                        // Was cached on the server, refetch
+                        const cached = await getInterpretation(reportId);
+                        setInterpretation(cached);
+                        setPatientContext(cached.patient_context);
+                        setIsLoading(false);
+                        return;
+                    }
+
+                    setJobId(jobResponse.job_id);
+                    setJobStatus("pending");
+                    setProgress(0);
+                    setCurrentStep("Starting analysis...");
+
+                    // Start polling
+                    pollJobStatus(jobResponse.job_id);
+                } else {
+                    throw error;
+                }
+            }
+
+        } catch (error: any) {
+            toast.error('Failed to load interpretation');
+            console.error(error);
+            setIsLoading(false);
+        }
+    };
+
+    const pollJobStatus = async (currentJobId: string) => {
+        // Clear any existing interval first to prevent duplicates
+        if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+        }
+
+        // Poll every 2 seconds
+        pollingIntervalRef.current = setInterval(async () => {
+            try {
+                const status = await getJobStatus(currentJobId);
+
+                // Update UI state
+                setJobStatus(status.status);
+                setProgress(status.progress);
+                setCurrentStep(status.current_step);
+
+                if (status.status === "completed" && status.result) {
+                    // CRITICAL: Clear interval FIRST before doing anything else
+                    if (pollingIntervalRef.current) {
+                        clearInterval(pollingIntervalRef.current);
+                        pollingIntervalRef.current = null;
+                    }
+
+                    // Update state
+                    setInterpretation(status.result);
+                    setPatientContext(status.result.patient_context);
+                    setIsLoading(false);
+                    setJobId(null);
+
+                    // Show success toast ONCE
+                    toast.success("Analysis complete!");
+
+                } else if (status.status === "failed") {
+                    // Clear interval on failure
+                    if (pollingIntervalRef.current) {
+                        clearInterval(pollingIntervalRef.current);
+                        pollingIntervalRef.current = null;
+                    }
+
+                    toast.error(status.error_message || "Analysis failed");
+                    setIsLoading(false);
+                    setJobId(null);
+                }
+
+            } catch (error) {
+                console.error("Polling error:", error);
+                // Don't clear interval on network errors - keep trying
+            }
+        }, 2000); // Poll every 2 seconds
+    };
+
+
+    const handlePrint = () => {
+        window.print();
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[80vh]">
+                <div className="flex flex-col items-center gap-6 max-w-md w-full px-4">
+                    {/* Status indicator */}
+                    <div className="w-20 h-20 border-4 border-[#7886C7] border-t-transparent rounded-full animate-spin" />
+
+                    {/* Current step */}
+                    <div className="text-center space-y-2 w-full">
+                        <p className="text-[#2D336B] font-semibold text-lg">Analyzing Report...</p>
+                        <p className="text-[#7886C7] text-sm">{currentStep}</p>
+                    </div>
+
+                    {/* Progress bar */}
+                    {jobId && (
+                        <div className="w-full space-y-2">
+                            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <motion.div
+                                    className="h-full bg-[#7886C7]"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${progress}%` }}
+                                    transition={{ duration: 0.5 }}
+                                />
+                            </div>
+                            <p className="text-center text-sm text-gray-600">{progress}% complete</p>
+                        </div>
+                    )}
+
+                    {/* Status badge */}
+                    {jobStatus && (
+                        <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg">
+                            <Clock size={16} />
+                            <span className="text-sm font-medium">
+                                {jobStatus === "pending" && "Queued"}
+                                {jobStatus === "processing" && "Processing"}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Helpful message */}
+                    <p className="text-sm text-gray-500 text-center">
+                        You can navigate away - analysis will continue in the background
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!interpretation) {
+        return (
+            <div className="p-8 text-center">
+                <p>Report not found or analysis failed.</p>
+                <Button onClick={() => navigate('/user/reports')} className="mt-4">
+                    Back to Reports
+                </Button>
+            </div>
+        );
+    }
+
+    const {
+        lab_name,
+        report_date,
+        extracted_values,
+        summary,
+        abnormal_count,
+        critical_flags,
+        cached,
+        processing_time_ms
+    } = interpretation;
+
+    const hasCritical = critical_flags.length > 0;
+    const hasAbnormal = abnormal_count > 0;
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-6 lg:p-8 space-y-6 max-w-7xl mx-auto"
+        >
+            {/* Breadcrumb / Back */}
+            <button
+                onClick={() => navigate('/user/reports')}
+                className="flex items-center gap-2 text-[#2D336B]/60 hover:text-[#2D336B] transition-colors mb-4 group"
+            >
+                <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                Back to Reports
+            </button>
+
+            {/* Header Card */}
+            <div className="bg-gradient-to-r from-[#2D336B] to-[#7886C7] rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
+
+                <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div>
+                        <div className="flex items-center gap-3 mb-3">
+                            <h1 className="text-3xl font-bold">Analysis Report</h1>
+                            {cached && (
+                                <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-medium border border-white/10">
+                                    AI Generated
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="flex flex-wrap gap-x-8 gap-y-3 text-white/80">
+                            {lab_name && (
+                                <span className="flex items-center gap-2">
+                                    <Building2 size={16} />
+                                    {lab_name}
+                                </span>
+                            )}
+                            {report_date && (
+                                <span className="flex items-center gap-2">
+                                    <Calendar size={16} />
+                                    {report_date}
+                                </span>
+                            )}
+                            <span className="flex items-center gap-2 opacity-70">
+                                <Clock size={16} />
+                                {(processing_time_ms ? processing_time_ms / 1000 : 0).toFixed(1)}s processing
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                        <Button
+                            onClick={handlePrint}
+                            className="bg-white/10 hover:bg-white/20 text-white border-none backdrop-blur-md"
+                        >
+                            <Printer size={18} className="mr-2" />
+                            Print
+                        </Button>
+
+                    </div>
+                </div>
+
+                {/* Status Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+                    <div className={`p-4 rounded-xl backdrop-blur-md border border-white/10 ${hasCritical ? 'bg-red-500/20' : 'bg-white/5'}`}>
+                        <div className="flex items-center gap-3 mb-1">
+                            {hasCritical ? <AlertTriangle className="text-red-300" /> : <CheckCircle className="text-green-300" />}
+                            <span className="font-semibold text-white/90">Critical Issues</span>
+                        </div>
+                        <p className="text-2xl font-bold">{critical_flags.length}</p>
+                    </div>
+
+                    <div className={`p-4 rounded-xl backdrop-blur-md border border-white/10 ${hasAbnormal ? 'bg-amber-500/20' : 'bg-white/5'}`}>
+                        <div className="flex items-center gap-3 mb-1">
+                            <AlertCircle className={hasAbnormal ? "text-amber-300" : "text-white/60"} />
+                            <span className="font-semibold text-white/90">Abnormal Values</span>
+                        </div>
+                        <p className="text-2xl font-bold">{abnormal_count}</p>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-white/5 backdrop-blur-md border border-white/10">
+                        <div className="flex items-center gap-3 mb-1">
+                            <Share2 className="text-white/60" />
+                            <span className="font-semibold text-white/90">Total Biomarkers</span>
+                        </div>
+                        <p className="text-2xl font-bold">{extracted_values.length}</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Navigation Tabs */}
+            <div className="flex gap-8 border-b border-[#A9B5DF]/30 px-4">
+                <button
+                    onClick={() => setActiveTab('results')}
+                    className={`pb-4 text-lg font-medium transition-all relative ${activeTab === 'results' ? 'text-[#2D336B]' : 'text-[#2D336B]/50 hover:text-[#2D336B]'
+                        }`}
+                >
+                    Detailed Results
+                    {activeTab === 'results' && (
+                        <motion.div layoutId="line" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#7886C7]" />
+                    )}
+                </button>
+                <button
+                    onClick={() => setActiveTab('summary')}
+                    className={`pb-4 text-lg font-medium transition-all relative ${activeTab === 'summary' ? 'text-[#2D336B]' : 'text-[#2D336B]/50 hover:text-[#2D336B]'
+                        }`}
+                >
+                    AI Insights
+                    {activeTab === 'summary' && (
+                        <motion.div layoutId="line" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#7886C7]" />
+                    )}
+                </button>
+            </div>
+
+            {/* Content Area */}
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    transition={{ duration: 0.2 }}
+                >
+                    {activeTab === 'results' ? (
+                        <div className="space-y-6">
+                            {hasCritical && (
+                                <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+                                    <AlertTriangle className="text-red-500 shrink-0 mt-0.5" />
+                                    <div>
+                                        <h3 className="text-red-800 font-bold">Critical attention required</h3>
+                                        <p className="text-red-600 text-sm mt-1">
+                                            The following values are at critical levels: {critical_flags.join(", ")}. Please consult a doctor immediately.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                            <div className="bg-white rounded-2xl shadow-sm border border-[#A9B5DF]/20 overflow-hidden">
+                                <BiomarkerTable values={extracted_values} />
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-2 space-y-6">
+                                <div className="bg-white p-8 rounded-2xl shadow-sm border border-[#A9B5DF]/20">
+                                    <h3 className="text-xl font-bold text-[#2D336B] mb-4 flex items-center gap-2">
+                                        <div className="w-1.5 h-6 bg-[#7886C7] rounded-full" />
+                                        Clinical Interpretation
+                                    </h3>
+                                    <p className="text-[#2D336B]/80 leading-relaxed text-lg whitespace-pre-wrap">
+                                        {summary}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="bg-[#FFF2F2] p-6 rounded-2xl border border-[#A9B5DF]/20">
+                                    <h3 className="font-bold text-[#2D336B] mb-4">Patient Context</h3>
+                                    {patientContext ? (
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-center pb-3 border-b border-[#2D336B]/5">
+                                                <span className="text-[#2D336B]/60">Sex</span>
+                                                <span className="font-semibold text-[#2D336B] capitalize">{patientContext.sex}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center pb-3 border-b border-[#2D336B]/5">
+                                                <span className="text-[#2D336B]/60">Age</span>
+                                                <span className="font-semibold text-[#2D336B]">{patientContext.age || '-'}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[#2D336B]/60">Fasting</span>
+                                                <span className="font-semibold text-[#2D336B]">{patientContext.is_fasting ? 'Yes' : 'No'}</span>
+                                            </div>
+                                        </div>
+                                    ) : <p className="text-sm opacity-60">No context available</p>}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </motion.div>
+            </AnimatePresence>
+        </motion.div>
+    );
+}

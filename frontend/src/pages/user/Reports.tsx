@@ -4,6 +4,7 @@ import {
     Image, Video, File, Calendar, X, Filter, Eye
 } from 'lucide-react';
 import { ReportViewerModal } from '../../components/ReportViewerModal';
+import { LabInterpretButton } from '../../components/LabInterpretButton';
 import toast from 'react-hot-toast';
 import { Button } from '../../components/ui/Button';
 import {
@@ -418,6 +419,18 @@ export function Reports() {
                                             </p>
                                         )}
                                     </div>
+
+                                    {/* AI Interpret Button for Lab Reports */}
+                                    {/* AI Interpret Button for Lab Reports - Available for all image/PDF files */}
+                                    {(report.file_type.startsWith('image/') || report.file_type === 'application/pdf') && (
+                                        <div className="mb-3 z-20 relative">
+                                            <LabInterpretButton
+                                                reportId={report.id}
+                                                className="w-full justify-center text-sm"
+                                                isInterpreted={report.is_interpreted}
+                                            />
+                                        </div>
+                                    )}
 
                                     <div className="pt-4 mt-auto border-t border-[#A9B5DF]/30 flex items-center justify-between text-xs font-medium text-[#2D336B]/50">
                                         <span className="flex items-center gap-1.5">

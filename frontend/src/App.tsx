@@ -19,6 +19,7 @@ import { Chatbot } from './pages/user/Chatbot';
 import { Medications } from './pages/user/Medications';
 import { Analytics } from './pages/user/Analytics';
 import { Reports } from './pages/user/Reports';
+import { LabAnalysisPage } from './pages/user/LabAnalysisPage';
 
 // Doctor Pages
 import { DoctorDashboard } from './pages/doctor/Dashboard';
@@ -74,6 +75,7 @@ function App() {
               <Route path="/user/medications" element={<Medications />} />
               <Route path="/user/analytics" element={<Analytics />} />
               <Route path="/user/reports" element={<Reports />} />
+              <Route path="/user/reports/analysis/:reportId" element={<LabAnalysisPage />} />
               <Route path="/user/chatbot" element={<Chatbot />} />
             </Route>
 

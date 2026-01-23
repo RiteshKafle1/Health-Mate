@@ -67,7 +67,7 @@ export interface DoctorUpdate {
 }
 
 // Appointment types
-export type AppointmentStatus = 'pending' | 'accepted' | 'rejected' | 'completed' | 'cancelled';
+export type AppointmentStatus = 'pending' | 'accepted' | 'rejected' | 'completed' | 'cancelled' | 'missed';
 
 export interface Appointment {
     _id: string;

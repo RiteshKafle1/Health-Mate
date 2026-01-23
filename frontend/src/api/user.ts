@@ -56,6 +56,13 @@ export const cancelUserAppointment = async (
   return response.data;
 };
 
+export const deleteUserAppointment = async (
+  appointmentId: string
+): Promise<ApiResponse> => {
+  const response = await api.delete(`/api/user/appointments/${appointmentId}`);
+  return response.data;
+};
+
 // Payments
 export const createRazorpayOrder = async (
   appointmentId: string
@@ -81,21 +88,21 @@ export interface FileResponse {
 
 // 🔼 Upload profile file
 export const getMyFile = async (): Promise<ApiResponse<FileResponse>> => {
-    const response = await api.get<ApiResponse<FileResponse>>("/api/user/me/file");
-    return response.data;
+  const response = await api.get<ApiResponse<FileResponse>>("/api/user/me/file");
+  return response.data;
 };
 
 export const uploadMyFile = async (file: File): Promise<ApiResponse<FileResponse>> => {
-    const formData = new FormData();
-    formData.append("file", file);
+  const formData = new FormData();
+  formData.append("file", file);
 
-    const response = await api.post<ApiResponse<FileResponse>>(
-        "/api/user/upload-file",
-        formData,
-        {
-            headers: { "Content-Type": "multipart/form-data" },
-        }
-    );
+  const response = await api.post<ApiResponse<FileResponse>>(
+    "/api/user/upload-file",
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+    }
+  );
 
-    return response.data;
+  return response.data;
 };

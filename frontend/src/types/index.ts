@@ -1,0 +1,238 @@
+// User types
+export interface Address {
+    line1: string;
+    line2: string;
+}
+
+export interface User {
+    _id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    address?: {
+        line1: string;
+        line2: string;
+    };
+    gender?: string;
+    dob?: string;
+    weight?: string;
+    height?: string;
+    image?: string;
+    profile_completion_percentage?: number;
+}
+
+export interface UserCreate {
+    name: string;
+    email: string;
+    password: string;
+}
+
+export interface UserLogin {
+    email: string;
+    password: string;
+}
+
+// Doctor types
+export interface Doctor {
+    _id: string;
+    name: string;
+    email?: string;
+    image: string;
+    speciality: string;
+    degree: string;
+    experience: string;
+    about: string;
+    available: boolean;
+    availability_schedule: Record<string, string[]>;
+    slots_booked: Record<string, string[]>;
+    address: Address;
+    date: number;
+    appointmentStats?: {
+        total: number;
+        pending: number;
+        completed: number;
+    };
+}
+
+export interface DoctorLogin {
+    email: string;
+    password: string;
+}
+
+export interface DoctorUpdate {
+    address?: Address;
+    available?: boolean;
+    about?: string;
+    availability_schedule?: Record<string, string[]>;
+}
+
+// Appointment types
+export type AppointmentStatus = 'pending' | 'accepted' | 'rejected' | 'completed' | 'cancelled';
+
+export interface Appointment {
+    _id: string;
+    userId: string;
+    docId: string;
+    slotDate: string;
+    slotTime: string;
+    userData: User;
+    docData: Doctor;
+    date: number;
+    status: AppointmentStatus;
+    rejection_reason?: string;
+    cancelled: boolean;
+    isCompleted: boolean;
+}
+
+export interface AppointmentCreate {
+    docId: string;
+    slotDate: string;
+    slotTime: string;
+}
+
+export interface AppointmentCancel {
+    appointmentId: string;
+}
+
+export interface AppointmentAction {
+    appointmentId: string;
+}
+
+export interface AppointmentReject {
+    appointmentId: string;
+    reason?: string;
+}
+
+// Admin types
+export interface AdminLogin {
+    email: string;
+    password: string;
+}
+
+export interface DoctorCreate {
+    name: string;
+    email: string;
+    password: string;
+    speciality: string;
+    degree: string;
+    experience: string;
+    about: string;
+    address: string;
+}
+
+// Dashboard types
+export interface DashboardData {
+    doctors?: number;
+    appointments?: number;
+    patients?: number;
+    users?: number;
+    earnings?: number;
+    latestAppointments?: Appointment[];
+}
+
+// API Response types
+export interface ApiResponse<T = unknown> {
+    success: boolean;
+    message?: string;
+    token?: string;
+    userData?: User;
+    profileData?: Doctor;
+    doctors?: Doctor[];
+    appointments?: Appointment[];
+    dashData?: DashboardData;
+    order?: RazorpayOrder;
+    data?: T;
+    stats?: PlatformStats | RegistrationStats;
+}
+
+// Razorpay types
+export interface RazorpayOrder {
+    id: string;
+    amount: number;
+    currency: string;
+}
+
+export interface PaymentRequest {
+    appointmentId: string;
+}
+
+export interface RazorpayVerify {
+    razorpay_order_id: string;
+}
+
+// Auth types
+export type UserRole = 'user' | 'doctor' | 'admin' | null;
+
+export interface AuthState {
+    user: User | Doctor | null;
+    token: string | null;
+    role: UserRole;
+    isAuthenticated: boolean;
+}
+
+// Admin Dashboard Analytics Types
+export interface PlatformStats {
+    totalDoctors: number;
+    availableDoctors: number;
+    totalPatients: number;
+    newPatientsThisWeek: number;
+    totalAppointments: number;
+    todaysAppointments: number;
+    completedAppointments: number;
+    cancelledAppointments: number;
+    pendingAppointments: number;
+    completionRate: number;
+    activeMedicationUsers: number;
+}
+
+export interface DoctorPerformance {
+    _id: string;
+    name: string;
+    image: string;
+    speciality: string;
+    available: boolean;
+    totalAppointments: number;
+    completed: number;
+    cancelled: number;
+    pending: number;
+    patients: number;
+    completionRate: number;
+}
+
+export interface ChartDataItem {
+    name: string;
+    value: number;
+    color?: string;
+}
+
+export interface DailyTrendItem {
+    date: string;
+    count: number;
+}
+
+export interface AppointmentAnalytics {
+    byStatus: ChartDataItem[];
+    bySpecialty: ChartDataItem[];
+    dailyTrend: DailyTrendItem[];
+}
+
+export interface ActivityItem {
+    type: string;
+    message: string;
+    timestamp: number;
+    icon: string;
+}
+
+export interface RegistrationStatsItem {
+    date: string;
+    users: number;
+    doctors: number;
+}
+
+export interface RegistrationStats {
+    chartData: RegistrationStatsItem[];
+    summary: {
+        users: number;
+        doctors: number;
+    };
+}

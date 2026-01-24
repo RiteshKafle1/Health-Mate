@@ -1,6 +1,9 @@
+# =========================
 # Dependencies
+# =========================
 node_modules/
 venv/
+.venv/
 __pycache__/
 *.pyc
 *.pyo
@@ -12,47 +15,59 @@ pip-delete-this-directory.txt
 *.egg-info/
 *.egg
 
-# Environment variables and secrets
+# =========================
+# Environment variables & secrets
+# =========================
 .env
 .env.local
 .env.*.local
 *.env
 
-# API Keys and secrets
+# API keys & secrets
 *.key
 *.pem
 secrets/
 
-# Test files (as requested)
+# =========================
+# Tests
+# =========================
 test_workflow.py
 test_*.py
 
-# Documentation and changelogs (as requested)
+# =========================
+# Documentation & internal files
+# =========================
 CHANGELOG.md
 CHANGELOG
 *.changelog
 .agent/
 workflows/
 
-Confidential Documentation (DO NOT PUSH)
+# Confidential documentation (DO NOT PUSH)
 backend_fastapi/Documentation/
 frontend/Documentation/
 frontend/documentation/
 **/Documentation/
 **/documentation/
 
-# IDE
+# =========================
+# IDE / Editor
+# =========================
 .idea/
 .vscode/
 *.swp
 *.swo
 *~
 
+# =========================
 # OS files
+# =========================
 .DS_Store
 Thumbs.db
 
+# =========================
 # Build artifacts
+# =========================
 dist/
 build/
 *.log
@@ -62,21 +77,31 @@ frontend/dist/
 frontend/build/
 frontend/.next/
 
+# =========================
 # Coverage
+# =========================
 coverage/
 .coverage
 htmlcov/
 
+# =========================
 # Jupyter
+# =========================
 .ipynb_checkpoints/
 
-# Temporary files
+# =========================
+# Temp files
+# =========================
 tmp/
 temp/
 *.tmp
 
-# MediGenius standalone (separate project)
+# =========================
+# Other projects
+# =========================
 MediGenius/
 
-# Gemini artifacts (system generated)
+# =========================
+# AI system artifacts
+# =========================
 .gemini/

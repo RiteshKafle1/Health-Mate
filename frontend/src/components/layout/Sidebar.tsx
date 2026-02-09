@@ -47,7 +47,6 @@ const doctorNavItems: NavItem[] = [
     { label: 'Appointments', path: '/doctor/appointments', icon: <Calendar size={22} /> },
     { label: 'Availability', path: '/doctor/availability', icon: <Settings size={22} /> },
     { label: 'Patient Reports', path: '/doctor/patient-reports', icon: <FileText size={22} /> },
-    { label: 'HealthMate', path: '/doctor/chatbot', icon: <MessageCircle size={22} /> },
     { label: 'Profile', path: '/doctor/profile', icon: <User size={22} /> },
 ];
 
@@ -58,7 +57,6 @@ const adminNavItems: NavItem[] = [
     { label: 'Availability', path: '/admin/doctor-availability', icon: <Settings size={22} /> },
     { label: 'Patients', path: '/admin/patients', icon: <User size={22} /> },
     { label: 'Appointments', path: '/admin/appointments', icon: <Calendar size={22} /> },
-    { label: 'HealthMate', path: '/admin/chatbot', icon: <MessageCircle size={22} /> },
 ];
 
 export function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }: SidebarProps) {

@@ -26,7 +26,6 @@ import { DoctorDashboard } from './pages/doctor/Dashboard';
 import { DoctorProfile } from './pages/doctor/Profile';
 import { DoctorAppointments } from './pages/doctor/Appointments';
 import { Availability } from './pages/doctor/Availability';
-import { Chatbot as DoctorChatbot } from './pages/doctor/Chatbot';
 import { PatientReports } from './pages/doctor/PatientReports';
 
 // Admin Pages
@@ -36,7 +35,6 @@ import { AllDoctors } from './pages/admin/AllDoctors';
 import { AllPatients } from './pages/admin/AllPatients';
 import { AdminAppointments } from './pages/admin/Appointments';
 import { DoctorAvailability } from './pages/admin/DoctorAvailability';
-import { Chatbot as AdminChatbot } from './pages/admin/Chatbot';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -92,7 +90,6 @@ function App() {
               <Route path="/doctor/appointments" element={<DoctorAppointments />} />
               <Route path="/doctor/availability" element={<Availability />} />
               <Route path="/doctor/patient-reports" element={<PatientReports />} />
-              <Route path="/doctor/chatbot" element={<DoctorChatbot />} />
             </Route>
 
             {/* Admin Routes */}
@@ -109,7 +106,6 @@ function App() {
               <Route path="/admin/doctor-availability" element={<DoctorAvailability />} />
               <Route path="/admin/patients" element={<AllPatients />} />
               <Route path="/admin/appointments" element={<AdminAppointments />} />
-              <Route path="/admin/chatbot" element={<AdminChatbot />} />
             </Route>
 
             {/* Fallback */}

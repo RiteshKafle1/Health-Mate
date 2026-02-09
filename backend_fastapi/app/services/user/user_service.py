@@ -99,9 +99,8 @@ async def register_user(name: str, email: str, password: str) -> dict:
 
 
 async def login_user(email: str, password: str) -> dict:
-    """Login a user with account lockout protection."""
+    """Login a user."""
     from ...utils.email_validator import validate_email_address
-    from ...middleware.rate_limiter import AccountLockout
     
     users = get_users_collection()
     
@@ -118,55 +117,9 @@ async def login_user(email: str, password: str) -> dict:
     
     user_id = str(user["_id"])
     
-    # Check if account is locked
-    is_locked, remaining_seconds = await AccountLockout.is_account_locked(user_id)
-    if is_locked:
-        minutes = remaining_seconds // 60
-        hours = minutes // 60
-        if hours > 0:
-            time_msg = f"{hours} hour{'s' if hours > 1 else ''}"
-        else:
-            time_msg = f"{minutes} minute{'s' if minutes > 1 else ''}"
-        
-        return {
-            "success": False,
-            "message": f"Account is locked due to too many failed login attempts. Please try again in {time_msg}.",
-            "locked": True,
-            "locked_until": user.get("locked_until")
-        }
-    
     # Verify password
     if not verify_password(password, user["password"]):
-        # Record failed login attempt
-        lockout_seconds = await AccountLockout.record_failed_login(user_id)
-        
-        failed_attempts = user.get("failed_login_attempts", 0) + 1
-        
-        if lockout_seconds:
-            minutes = lockout_seconds // 60
-            hours = minutes // 60
-            if hours > 0:
-                time_msg = f"{hours} hour{'s' if hours > 1 else ''}"
-            else:
-                time_msg = f"{minutes} minute{'s' if minutes > 1 else ''}"
-            
-            return {
-                "success": False,
-                "message": f"Too many failed login attempts. Account locked for {time_msg}.",
-                "locked": True
-            }
-        else:
-            remaining_attempts = 5 - failed_attempts
-            if remaining_attempts > 0:
-                return {
-                    "success": False,
-                    "message": f"Invalid credentials. {remaining_attempts} attempt{'s' if remaining_attempts > 1 else ''} remaining before account lockout."
-                }
-            else:
-                return {"success": False, "message": "Invalid credentials"}
-    
-    # Successful login - reset failed attempts
-    await AccountLockout.reset_failed_attempts(user_id)
+        return {"success": False, "message": "Invalid credentials"}
     
     # Check profile completion and send reminder if needed
     from ..notification_service import should_send_profile_reminder, send_profile_completion_reminder

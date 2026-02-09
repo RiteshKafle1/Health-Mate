@@ -8,8 +8,8 @@ from app.core.config import settings
 
 # Import routers from new domain-based structure
 from app.routers.shared import auth_router
-from app.routers.admin import admin_router, admin_chatbot_router
-from app.routers.doctor import doctor_router, doctor_chatbot_router
+from app.routers.admin import admin_router
+from app.routers.doctor import doctor_router
 from app.routers.user import (
     user_router,
     user_chatbot_router,
@@ -86,11 +86,9 @@ app.include_router(auth_router)  # Authentication endpoints (real-time validatio
 
 # Include routers - Admin
 app.include_router(admin_router)  # Admin management
-app.include_router(admin_chatbot_router)  # MediGenius chatbot for Admin
 
 # Include routers - Doctor
 app.include_router(doctor_router)  # Doctor management
-app.include_router(doctor_chatbot_router)  # MediGenius chatbot for Doctors
 
 # Include routers - User
 app.include_router(user_router)  # User management

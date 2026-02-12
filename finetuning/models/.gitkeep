@@ -1,0 +1,3 @@
+# Placeholder for trained GGUF model
+# After training on Google Colab, save the model here as:
+# lab-interpreter-q4.gguf

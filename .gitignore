@@ -80,3 +80,7 @@ MediGenius/
 
 # Gemini artifacts (system generated)
 .gemini/
+
+# Large Model Files
+finetuning/qwen/model/
+*.gguf

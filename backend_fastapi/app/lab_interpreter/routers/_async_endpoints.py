@@ -66,11 +66,11 @@ async def start_interpretation_job(
             detail=f"Unsupported file type: {file_type}. Only images and PDFs can be interpreted."
         )
     
-    # Check Gemini API key
-    if not settings.GEMINI_API_KEY:
+    # Check Llama Parser API key (required for extraction)
+    if not settings.LLAMA_API_KEY:
         raise HTTPException(
             status_code=503,
-            detail="Lab interpretation service not configured. GEMINI_API_KEY required."
+            detail="Lab interpretation service not configured. LLAMA_API_KEY required."
         )
     
     # Fetch image data

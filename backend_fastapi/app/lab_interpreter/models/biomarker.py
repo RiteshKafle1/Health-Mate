@@ -34,7 +34,7 @@ class Biomarker(BaseModel):
     canonical_name: str
     synonyms: List[str] = []
     category: str
-    specimen_type: str
+    specimen_type: str = ""
     reference_unit: str
     reference_ranges: List[ReferenceRange] = []
     critical_values: Optional[CriticalValues] = None

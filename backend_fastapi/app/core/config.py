@@ -47,6 +47,12 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     HEALTHMATE_ASSIST_DB_PATH: str = "./chat_db/healthmate_assist.db"
     
+    # Lab Interpretation — Llama Parser (extraction)
+    LLAMA_API_KEY: str = ""
+    
+    # Lab Interpretation — Fine-tuned Qwen (local interpretation)
+    QWEN_MODEL_PATH: str = ""
+    
     class Config:
         env_file = ".env"
         extra = "allow"

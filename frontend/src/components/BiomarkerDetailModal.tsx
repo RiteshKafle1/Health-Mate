@@ -226,14 +226,71 @@ export function BiomarkerDetailModal({ biomarker, isOpen, onClose }: BiomarkerDe
                                 </div>
                             </div>
 
-                            {/* Clinical Interpretation */}
-                            {biomarker.interpretation && (
+                            {/* Clinical Interpretation - Structured View */}
+                            {biomarker.structured ? (
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-semibold text-gray-700">
+                                        Clinical Interpretation
+                                    </h3>
+
+                                    {/* Analysis & Comparison */}
+                                    <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 space-y-3">
+                                        {biomarker.structured.analysis && (
+                                            <div>
+                                                <h4 className="text-xs font-bold text-blue-800 uppercase tracking-wide mb-1">Analysis</h4>
+                                                <p className="text-sm text-gray-700 leading-relaxed">{biomarker.structured.analysis}</p>
+                                            </div>
+                                        )}
+                                        {biomarker.structured.comparison && (
+                                            <div>
+                                                <h4 className="text-xs font-bold text-blue-800 uppercase tracking-wide mb-1">Comparison</h4>
+                                                <p className="text-sm text-gray-700 leading-relaxed">{biomarker.structured.comparison}</p>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Main Interpretation */}
+                                    {biomarker.structured.main_interpretation && (
+                                        <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Interpretation</h4>
+                                            <p className="text-gray-800 leading-relaxed">
+                                                {biomarker.structured.main_interpretation}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Recommendations */}
+                                    {biomarker.structured.recommendations && biomarker.structured.recommendations.length > 0 && (
+                                        <div className="bg-green-50/50 border border-green-100 rounded-xl p-4">
+                                            <h4 className="text-xs font-bold text-green-800 uppercase tracking-wide mb-2">Recommendations</h4>
+                                            <ul className="space-y-2">
+                                                {biomarker.structured.recommendations.map((rec, idx) => (
+                                                    <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
+                                                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                                                        <span>{rec}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    {/* Conclusion */}
+                                    {biomarker.structured.conclusion && (
+                                        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Conclusion</h4>
+                                            <p className="text-sm text-gray-600 italic">
+                                                "{biomarker.structured.conclusion}"
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : biomarker.interpretation && (
                                 <div>
                                     <h3 className="text-sm font-semibold text-gray-700 mb-3">
                                         Clinical Interpretation
                                     </h3>
                                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                        <p className="text-sm text-gray-700 leading-relaxed">
+                                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
                                             {biomarker.interpretation}
                                         </p>
                                     </div>

@@ -16,9 +16,6 @@ from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
 
-import google.generativeai as genai
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
-
 from ..models.interpretation import ExtractedValue, ValueStatus, PatientContext
 
 logger = logging.getLogger(__name__)
@@ -89,34 +86,16 @@ COHERENCE_GROUPS = {
 
 class ValidatorAgent:
     """
-    Validates lab interpretation results using rule-based checks 
-    and LLM-assisted clinical reasoning.
+    Validates lab interpretation results using rule-based checks.
+    All validation is deterministic — no LLM calls.
     """
     
-    def __init__(self, api_key: str, use_llm_validation: bool = True):
+    def __init__(self):
         """
         Initialize the validator agent.
-        
-        Args:
-            api_key: Gemini API key
-            use_llm_validation: Whether to use LLM for additional validation
+        Rule-based only — no external API dependencies.
         """
-        self.use_llm_validation = use_llm_validation
-        
-        if api_key:
-            genai.configure(api_key=api_key)
-            self.model = genai.GenerativeModel(
-                'gemini-2.5-flash',
-                safety_settings={
-                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-                    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-                }
-            )
-        else:
-            self.model = None
-            self.use_llm_validation = False
+        self.use_llm_validation = False
     
     async def validate(
         self,
@@ -145,10 +124,7 @@ class ValidatorAgent:
         coherence_issues = self._check_coherence(extracted_values)
         all_issues.extend(coherence_issues)
         
-        # Step 3: LLM-assisted validation (optional, slower but thorough)
-        if self.use_llm_validation and self.model:
-            llm_issues = await self._llm_validate(extracted_values, patient_context)
-            all_issues.extend(llm_issues)
+        # Step 3: LLM validation removed — Qwen handles interpretation directly
         
         # Calculate confidence score
         confidence = self._calculate_confidence(extracted_values, all_issues)
@@ -517,13 +493,11 @@ If all values look correct, respond: {{"has_issues": false, "issues": []}}
 _validator: Optional[ValidatorAgent] = None
 
 
-def get_validator(api_key: str = None) -> ValidatorAgent:
+def get_validator() -> ValidatorAgent:
     """Get or create the validator agent singleton."""
     global _validator
     
     if _validator is None:
-        from ...core.config import settings
-        key = api_key or settings.GEMINI_API_KEY
-        _validator = ValidatorAgent(api_key=key)
+        _validator = ValidatorAgent()
     
     return _validator

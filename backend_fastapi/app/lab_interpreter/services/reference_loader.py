@@ -4,6 +4,7 @@ Reference Data Loader
 Loads and caches biomarker reference data from JSON file.
 """
 
+import re
 import json
 from pathlib import Path
 from typing import Optional, Dict, List
@@ -63,9 +64,40 @@ def get_biomarker_by_id(biomarker_id: str) -> Optional[Biomarker]:
     return biomarkers.get(biomarker_id.lower())
 
 
+def _normalize_name(name: str) -> str:
+    """
+    Normalize a biomarker name for fuzzy matching.
+    Strips trailing H/L flags, parenthetical content, plurals, and extra whitespace.
+    """
+    n = name.lower().strip()
+    # Remove trailing H or L flags (e.g., "4.9H" or "MCHC H")
+    n = re.sub(r'\s+[hl]$', '', n)
+    # Remove content in parentheses for matching (but keep original for exact)
+    n = re.sub(r'\s*\(.*?\)', '', n)
+    # Strip trailing comma and anything after it for compound names
+    # e.g., "Mean Cell Haemoglobin Con, MCHC H" -> "Mean Cell Haemoglobin Con"
+    n = re.sub(r',\s*\S+(\s+\S+)*$', '', n)
+    # Normalize whitespace
+    n = re.sub(r'\s+', ' ', n).strip()
+    # Strip trailing 's' for plural handling (but not for short names like 'gas')
+    if len(n) > 4 and n.endswith('s'):
+        n = n[:-1]
+    return n
+
+
+def _get_words(name: str) -> set:
+    """Extract meaningful words (length >= 2) from a name."""
+    return {w for w in re.split(r'[\s,/\-()]+', name.lower()) if len(w) >= 2}
+
+
 def find_biomarker_by_synonym(name: str) -> Optional[Biomarker]:
     """
-    Find a biomarker by searching synonyms and canonical name.
+    Find a biomarker by searching synonyms, canonical name, and fuzzy matching.
+    
+    Uses a 3-phase approach:
+      1. Exact match (case-insensitive) against canonical name, ID, and synonyms
+      2. Normalized match (strip H/L flags, parentheses, plurals)
+      3. Word-overlap fuzzy match (≥60% shared words)
     
     Args:
         name: Name to search for (case-insensitive)
@@ -76,21 +108,52 @@ def find_biomarker_by_synonym(name: str) -> Optional[Biomarker]:
     name_lower = name.lower().strip()
     data = get_reference_data()
     
+    # ── Phase 1: Exact match ──
     for biomarker in data.biomarkers:
-        # Check canonical name
         if biomarker.canonical_name.lower() == name_lower:
             return biomarker
-        
-        # Check ID
         if biomarker.id == name_lower:
             return biomarker
-        
-        # Check synonyms
         for synonym in biomarker.synonyms:
             if synonym.lower() == name_lower:
                 return biomarker
     
-    return None
+    # ── Phase 2: Normalized match ──
+    name_norm = _normalize_name(name)
+    if name_norm != name_lower:  # Only if normalization changed something
+        for biomarker in data.biomarkers:
+            if _normalize_name(biomarker.canonical_name) == name_norm:
+                return biomarker
+            if biomarker.id == name_norm:
+                return biomarker
+            for synonym in biomarker.synonyms:
+                if _normalize_name(synonym) == name_norm:
+                    return biomarker
+    
+    # ── Phase 3: Word-overlap fuzzy match ──
+    query_words = _get_words(name)
+    if len(query_words) < 2:
+        return None  # Too few words for fuzzy matching, avoid false positives
+    
+    best_match = None
+    best_score = 0.0
+    
+    for biomarker in data.biomarkers:
+        # Check canonical name and synonyms
+        candidates = [biomarker.canonical_name] + biomarker.synonyms
+        for candidate in candidates:
+            candidate_words = _get_words(candidate)
+            if not candidate_words:
+                continue
+            # Calculate Jaccard-like overlap
+            overlap = len(query_words & candidate_words)
+            max_len = max(len(query_words), len(candidate_words))
+            score = overlap / max_len if max_len > 0 else 0
+            if score >= 0.6 and score > best_score:
+                best_score = score
+                best_match = biomarker
+    
+    return best_match
 
 
 def search_biomarkers(query: str) -> List[Biomarker]:

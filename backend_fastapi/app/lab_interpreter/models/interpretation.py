@@ -45,6 +45,15 @@ class BiomarkerEnrichment(BaseModel):
     verified: bool = Field(default=False, description="Whether info has been medically verified")
 
 
+class StructuredInterpretation(BaseModel):
+    """Structured clinical interpretation parsed from AI output."""
+    analysis: Optional[str] = Field(None, description="Analysis of the value")
+    comparison: Optional[str] = Field(None, description="Comparison to reference range")
+    main_interpretation: Optional[str] = Field(None, description="Core clinical meaning")
+    recommendations: List[str] = Field(default_factory=list, description="Actionable recommendations")
+    conclusion: Optional[str] = Field(None, description="Final summary/conclusion")
+
+
 class ExtractedValue(BaseModel):
     """A single extracted biomarker value from lab report."""
     biomarker_name: str = Field(..., description="Name as shown on report")
@@ -54,8 +63,10 @@ class ExtractedValue(BaseModel):
     converted_value: Optional[float] = Field(None, description="Value after unit conversion")
     reference_unit: Optional[str] = Field(None, description="Standard reference unit")
     reference_range: Optional[str] = Field(None, description="Reference range string (e.g., '10-40')")
+    reference_range_source: Optional[str] = Field(None, description="Source of reference range: 'report', 'abim', or None")
     status: ValueStatus = Field(default=ValueStatus.UNKNOWN, description="Status compared to reference")
-    interpretation: Optional[str] = Field(None, description="Clinical interpretation")
+    interpretation: Optional[str] = Field(None, description="Raw clinical interpretation text")
+    structured: Optional[StructuredInterpretation] = Field(None, description="Parsed structured interpretation")
     confidence: float = Field(default=1.0, ge=0.0, le=1.0, description="Matching confidence")
     enrichment: Optional[BiomarkerEnrichment] = Field(None, description="Educational enrichment data")
 
@@ -101,6 +112,7 @@ class InterpretResponse(BaseModel):
     success: bool
     message: Optional[str] = None
     report_id: str
+    patient_context: PatientContext = Field(default_factory=PatientContext)
     lab_name: Optional[str] = None
     report_date: Optional[str] = None
     extracted_values: List[ExtractedValue] = []

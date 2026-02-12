@@ -148,64 +148,144 @@ export function LabAnalysisPage() {
         window.print();
     };
 
-    if (isLoading) {
+    // Define pipeline steps for the progress checklist
+    const PIPELINE_STEPS = [
+        { label: 'Preparing environment', threshold: 5 },
+        { label: 'Verifying document', threshold: 15 },
+        { label: 'Extracting biomarkers', threshold: 40 },
+        { label: 'Validating results', threshold: 72 },
+        { label: 'Generating summary', threshold: 87 },
+        { label: 'Saving results', threshold: 95 },
+    ];
+
+    // Loading state is now rendered INLINE — not as a full-page takeover
+    if (isLoading || !interpretation) {
         return (
-            <div className="flex items-center justify-center min-h-[80vh]">
-                <div className="flex flex-col items-center gap-6 max-w-md w-full px-4">
-                    {/* Status indicator */}
-                    <div className="w-20 h-20 border-4 border-[#7886C7] border-t-transparent rounded-full animate-spin" />
-
-                    {/* Current step */}
-                    <div className="text-center space-y-2 w-full">
-                        <p className="text-[#2D336B] font-semibold text-lg">Analyzing Report...</p>
-                        <p className="text-[#7886C7] text-sm">{currentStep}</p>
-                    </div>
-
-                    {/* Progress bar */}
-                    {jobId && (
-                        <div className="w-full space-y-2">
-                            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                                <motion.div
-                                    className="h-full bg-[#7886C7]"
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${progress}%` }}
-                                    transition={{ duration: 0.5 }}
-                                />
-                            </div>
-                            <p className="text-center text-sm text-gray-600">{progress}% complete</p>
-                        </div>
-                    )}
-
-                    {/* Status badge */}
-                    {jobStatus && (
-                        <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg">
-                            <Clock size={16} />
-                            <span className="text-sm font-medium">
-                                {jobStatus === "pending" && "Queued"}
-                                {jobStatus === "processing" && "Processing"}
-                            </span>
-                        </div>
-                    )}
-
-                    {/* Helpful message */}
-                    <p className="text-sm text-gray-500 text-center">
-                        You can navigate away - analysis will continue in the background
-                    </p>
-                </div>
-            </div>
-        );
-    }
-
-    if (!interpretation) {
-        return (
-            <div className="p-8 text-center">
-                <p>Report not found or analysis failed.</p>
-                <Button onClick={() => navigate('/user/reports')} className="mt-4">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-6 lg:p-8 max-w-3xl mx-auto"
+            >
+                {/* Back button — always accessible */}
+                <button
+                    onClick={() => navigate('/user/reports')}
+                    className="flex items-center gap-2 text-[#2D336B]/60 hover:text-[#2D336B] transition-colors mb-8 group"
+                >
+                    <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
                     Back to Reports
-                </Button>
-            </div>
+                </button>
+
+                {/* Loading card */}
+                <div className="bg-white rounded-3xl shadow-xl border border-[#A9B5DF]/20 p-8 lg:p-10">
+                    <div className="flex flex-col items-center text-center">
+                        {/* Animated spinner */}
+                        <div className="relative w-28 h-28 mb-8">
+                            {/* Outer ring */}
+                            <div
+                                className="absolute inset-0 rounded-full border-4 border-[#A9B5DF]/30 animate-spin"
+                                style={{ animationDuration: '3s' }}
+                            >
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-[#7886C7] rounded-full" />
+                            </div>
+
+                            {/* Inner ring (reverse) */}
+                            <div
+                                className="absolute inset-4 rounded-full border-4 border-[#7886C7]/40 animate-spin"
+                                style={{ animationDuration: '2s', animationDirection: 'reverse' }}
+                            >
+                                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-2.5 h-2.5 bg-[#A9B5DF] rounded-full" />
+                            </div>
+
+                            {/* Center icon */}
+                            <div className="absolute inset-8 rounded-full bg-gradient-to-br from-[#7886C7] to-[#A9B5DF] animate-pulse flex items-center justify-center">
+                                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                                    />
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* Title */}
+                        <h2 className="text-2xl font-bold text-[#2D336B] mb-1">
+                            Analyzing Lab Report
+                        </h2>
+
+                        {/* Current step text */}
+                        <p className="text-[#7886C7] font-medium mb-6 h-6">
+                            {currentStep}
+                        </p>
+
+                        {/* Progress bar */}
+                        {jobId && (
+                            <div className="w-full max-w-md mb-6">
+                                <div className="w-full h-2.5 bg-[#A9B5DF]/20 rounded-full overflow-hidden">
+                                    <motion.div
+                                        className="h-full bg-gradient-to-r from-[#7886C7] to-[#A9B5DF] rounded-full"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${progress}%` }}
+                                        transition={{ duration: 0.6, ease: 'easeOut' }}
+                                    />
+                                </div>
+                                <p className="text-sm text-[#2D336B]/50 mt-2 font-medium">{progress}% complete</p>
+                            </div>
+                        )}
+
+                        {/* Step checklist */}
+                        {jobId && (
+                            <div className="w-full max-w-sm text-left space-y-2.5 mb-8">
+                                {PIPELINE_STEPS.map((step, i) => {
+                                    const isDone = progress >= step.threshold + 5;
+                                    const isActive = !isDone && progress >= step.threshold - 5;
+
+                                    return (
+                                        <div
+                                            key={i}
+                                            className={`flex items-center gap-3 text-sm transition-all duration-300 ${isDone
+                                                    ? 'text-green-600'
+                                                    : isActive
+                                                        ? 'text-[#2D336B] font-medium'
+                                                        : 'text-[#2D336B]/30'
+                                                }`}
+                                        >
+                                            {isDone ? (
+                                                <CheckCircle size={16} className="text-green-500 shrink-0" />
+                                            ) : isActive ? (
+                                                <div className="w-4 h-4 border-2 border-[#7886C7] border-t-transparent rounded-full animate-spin shrink-0" />
+                                            ) : (
+                                                <div className="w-4 h-4 rounded-full border-2 border-[#A9B5DF]/30 shrink-0" />
+                                            )}
+                                            {step.label}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {/* Status badge */}
+                        {jobStatus && (
+                            <div className="flex items-center gap-2 px-4 py-2 bg-[#7886C7]/10 text-[#2D336B] rounded-lg mb-4">
+                                <Clock size={14} />
+                                <span className="text-sm font-medium">
+                                    {jobStatus === 'pending' && 'Queued — waiting to start'}
+                                    {jobStatus === 'processing' && 'Processing in background'}
+                                </span>
+                            </div>
+                        )}
+
+                        {/* Navigate away hint */}
+                        <p className="text-xs text-[#2D336B]/40 mt-2">
+                            You can navigate away — analysis will continue in the background
+                        </p>
+                    </div>
+                </div>
+            </motion.div>
         );
     }
+
 
     const {
         lab_name,

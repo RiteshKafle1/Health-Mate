@@ -48,3 +48,9 @@ apscheduler>=3.10.0
 
 # OCR for Lab Report Extraction
 easyocr>=1.7.0
+
+# Lab Report Extraction (Llama Parser)
+llama-parse>=0.5.0
+
+# Local LLM Inference (Fine-tuned Qwen)
+llama-cpp-python>=0.2.0

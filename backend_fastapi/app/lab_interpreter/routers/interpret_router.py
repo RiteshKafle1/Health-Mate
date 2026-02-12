@@ -26,7 +26,7 @@ from ..models.interpretation import (
     StartJobResponse,
     JobStatusResponse
 )
-from ..services.gemini_interpreter import LabInterpreter
+# Note: Gemini interpreter is no longer used; pipeline uses Llama Parser + Qwen via LangGraph
 from ..services.reference_loader import (
     get_reference_data,
     get_biomarker_by_id,
@@ -75,14 +75,14 @@ async def interpret_lab_report(
     request: InterpretRequest
 ):
     """
-    Interpret a lab report using Gemini Vision AI.
+    Interpret a lab report using AI (Llama Parser + Qwen).
     
     This endpoint:
     1. Fetches the report image from Cloudinary
-    2. Extracts all biomarker values using Gemini Vision
+    2. Extracts biomarker values using Llama Parser OCR
     3. Converts units to reference standards
     4. Compares values against reference ranges
-    5. Generates clinical interpretation
+    5. Generates clinical interpretation via fine-tuned Qwen model
     
     **Note**: Results are cached - subsequent calls for the same report
     will return cached results instantly.
@@ -97,11 +97,16 @@ async def interpret_lab_report(
     # Check for cached interpretation
     cached = await interpretations.find_one({"report_id": request.report_id})
     if cached:
+        # Build patient context from cached data
+        cached_patient = cached.get("result", {}).get("patient_context", {})
+        patient_ctx = PatientContext(**cached_patient) if cached_patient else request.patient_context
+        
         return InterpretResponse(
             success=True,
             message="Retrieved cached interpretation",
             cached=True,
             report_id=request.report_id,
+            patient_context=patient_ctx,
             lab_name=cached.get("result", {}).get("lab_name"),
             report_date=cached.get("result", {}).get("report_date"),
             extracted_values=[
@@ -131,11 +136,11 @@ async def interpret_lab_report(
             detail=f"Unsupported file type: {file_type}. Only images and PDFs can be interpreted."
         )
     
-    # Check Gemini API key
-    if not settings.GEMINI_API_KEY:
+    # Check Llama Parser API key
+    if not settings.LLAMA_API_KEY:
         raise HTTPException(
             status_code=503, 
-            detail="Lab interpretation service not configured. GEMINI_API_KEY required."
+            detail="Lab interpretation service not configured. LLAMA_API_KEY required."
         )
     
     try:
@@ -158,7 +163,6 @@ async def interpret_lab_report(
             "image_data": image_data,
             "mime_type": mime_type,
             "patient_context": request.patient_context.model_dump(),
-            "api_key": settings.GEMINI_API_KEY
         }
         
         result_state = await lab_interpretation_graph.ainvoke(initial_state)
@@ -227,11 +231,16 @@ async def get_interpretation(report_id: str):
             detail="No interpretation found for this report. Use POST /lab/interpret to analyze it."
         )
     
+    # Build patient context from cached data
+    cached_patient = cached.get("result", {}).get("patient_context", {})
+    patient_ctx = PatientContext(**cached_patient) if cached_patient else PatientContext()
+    
     return InterpretResponse(
         success=True,
         message="Retrieved cached interpretation",
         cached=True,
         report_id=report_id,
+        patient_context=patient_ctx,
         lab_name=cached.get("result", {}).get("lab_name"),
         report_date=cached.get("result", {}).get("report_date"),
         extracted_values=[
@@ -344,21 +353,30 @@ async def health_check():
     """
     Health check endpoint for the lab interpretation service.
     
-    Verifies that reference data and Gemini API are accessible.
+    Verifies that reference data, Llama Parser, and Qwen model are accessible.
     """
     try:
         # Check reference data
         data = get_reference_data()
         biomarker_count = len(data.biomarkers)
         
-        # Check Gemini API key
-        gemini_configured = bool(settings.GEMINI_API_KEY)
+        # Check Llama Parser API key
+        llama_parser_configured = bool(settings.LLAMA_API_KEY)
+        
+        # Check Qwen model
+        qwen_loaded = False
+        try:
+            from ..services.qwen_inference import get_qwen_service
+            qwen_loaded = get_qwen_service().is_loaded
+        except Exception:
+            pass
         
         return {
             "success": True,
             "status": "healthy",
             "biomarkers_loaded": biomarker_count,
-            "gemini_configured": gemini_configured,
+            "llama_parser_configured": llama_parser_configured,
+            "qwen_loaded": qwen_loaded,
             "version": data.version
         }
     except Exception as e:
@@ -430,11 +448,11 @@ async def start_interpretation_job(
             detail=f"Unsupported file type: {file_type}. Only images and PDFs can be interpreted."
         )
     
-    # Check Gemini API key
-    if not settings.GEMINI_API_KEY:
+    # Check Llama Parser API key
+    if not settings.LLAMA_API_KEY:
         raise HTTPException(
             status_code=503,
-            detail="Lab interpretation service not configured. GEMINI_API_KEY required."
+            detail="Lab interpretation service not configured. LLAMA_API_KEY required."
         )
     
     # Fetch image data

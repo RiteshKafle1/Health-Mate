@@ -28,7 +28,7 @@ The backend is built with FastAPI and requires Python. The virtual environment (
 
 5.  **Start the Server**:
     ```bash
-    uvicorn main:app --reload
+    `uvicorn main:app --reload`
     ```
 
 - **API URL**: [http://127.0.0.1:8000](http://127.0.0.1:8000)

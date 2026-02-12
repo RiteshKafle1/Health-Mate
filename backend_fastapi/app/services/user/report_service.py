@@ -113,22 +113,46 @@ async def get_user_reports(user_id: str, skip: int = 0, limit: int = 20) -> dict
     # Check for interpretations
     if report_list:
         db = get_database()
-        interpretations = db["lab_interpretations"]
         img_reports_ids = [r["id"] for r in report_list]
         
-        # Find which reports have interpretations
+        # 1. Check for COMPLETED interpretations (cache)
+        interpretations = db["lab_interpretations"]
         interpreted_cursor = interpretations.find(
             {"report_id": {"$in": img_reports_ids}},
             {"report_id": 1}
         )
-        
         interpreted_ids = set()
         async for doc in interpreted_cursor:
             interpreted_ids.add(doc["report_id"])
             
-        # Add flag to reports
+        # 2. Check for ACTIVE interpretation jobs (pending/processing)
+        jobs_collection = db["interpretation_jobs"]
+        active_jobs_cursor = jobs_collection.find(
+            {
+                "report_id": {"$in": img_reports_ids},
+                "status": {"$in": ["pending", "processing"]}
+            },
+            {"report_id": 1, "status": 1, "job_id": 1}
+        )
+        
+        active_jobs = {}
+        async for job in active_jobs_cursor:
+            active_jobs[job["report_id"]] = {
+                "status": job["status"],
+                "job_id": job["job_id"]
+            }
+
+        # Add flags to reports
         for r in report_list:
             r["is_interpreted"] = r["id"] in interpreted_ids
+            
+            # Inject active job info if exists
+            if r["id"] in active_jobs:
+                r["interpretation_status"] = active_jobs[r["id"]]["status"]
+                r["current_job_id"] = active_jobs[r["id"]]["job_id"]
+            else:
+                r["interpretation_status"] = None
+                r["current_job_id"] = None
     
     
     # Get total count

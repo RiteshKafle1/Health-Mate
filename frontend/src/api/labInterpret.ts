@@ -20,6 +20,15 @@ export interface BiomarkerEnrichment {
     verified: boolean;
 }
 
+// Structured clinical interpretation from AI
+export interface StructuredInterpretation {
+    analysis: string | null;
+    comparison: string | null;
+    main_interpretation: string | null;
+    recommendations: string[];
+    conclusion: string | null;
+}
+
 // Single extracted biomarker value
 export interface ExtractedValue {
     biomarker_name: string;
@@ -31,6 +40,7 @@ export interface ExtractedValue {
     reference_range: string | null;
     status: ValueStatus;
     interpretation: string | null;
+    structured?: StructuredInterpretation | null;
     confidence: number;
     enrichment?: BiomarkerEnrichment | null;
 }
@@ -74,7 +84,8 @@ export interface LabHealthResponse {
     success: boolean;
     status: string;
     biomarkers_loaded: number;
-    gemini_configured: boolean;
+    llama_parser_configured: boolean;
+    qwen_loaded: boolean;
     version: string;
 }
 

@@ -1,0 +1,113 @@
+{
+  "patient_info": {},
+  "extracted_values": [
+    {
+      "name": "HEMOGLOBIN",
+      "value": 15.0,
+      "unit": "g/dl",
+      "reference_range": {
+        "raw": "13 - 17",
+        "low": 13.0,
+        "high": 17.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "TOTAL LEUKOCYTE COUNT",
+      "value": 5.0,
+      "unit": ",100",
+      "reference_range": {
+        "raw": "4,800 - 10,800",
+        "low": 800.0,
+        "high": 10.0,
+        "unit": "800"
+      }
+    },
+    {
+      "name": "NEUTROPHILS",
+      "value": 79.0,
+      "unit": "2",
+      "reference_range": {
+        "raw": "40 - 80",
+        "low": 40.0,
+        "high": 80.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "LYMPHOCYTE",
+      "value": 18.0,
+      "unit": "20 - 40",
+      "reference_range": null
+    },
+    {
+      "name": "EOSINOPHILS",
+      "value": 1.0,
+      "unit": "1 - 6",
+      "reference_range": null
+    },
+    {
+      "name": "MONOCYTES",
+      "value": 1.0,
+      "unit": "2 - 10",
+      "reference_range": null
+    },
+    {
+      "name": "BASOPHILS",
+      "value": 3.0,
+      "unit": "C; 2",
+      "reference_range": null
+    },
+    {
+      "name": "PLATELET COUNT",
+      "value": 3.5,
+      "unit": "lakhs/cumm",
+      "reference_range": {
+        "raw": "1.5 - 4.1",
+        "low": 1.5,
+        "high": 4.1,
+        "unit": ""
+      }
+    },
+    {
+      "name": "TOTAL RBC COUNT",
+      "value": 5.0,
+      "unit": "million/cumm",
+      "reference_range": null
+    },
+    {
+      "name": "HEMATOCRIT VALUE, HCT",
+      "value": 42.0,
+      "unit": "%",
+      "reference_range": null
+    },
+    {
+      "name": "MEAN CORPUSCULAR VOLUME, MCV",
+      "value": 84.0,
+      "unit": "fL",
+      "reference_range": null
+    },
+    {
+      "name": "MEAN CELL HAEMOGLOBIN, MCH",
+      "value": 30.0,
+      "unit": "Pg",
+      "reference_range": {
+        "raw": "27 - 32",
+        "low": 27.0,
+        "high": 32.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "MEAN CELL HAEMOGLOBIN CON, MCHC H",
+      "value": 35.7,
+      "unit": "%",
+      "reference_range": {
+        "raw": "31.5 - 34.5",
+        "low": 31.5,
+        "high": 34.5,
+        "unit": ""
+      }
+    }
+  ]
+}

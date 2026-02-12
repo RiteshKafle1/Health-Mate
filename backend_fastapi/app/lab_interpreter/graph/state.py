@@ -9,11 +9,10 @@ class LabReportState(TypedDict):
     image_data: bytes
     mime_type: str
     patient_context: dict  # serialized PatientContext
-    api_key: str
     
     # Intermediate State
     verification_result: Optional[dict]  # VerificationResult dict
-    extracted_data: Optional[dict]       # Raw Gemini output
+    extracted_data: Optional[dict]       # Llama Parser + markdown parser output
     processed_values: List[dict]         # List of ExtractedValue dicts
     validation_issues: List[dict]        # List of ValidationIssue dicts
     validation_passed: bool
@@ -23,3 +22,4 @@ class LabReportState(TypedDict):
     # Outputs
     final_result: Optional[dict]         # InterpretationResult dict
     error: Optional[str]
+

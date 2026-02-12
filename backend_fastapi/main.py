@@ -1,5 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import warnings
+
+# Suppress Google Generative AI deprecation warning
+warnings.filterwarnings("ignore", message=".*All support for the `google.generativeai` package has ended.*")
+
 
 from app.core.database import connect_to_mongo, close_mongo_connection
 from app.core.redis import connect_to_redis, close_redis_connection

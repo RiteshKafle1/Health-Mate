@@ -1,5 +1,5 @@
-import api from "./api";
-import type { ApiResponse } from "../types";
+import api from "../core";
+import type { ApiResponse } from "../../types";
 
 // Types
 export interface AccessRequest {
@@ -40,7 +40,7 @@ export interface Notification {
 
 // User APIs
 export const getPendingAccessRequests = async (): Promise<ApiResponse & { requests: AccessRequest[] }> => {
-    const response = await api.get("/api/user/report-access-requests");
+    const response = await api.get<ApiResponse & { requests: AccessRequest[] }>("/api/user/report-access-requests");
     return response.data;
 };
 
@@ -55,7 +55,7 @@ export const denyAccessRequest = async (requestId: string): Promise<ApiResponse>
 };
 
 export const getNotifications = async (): Promise<ApiResponse & { notifications: Notification[] }> => {
-    const response = await api.get("/api/user/notifications");
+    const response = await api.get<ApiResponse & { notifications: Notification[] }>("/api/user/notifications");
     return response.data;
 };
 
@@ -77,13 +77,13 @@ export const requestReportAccess = async (
 };
 
 export const getApprovedPatients = async (): Promise<ApiResponse & { patients: ApprovedPatient[] }> => {
-    const response = await api.get("/api/doctor/approved-patients");
+    const response = await api.get<ApiResponse & { patients: ApprovedPatient[] }>("/api/doctor/approved-patients");
     return response.data;
 };
 
 export const getPatientReports = async (
     userId: string
 ): Promise<ApiResponse & { reports: PatientReport[] }> => {
-    const response = await api.get(`/api/doctor/patient-reports/${userId}`);
+    const response = await api.get<ApiResponse & { reports: PatientReport[] }>(`/api/doctor/patient-reports/${userId}`);
     return response.data;
 };

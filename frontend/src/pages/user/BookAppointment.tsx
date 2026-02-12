@@ -4,7 +4,7 @@ import { getAllDoctors } from '../../api/doctor';
 import { bookAppointment } from '../../api/user';
 import type { Doctor } from '../../types';
 import { Clock, MapPin, Award, Info, Loader2, ChevronLeft } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 
 export function BookAppointment() {
     const { doctorId } = useParams<{ doctorId: string }>();

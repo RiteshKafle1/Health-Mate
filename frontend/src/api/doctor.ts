@@ -1,4 +1,4 @@
-import api from './api';
+import api from './core';
 import type { DoctorLogin, DoctorUpdate, ApiResponse } from '../types';
 
 // Doctor authentication

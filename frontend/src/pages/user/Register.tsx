@@ -7,7 +7,7 @@ import { Mail, Lock, User, Loader2, Eye, EyeOff } from 'lucide-react';
 import { PasswordStrengthIndicator } from '../../components/ui/PasswordStrengthIndicator';
 import { EmailValidator } from '../../components/ui/EmailValidator';
 import type { PasswordValidationResponse } from '../../api/auth';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 
 export function Register() {
     const [name, setName] = useState('');

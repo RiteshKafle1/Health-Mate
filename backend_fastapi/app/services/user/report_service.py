@@ -272,6 +272,27 @@ async def request_report_access(doctor_id: str, user_id: str, appointment_id: st
     
     await notifications.insert_one(notification_doc)
     
+    # === REAL-TIME NOTIFICATIONS ===
+    from ..notification_service import create_notification, notify_admin
+    
+    # 1. Notify User (Real-time)
+    await create_notification(
+        user_id=user_id,
+        notification_type="report_access_request",
+        message=f"Dr. {doctor_name} is requesting access to view your lab reports",
+        data={"request_id": request_id, "doctor_name": doctor_name},
+        priority="high",
+        action_url="/notifications"
+    )
+    
+    # 2. Notify Admin (System Alert)
+    await notify_admin(
+        title="Report Access Request",
+        message=f"Dr. {doctor_name} requested access to patient reports",
+        data={"doctor_id": doctor_id, "user_id": user_id, "request_id": request_id},
+        priority="low"
+    )
+    
     return {
         "success": True, 
         "message": "Access request sent. Waiting for patient approval.",

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getAllPatientsAdmin, deletePatientAdmin } from '../../api/admin';
 import { User, Trash2, Search, Mail, Phone, MapPin, Calendar, Ruler, Weight, Pill, Loader2, Activity } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 
 interface Patient {
     _id: string;

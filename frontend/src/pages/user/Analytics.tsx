@@ -35,7 +35,7 @@ import {
     ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, Legend, ReferenceLine
 } from 'recharts';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 
 // Animated circular progress ring component
 const AdherenceRing = ({ percentage, size = 160 }: { percentage: number; size?: number }) => {
@@ -587,11 +587,13 @@ export function Analytics() {
                                                 padding: '12px'
                                             }}
                                             labelFormatter={(val) => new Date(val).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
-                                            formatter={(value: number, name: string, props: { payload: { taken: number; total: number; adherence: number } }) => {
+                                            formatter={(value: number, name: string, props: { payload?: { taken?: number; total?: number; adherence?: number } }) => {
                                                 if (name === 'Adherence %') {
                                                     return [`${value}%`, name];
                                                 }
-                                                const { taken, total, adherence } = props.payload;
+                                                const taken = props.payload?.taken ?? 0;
+                                                const total = props.payload?.total ?? 0;
+                                                const adherence = props.payload?.adherence ?? 0;
                                                 if (name === 'Taken') {
                                                     return [`${taken}/${total} (${adherence}%)`, 'Taken'];
                                                 }

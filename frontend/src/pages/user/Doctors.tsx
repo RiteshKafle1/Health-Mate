@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { getAllDoctors } from '../../api/doctor';
 import type { Doctor } from '../../types';
 import { Search, Filter, MapPin, Star, Loader2, ArrowRight } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 
 const specialities = [
     'All',

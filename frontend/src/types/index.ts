@@ -118,6 +118,7 @@ export interface DoctorCreate {
     experience: string;
     about: string;
     address: string;
+    fees: string;
 }
 
 // Dashboard types

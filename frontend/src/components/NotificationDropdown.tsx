@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Bell, Check, X, Loader2 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
+import toast from '../utils/soundToast';
 import {
     getNotifications,
+    getDoctorNotifications,
+    getAdminNotifications,
     getPendingAccessRequests,
     approveAccessRequest,
     denyAccessRequest,
-    markNotificationRead
+    markNotificationRead,
+    markDoctorNotificationRead,
+    markAdminNotificationRead
 } from '../api/accessRequests';
 import type { Notification, AccessRequest } from '../api/accessRequests';
 
@@ -15,6 +20,7 @@ interface NotificationDropdownProps {
 }
 
 export function NotificationDropdown({ className = '' }: NotificationDropdownProps) {
+    const { role } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [requests, setRequests] = useState<AccessRequest[]>([]);
@@ -26,19 +32,31 @@ export function NotificationDropdown({ className = '' }: NotificationDropdownPro
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const [notifRes, reqRes] = await Promise.all([
-                getNotifications(),
-                getPendingAccessRequests()
-            ]);
+            // Fetch notifications based on role
+            let notifRes;
+            if (role === 'doctor') {
+                notifRes = await getDoctorNotifications();
+            } else if (role === 'admin') {
+                notifRes = await getAdminNotifications();
+            } else {
+                notifRes = await getNotifications();
+            }
 
             if (notifRes.success) {
                 setNotifications(notifRes.notifications.filter(n => n.type !== 'report_access_request'));
             }
-            if (reqRes.success) {
-                setRequests(reqRes.requests);
+
+            // Only fetch pending access requests for users (patients)
+            if (role === 'user') {
+                const reqRes = await getPendingAccessRequests();
+                if (reqRes.success) {
+                    setRequests(reqRes.requests);
+                }
+            } else {
+                setRequests([]);
             }
         } catch (error) {
-            console.error('Failed to fetch notifications');
+            console.error('Failed to fetch notifications:', error);
         } finally {
             setIsLoading(false);
         }
@@ -48,7 +66,7 @@ export function NotificationDropdown({ className = '' }: NotificationDropdownPro
         if (isOpen) {
             fetchData();
         }
-    }, [isOpen]);
+    }, [isOpen, role]);
 
     const handleApprove = async (requestId: string) => {
         setProcessingId(requestId);
@@ -82,7 +100,15 @@ export function NotificationDropdown({ className = '' }: NotificationDropdownPro
 
     const handleMarkRead = async (notifId: string) => {
         try {
-            await markNotificationRead(notifId);
+            // Mark read based on role
+            if (role === 'doctor') {
+                await markDoctorNotificationRead(notifId);
+            } else if (role === 'admin') {
+                await markAdminNotificationRead(notifId);
+            } else {
+                await markNotificationRead(notifId);
+            }
+
             setNotifications(notifications.map(n =>
                 n.id === notifId ? { ...n, read: true } : n
             ));
@@ -127,7 +153,10 @@ export function NotificationDropdown({ className = '' }: NotificationDropdownPro
                     {/* Content */}
                     <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-surface z-50 overflow-hidden">
                         <div className="p-3 border-b border-surface bg-surface/30">
-                            <h3 className="font-semibold text-text">Notifications</h3>
+                            <h3 className="font-semibold text-text">
+                                Notifications
+                                {role && <span className="text-xs font-normal text-text-muted ml-2">({role})</span>}
+                            </h3>
                         </div>
 
                         <div className="max-h-96 overflow-y-auto">
@@ -142,7 +171,7 @@ export function NotificationDropdown({ className = '' }: NotificationDropdownPro
                                 </div>
                             ) : (
                                 <div className="divide-y divide-surface/50">
-                                    {/* Access Requests */}
+                                    {/* Access Requests (only for users) */}
                                     {requests.map((req) => (
                                         <div key={req.id} className="p-3 bg-primary/5">
                                             <div className="flex items-start gap-3">

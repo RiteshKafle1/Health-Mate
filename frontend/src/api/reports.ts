@@ -1,4 +1,4 @@
-import api from "./api";
+import api from "./core";
 import type { ApiResponse } from "../types";
 
 export interface Report {

@@ -1,4 +1,4 @@
-import api from './api';
+import api from './core';
 
 // HealthMate Assist types
 export interface ChatMessage {

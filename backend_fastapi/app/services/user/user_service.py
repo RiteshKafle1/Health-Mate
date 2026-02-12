@@ -359,10 +359,55 @@ async def book_appointment(user_id: str, doc_id: str, slot_date: str, slot_time:
             {"_id": ObjectId(doc_id)},
             {"$set": {"slots_booked": slots_booked}}
         )
+
+        # === REAL-TIME NOTIFICATIONS ===
+        from ..notification_service import create_notification, notify_admin
+        
+        # 1. Notify Doctor (Real-time)
+        await create_notification(
+            user_id=doc_id,
+            notification_type="appointment_request",
+            message=f"New appointment request from {user_data.get('name')} for {slot_date} at {slot_time}",
+            data={"appointment_id": str(appointment_data.get("_id", "")), "patient_id": user_id},
+            priority="high",
+            action_url="/doctor/dashboard"
+        )
+        
+        # 2. Notify User (Confirmation)
+        await create_notification(
+            user_id=user_id,
+            notification_type="appointment_booked",
+            message=f"Appointment request sent to Dr. {doc_data.get('name')}",
+            data={"appointment_id": str(appointment_data.get("_id", "")), "doctor_id": doc_id},
+            priority="medium",
+            action_url="/appointments"
+        )
+        
+        # 3. Notify Admin (System Alert)
+        await notify_admin(
+            title="New Appointment Request",
+            message=f"Patient {user_data.get('name')} requested appt with Dr. {doc_data.get('name')}",
+            data={
+                "patient_id": user_id, 
+                "doctor_id": doc_id,
+                "date": slot_date,
+                "time": slot_time
+            },
+            priority="low"
+        )
+
     except Exception as e:
         return {"success": False, "message": f"Booking failed: {str(e)}"}
     
     return {"success": True, "message": "Appointment Booked"}
+
+    # === REAL-TIME NOTIFICATIONS ===
+    # We do this asynchronously after return, or just before return. 
+    # Since we need to await, we do it before return.
+    # Note: The original function returned before this block in the snippet above, 
+    # so I need to place this BEFORE the return statement in the replacement.
+    
+    # Wait, I can't put code after return. Redoing the replacement logic.
 
 
 async def list_user_appointments(user_id: str) -> dict:
@@ -393,7 +438,7 @@ async def cancel_user_appointment(user_id: str, appointment_id: str) -> dict:
     # Cancel the appointment
     await appointments.update_one(
         {"_id": ObjectId(appointment_id)},
-        {"$set": {"cancelled": True}}
+        {"$set": {"cancelled": True, "status": "cancelled"}}
     )
     
     # Release doctor slot
@@ -410,6 +455,33 @@ async def cancel_user_appointment(user_id: str, appointment_id: str) -> dict:
                 {"_id": ObjectId(doc_id)},
                 {"$set": {"slots_booked": slots_booked}}
             )
+    
+    # === REAL-TIME NOTIFICATIONS ===
+    from ..notification_service import create_notification, notify_admin
+    from ...core.database import get_users_collection
+    
+    users = get_users_collection()
+    user = await users.find_one({"_id": ObjectId(user_id)})
+    patient_name = user.get("name", "Patient") if user else "Patient"
+    doctor_name = appt.get("docData", {}).get("name", "Doctor")
+    
+    # 1. Notify Doctor (Appointment Cancelled)
+    await create_notification(
+        user_id=doc_id,
+        notification_type="appointment_cancelled",
+        message=f"{patient_name} cancelled their appointment for {slot_date} at {slot_time}",
+        data={"appointment_id": appointment_id, "user_id": user_id, "date": slot_date, "time": slot_time},
+        priority="medium",
+        action_url="/doctor/appointments"
+    )
+    
+    # 2. Notify Admin (Analytics)
+    await notify_admin(
+        title="Appointment Cancelled",
+        message=f"{patient_name} cancelled appointment with Dr. {doctor_name}",
+        data={"appointment_id": appointment_id, "user_id": user_id, "doctor_id": doc_id},
+        priority="low"
+    )
     
     return {"success": True, "message": "Appointment Cancelled"}
 

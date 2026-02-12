@@ -83,8 +83,8 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                             <button className="p-2 text-text/60 hover:text-primary hover:bg-white/60 rounded-full transition-all duration-200">
                                 <Search size={20} />
                             </button>
-                            {/* Notification Dropdown - only for users */}
-                            {role === 'user' && <NotificationDropdown />}
+                            {/* Notification Dropdown - for all authenticated users */}
+                            <NotificationDropdown />
                         </div>
 
                         {/* Divider */}

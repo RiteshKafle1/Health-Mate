@@ -45,7 +45,7 @@ import {
     Line,
     Legend
 } from 'recharts';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 
 const COLORS = {
     completed: '#10b981',

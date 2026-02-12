@@ -64,6 +64,7 @@ async def create_notification(
     notification_data = {
         "user_id": user_id,
         "type": notification_type,
+        "title": NOTIFICATION_TYPES.get(notification_type, "Notification"),
         "message": message,
         "data": data or {},
         "priority": priority,
@@ -75,6 +76,22 @@ async def create_notification(
     
     result = await notifications.insert_one(notification_data)
     notification_data["_id"] = str(result.inserted_id)
+    notification_data["id"] = str(result.inserted_id)
+    
+    # === REAL-TIME DELIVERY ===
+    # Cache in Redis for quick access
+    try:
+        from ..redis.notification_cache import cache_notification
+        await cache_notification(user_id, notification_data)
+    except Exception as e:
+        print(f"Redis cache warning: {e}")
+    
+    # Emit via Socket.IO for instant delivery
+    try:
+        from ..sockets import emit_to_user
+        await emit_to_user(user_id, "new_notification", notification_data)
+    except Exception as e:
+        print(f"Socket emit warning: {e}")
     
     return {
         "success": True,
@@ -109,6 +126,71 @@ async def get_user_notifications(user_id: str, unread_only: bool = False, limit:
         "success": True,
         "notifications": notif_list
     }
+
+
+
+async def create_multi_role_notification(notifications: List[Dict]) -> List[Dict]:
+    """
+    Create specific notifications for multiple users/roles from a single event.
+    
+    Args:
+        notifications: List of dicts, each containing:
+            - user_id: Target user ID
+            - type: Notification type
+            - message: Message for this user
+            - data: Optional data
+            - priority: Optional priority
+            
+    Returns:
+        List of created notification results
+    """
+    results = []
+    for n in notifications:
+        try:
+            res = await create_notification(
+                user_id=n["user_id"],
+                notification_type=n["type"],
+                message=n["message"],
+                data=n.get("data"),
+                priority=n.get("priority", "medium"),
+                action_url=n.get("action_url")
+            )
+            results.append(res)
+        except Exception as e:
+            print(f"Error creating notification for {n.get('user_id')}: {e}")
+            results.append({"success": False, "error": str(e)})
+            
+    return results
+
+
+async def notify_admin(title: str, message: str, data: Dict = None, priority: str = "medium") -> dict:
+    """
+    Send a system notification to all admins.
+    Currently sends to the special 'ADMIN' room.
+    """
+    from ..sockets import emit_to_user
+    
+    admin_notification = {
+        "user_id": "ADMIN",
+        "type": "system_alert",
+        "title": title,
+        "message": message,
+        "data": data or {},
+        "priority": priority,
+        "read": False,
+        "created_at": int(time.time() * 1000)
+    }
+    
+    # We don't save "ADMIN" notifications to DB in this version,
+    # just emit to the socket room for real-time dashboard updates.
+    # Future: Create 'admin_notifications' collection.
+    
+    try:
+        await emit_to_user("ADMIN", "new_notification", admin_notification)
+        return {"success": True, "message": "Admin alerted"}
+    except Exception as e:
+        print(f"Admin socket emit warning: {e}")
+        return {"success": False, "error": str(e)}
 
 
 async def mark_as_read(notification_id: str) -> dict:

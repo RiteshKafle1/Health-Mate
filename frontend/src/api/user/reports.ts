@@ -1,5 +1,5 @@
-import api from "./api";
-import type { ApiResponse } from "../types";
+import api from "../core";
+import type { ApiResponse } from "../../types";
 
 export interface Report {
     id: string;

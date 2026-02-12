@@ -9,7 +9,7 @@ import {
 import { requestReportAccess } from '../../api/accessRequests';
 import type { Appointment, AppointmentStatus } from '../../types';
 import { Calendar, Clock, User, X, Check, Loader2, AlertCircle, Filter, FileText, CheckCircle, XCircle } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 
 type FilterType = 'all' | 'pending' | 'accepted' | 'completed' | 'cancelled' | 'rejected';
 

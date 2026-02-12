@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getUserProfile, updateUserProfile } from '../../api/user';
 import type { User } from '../../types';
 import { Camera, Loader2, Save, Edit2, Mail, Phone, Calendar, MapPin, User as UserIcon, Shield, X, Activity } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 import { Button } from '../../components/ui/Button';
 import { ProfileCompletion } from '../../components/ProfileCompletion';
 

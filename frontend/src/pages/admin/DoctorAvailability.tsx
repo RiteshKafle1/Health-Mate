@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getAllDoctorsAdmin, updateDoctorAvailabilityAdmin } from '../../api/admin';
 import { Loader2, Clock, Calendar, Save, Search, User, ChevronDown } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 
 interface Doctor {
     _id: string;

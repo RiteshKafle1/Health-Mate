@@ -9,7 +9,7 @@ import {
     type ChatMessage,
     type ChatSession
 } from '../../api/chatbot_admin';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 
 export function Chatbot() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);

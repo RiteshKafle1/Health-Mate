@@ -11,7 +11,7 @@ import {
     type ChatSession
 } from '../../api/chatbot';
 import { SymptomChecker } from '../../components/SymptomChecker';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 
 export function Chatbot() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);

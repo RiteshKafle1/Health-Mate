@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Activity, Send, Bot, User, Loader2, ArrowLeft, ChevronRight, Stethoscope } from 'lucide-react';
 import { OptionChip } from './OptionChip';
 import { sendChatMessage, type ChatMessage } from '../api/chatbot';
-import toast from 'react-hot-toast';
+import toast from '../utils/soundToast';
 
 interface SymptomCheckerProps {
     sessionId: string | null;

@@ -83,6 +83,16 @@ async def add_doctor(
     }
     
     await doctors.insert_one(doctor_data)
+
+    # === REAL-TIME NOTIFICATIONS ===
+    from ..notification_service import notify_admin
+    
+    await notify_admin(
+        title="New Doctor Added",
+        message=f"Doctor {name} ({speciality}) has been added to the system",
+        data={"doctor_email": email, "speciality": speciality},
+        priority="medium"
+    )
     
     return {"success": True, "message": "Doctor Added"}
 

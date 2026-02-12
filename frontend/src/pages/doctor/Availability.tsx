@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getDoctorProfile, updateDoctorProfile } from '../../api/doctor';
 import { Loader2, Clock, Calendar, Check, Save } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 
 const DAYS_OF_WEEK = [
     { key: 'monday', label: 'Monday' },

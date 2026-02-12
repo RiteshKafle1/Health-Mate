@@ -1,4 +1,4 @@
-import api from './api';
+import api from './core';
 
 // Chatbot types (same as user chatbot)
 export interface ChatMessage {

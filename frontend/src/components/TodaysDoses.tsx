@@ -4,7 +4,7 @@ import {
     Sun, Moon, CloudSun, Loader2, RefreshCw, Calendar
 } from 'lucide-react';
 import { getTodayDoses, markDoseTaken, type TodayDoseItem, type DoseSummary } from '../api/doses';
-import toast from 'react-hot-toast';
+import toast from '../utils/soundToast';
 
 // Time period grouping
 type TimePeriod = 'morning' | 'afternoon' | 'evening' | 'night';

@@ -1,4 +1,4 @@
-import api from "./api";
+import api from "./core";
 import type { ApiResponse } from "../types";
 
 // Types
@@ -61,6 +61,28 @@ export const getNotifications = async (): Promise<ApiResponse & { notifications:
 
 export const markNotificationRead = async (notifId: string): Promise<ApiResponse> => {
     const response = await api.post(`/api/user/notifications/${notifId}/read`);
+    return response.data;
+};
+
+// Doctor notification APIs
+export const getDoctorNotifications = async (): Promise<ApiResponse & { notifications: Notification[] }> => {
+    const response = await api.get("/api/doctor/notifications");
+    return response.data;
+};
+
+export const markDoctorNotificationRead = async (notifId: string): Promise<ApiResponse> => {
+    const response = await api.post(`/api/doctor/notifications/${notifId}/read`);
+    return response.data;
+};
+
+// Admin notification APIs
+export const getAdminNotifications = async (): Promise<ApiResponse & { notifications: Notification[] }> => {
+    const response = await api.get("/api/admin/notifications");
+    return response.data;
+};
+
+export const markAdminNotificationRead = async (notifId: string): Promise<ApiResponse> => {
+    const response = await api.post(`/api/admin/notifications/${notifId}/read`);
     return response.data;
 };
 

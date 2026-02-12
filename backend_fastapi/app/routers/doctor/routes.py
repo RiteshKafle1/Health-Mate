@@ -111,3 +111,44 @@ async def get_approved_patients(doc_id: str = Depends(get_current_doctor)):
 async def get_patient_reports(user_id: str, doc_id: str = Depends(get_current_doctor)):
     """Get a patient's reports (only if access was approved)."""
     return await report_service.get_patient_reports_for_doctor(doc_id, user_id)
+
+
+# ==================== NOTIFICATIONS ====================
+
+@router.get("/notifications")
+async def get_notifications(doc_id: str = Depends(get_current_doctor)):
+    """Get doctor notifications."""
+    from ...core.database import get_notifications_collection
+    from bson import ObjectId
+    
+    notifications = get_notifications_collection()
+    cursor = notifications.find({"user_id": doc_id}).sort("created_at", -1).limit(20)
+    
+    notif_list = []
+    async for n in cursor:
+        notif_list.append({
+            "id": str(n["_id"]),
+            "type": n.get("type", ""),
+            "message": n.get("message", ""),
+            "data": n.get("data", {}),
+            "read": n.get("read", False),
+            "created_at": n.get("created_at", 0)
+        })
+    
+    return {"success": True, "notifications": notif_list}
+
+
+@router.post("/notifications/{notif_id}/read")
+async def mark_notification_read(notif_id: str, doc_id: str = Depends(get_current_doctor)):
+    """Mark a notification as read."""
+    from ...core.database import get_notifications_collection
+    from bson import ObjectId
+    
+    notifications = get_notifications_collection()
+    
+    await notifications.update_one(
+        {"_id": ObjectId(notif_id), "user_id": doc_id},
+        {"$set": {"read": True}}
+    )
+    
+    return {"success": True}

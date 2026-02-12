@@ -12,7 +12,7 @@ import {
     ArrowUpDown,
     Trash2
 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 
 export function AllDoctors() {
     const [doctors, setDoctors] = useState<Doctor[]>([]);

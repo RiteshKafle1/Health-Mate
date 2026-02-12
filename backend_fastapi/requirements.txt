@@ -45,3 +45,7 @@ tf-keras
 
 # Notification & Scheduling
 apscheduler>=3.10.0
+
+# Real-time Socket.IO
+python-socketio[asyncio]>=5.10.0
+aiohttp>=3.9.0

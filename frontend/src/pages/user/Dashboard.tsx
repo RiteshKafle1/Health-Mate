@@ -13,7 +13,7 @@ import {
     Calendar, Clock, Stethoscope, Loader2, Pill, CheckCircle2, ChevronRight, Zap,
     Shield, Check, X, FileText
 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { getDoseHistory, getTodayDoses, markDoseTaken, type TodayDoseItem } from '../../api/doses';

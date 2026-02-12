@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getDoctorProfile, updateDoctorProfile, changeDoctorAvailability } from '../../api/doctor';
 import type { Doctor } from '../../types';
 import { Loader2, Clock } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 
 const DAYS_OF_WEEK = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const TIME_SLOTS = [

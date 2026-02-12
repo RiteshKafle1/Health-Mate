@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import type { Doctor, DashboardData, Appointment } from '../../types';
 import { Calendar, DollarSign, Users, Clock, CheckCircle, Loader2 } from 'lucide-react';
 import { Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 
 const COLORS = ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
 

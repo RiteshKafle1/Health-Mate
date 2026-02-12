@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { getAllAppointmentsAdmin, cancelAppointmentAdmin } from '../../api/admin';
 import type { Appointment } from '../../types';
 import { Calendar, Clock, User, Stethoscope, X, Loader2, AlertCircle, Filter, Check, LayoutGrid, ChevronDown } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 
 type FilterType = 'all' | 'pending' | 'completed' | 'cancelled' | 'today';
 

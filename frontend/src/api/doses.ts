@@ -1,4 +1,4 @@
-import api from './api';
+import api from './core';
 
 // Dose types
 export interface TodayDoseItem {

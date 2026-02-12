@@ -4,17 +4,15 @@ import { addDoctor } from '../../api/admin';
 import {
     Camera,
     Loader2,
-    Plus,
     User,
     Stethoscope,
     MapPin,
     Upload,
-    X,
     FileText,
     ArrowLeft,
     CheckCircle2
 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 
 const specialities = [
     'General physician', 'Gynecologist', 'Dermatologist',
@@ -88,7 +86,7 @@ export function AddDoctor() {
             {/* Top Navigation Bar */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
-                    <button 
+                    <button
                         onClick={() => navigate(-1)}
                         className="p-2 hover:bg-zinc-200 rounded-full transition-colors text-zinc-600"
                     >
@@ -99,7 +97,7 @@ export function AddDoctor() {
                         <p className="text-sm text-zinc-500 font-medium">Add a new medical practitioner to the network</p>
                     </div>
                 </div>
-                
+
                 <div className="flex items-center gap-3">
                     <button
                         onClick={handleSubmit}
@@ -114,7 +112,7 @@ export function AddDoctor() {
 
             {/* Main Application Interface */}
             <div className="flex-1 grid grid-cols-12 gap-6 min-h-0">
-                
+
                 {/* Left: Avatar & Identity Card */}
                 <div className="col-span-3 flex flex-col gap-6">
                     <div className="bg-white border border-zinc-200 rounded-3xl p-8 flex flex-col items-center text-center shadow-sm">
@@ -166,7 +164,7 @@ export function AddDoctor() {
 
                 {/* Center & Right: Form Fields */}
                 <div className="col-span-9 grid grid-cols-2 gap-6 h-full min-h-0">
-                    
+
                     {/* Primary Information */}
                     <div className="bg-white border border-zinc-200 rounded-3xl p-7 shadow-sm flex flex-col">
                         <div className="flex items-center gap-2 mb-6">
@@ -246,10 +244,10 @@ export function AddDoctor() {
                                     </div>
                                     <h3 className="font-black text-zinc-900 uppercase text-xs tracking-widest">Professional Bio</h3>
                                 </div>
-                                <textarea 
-                                    value={about} 
-                                    onChange={(e) => setAbout(e.target.value)} 
-                                    className={`${inputStyles} flex-1 resize-none py-4 leading-relaxed`} 
+                                <textarea
+                                    value={about}
+                                    onChange={(e) => setAbout(e.target.value)}
+                                    className={`${inputStyles} flex-1 resize-none py-4 leading-relaxed`}
                                     placeholder="Describe the doctor's background, philosophy, and expertise..."
                                 />
                             </div>

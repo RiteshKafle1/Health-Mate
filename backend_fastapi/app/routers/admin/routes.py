@@ -169,3 +169,49 @@ async def delete_patient(data: PatientDelete, _: bool = Depends(get_current_admi
 async def delete_doctor(data: DoctorDelete, _: bool = Depends(get_current_admin)):
     """Delete a doctor and their associated data."""
     return await admin_service.delete_doctor_admin(data.docId)
+
+
+# ==================== NOTIFICATIONS ====================
+
+@router.get("/notifications")
+async def get_notifications(_: bool = Depends(get_current_admin)):
+    """Get admin notifications."""
+    from ...core.database import get_notifications_collection
+    
+    notifications = get_notifications_collection()
+    # Admin notifications have user_id = "admin" or type contains "admin"
+    cursor = notifications.find({
+        "$or": [
+            {"user_id": "admin"},
+            {"type": {"$regex": "admin", "$options": "i"}}
+        ]
+    }).sort("created_at", -1).limit(20)
+    
+    notif_list = []
+    async for n in cursor:
+        notif_list.append({
+            "id": str(n["_id"]),
+            "type": n.get("type", ""),
+            "message": n.get("message", ""),
+            "data": n.get("data", {}),
+            "read": n.get("read", False),
+            "created_at": n.get("created_at", 0)
+        })
+    
+    return {"success": True, "notifications": notif_list}
+
+
+@router.post("/notifications/{notif_id}/read")
+async def mark_notification_read(notif_id: str, _: bool = Depends(get_current_admin)):
+    """Mark a notification as read."""
+    from ...core.database import get_notifications_collection
+    from bson import ObjectId
+    
+    notifications = get_notifications_collection()
+    
+    await notifications.update_one(
+        {"_id": ObjectId(notif_id)},
+        {"$set": {"read": True}}
+    )
+    
+    return {"success": True}

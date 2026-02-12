@@ -77,6 +77,31 @@ async def complete_doctor_appointment(doc_id: str, appointment_id: str) -> dict:
         {"$set": {"isCompleted": True, "status": "completed"}}
     )
     
+    # === REAL-TIME NOTIFICATIONS ===
+    from ..notification_service import create_notification, notify_admin
+    
+    user_id = appt.get("userId")
+    doctor_name = appt.get("docData", {}).get("name", "Your doctor")
+    patient_name = appt.get("userData", {}).get("name", "Patient")
+    
+    # 1. Notify User (Appointment Completed)
+    await create_notification(
+        user_id=user_id,
+        notification_type="appointment_completed",
+        message=f"Your appointment with Dr. {doctor_name} has been completed",
+        data={"appointment_id": appointment_id, "doctor_id": doc_id},
+        priority="medium",
+        action_url="/appointments"
+    )
+    
+    # 2. Notify Admin (Analytics)
+    await notify_admin(
+        title="Appointment Completed",
+        message=f"Dr. {doctor_name} completed appointment with {patient_name}",
+        data={"appointment_id": appointment_id, "doctor_id": doc_id, "user_id": user_id},
+        priority="low"
+    )
+    
     return {"success": True, "message": "Appointment Completed"}
 
 
@@ -128,6 +153,27 @@ async def accept_doctor_appointment(doc_id: str, appointment_id: str) -> dict:
         "created_at": int(time.time() * 1000)
     }
     await notifications.insert_one(notification_doc)
+
+    # === REAL-TIME NOTIFICATIONS ===
+    from ..notification_service import create_notification, notify_admin
+
+    # 1. Notify User
+    await create_notification(
+        user_id=appt["userId"],
+        notification_type="appointment_accepted",
+        message=f"Dr. {doctor_name} has confirmed your appointment for {slot_date} at {slot_time}",
+        data={"appointment_id": appointment_id, "doctor_id": doc_id},
+        priority="high",
+        action_url="/appointments"
+    )
+
+    # 2. Notify Admin
+    await notify_admin(
+        title="Appointment Confirmed",
+        message=f"Dr. {doctor_name} confirmed appointment with patient",
+        data={"appointment_id": appointment_id, "doctor_id": doc_id, "user_id": appt["userId"]},
+        priority="low"
+    )
     
     return {"success": True, "message": "Appointment accepted successfully"}
 
@@ -200,6 +246,27 @@ async def reject_doctor_appointment(doc_id: str, appointment_id: str, reason: st
         "created_at": int(time.time() * 1000)
     }
     await notifications.insert_one(notification_doc)
+
+    # === REAL-TIME NOTIFICATIONS ===
+    from ..notification_service import create_notification, notify_admin
+
+    # 1. Notify User
+    await create_notification(
+        user_id=appt["userId"],
+        notification_type="appointment_rejected",
+        message=message,
+        data={"appointment_id": appointment_id, "doctor_id": doc_id},
+        priority="high",
+        action_url="/appointments"
+    )
+
+    # 2. Notify Admin
+    await notify_admin(
+        title="Appointment Rejected",
+        message=f"Dr. {doctor_name} rejected appointment with patient",
+        data={"appointment_id": appointment_id, "doctor_id": doc_id, "reason": reason},
+        priority="low"
+    )
     
     return {"success": True, "message": "Appointment rejected"}
 

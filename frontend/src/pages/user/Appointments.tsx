@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { getUserAppointments, cancelUserAppointment } from '../../api/user';
 import type { Appointment, AppointmentStatus } from '../../types';
 import { Calendar, Clock, X, Check, Loader2, AlertCircle, Stethoscope, HourglassIcon, XCircle } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 
 export function UserAppointments() {
     const [appointments, setAppointments] = useState<Appointment[]>([]);

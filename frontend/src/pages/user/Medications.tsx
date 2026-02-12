@@ -18,7 +18,7 @@ import {
     type MedicationSummary
 } from '../../api/medication';
 import * as healthmateAssist from '../../api/healthmate_assist';
-import toast from 'react-hot-toast';
+import toast from '../../utils/soundToast';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -380,7 +380,7 @@ export function Medications() {
         }
     };
 
-    const handleGetMedicationInfo = async (medId: string, name: string) => {
+    const _handleGetMedicationInfo = async (medId: string, name: string) => {
         const toastId = toast.loading('Consulting sources...');
         try {
             const info = await getMedicationInfo(name, 'both');

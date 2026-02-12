@@ -7,7 +7,7 @@ import { loginAdmin } from '../api/admin';
 import { Navbar } from '../components/layout/Navbar';
 import { Mail, Lock, User, Stethoscope, Shield, Loader2, Eye, EyeOff } from 'lucide-react';
 import { AccountLockoutMessage, LoginWarning } from '../components/ui/AccountLockoutMessage';
-import toast from 'react-hot-toast';
+import toast from '../utils/soundToast';
 
 type LoginRole = 'user' | 'doctor' | 'admin';
 

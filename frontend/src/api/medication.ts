@@ -1,4 +1,4 @@
-import api from './api';
+import api from './core';
 
 // Medication types with stock tracking
 export interface Medication {

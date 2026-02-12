@@ -19,7 +19,7 @@ from app.routers.user import (
 )
 
 # Lab Report Interpretation module
-from app.lab_interpreter import lab_router, enrich_router
+from app.lab_interpreter import lab_router, enrich_router, ocr_router
 
 from app.services.shared.chatbot_service import init_chatbot_service
 from app.healthmate_assist.chatbot_manager import initialize_assist
@@ -100,6 +100,7 @@ app.include_router(healthmate_assist_router)  # HealthMate Assist chatbot
 # Include routers - Lab Interpretation
 app.include_router(lab_router)  # AI-powered lab report interpretation
 app.include_router(enrich_router, prefix="/api")  # On-demand biomarker enrichment
+app.include_router(ocr_router, prefix="/api/lab")  # OCR text extraction from lab reports
 
 
 @app.get("/")

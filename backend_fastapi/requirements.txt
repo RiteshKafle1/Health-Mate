@@ -45,3 +45,6 @@ tf-keras
 
 # Notification & Scheduling
 apscheduler>=3.10.0
+
+# OCR for Lab Report Extraction
+easyocr>=1.7.0

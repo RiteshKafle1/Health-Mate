@@ -13,7 +13,7 @@ async def register_user(name: str, email: str, password: str) -> dict:
     """Register a new user with enhanced security validation."""
     from ...utils.password_validator import validate_password_strength
     from ...utils.email_validator import validate_email_address
-    from ..notification_service import calculate_profile_completion, send_profile_completion_reminder, DEFAULT_NOTIFICATION_PREFERENCES
+    from ..notification_service import calculate_profile_completion, send_profile_completion_reminder, DEFAULT_NOTIFICATION_PREFERENCES, send_welcome_notification
     
     users = get_users_collection()
     
@@ -94,6 +94,12 @@ async def register_user(name: str, email: str, password: str) -> dict:
     
     # Store session in Redis
     await store_session(user_id, token)
+    
+    # Send welcome notification
+    try:
+        await send_welcome_notification(user_id, name)
+    except Exception as e:
+        print(f"Error sending welcome notification: {e}")
     
     return {"success": True, "token": token}
 
@@ -315,6 +321,21 @@ async def book_appointment(user_id: str, doc_id: str, slot_date: str, slot_time:
             {"_id": ObjectId(doc_id)},
             {"$addToSet": {field_path: slot_time}}
         )
+        
+        # 3. Notify the doctor about the new booking
+        try:
+            from ..notification_service import send_appointment_booked_to_doctor
+            patient_name = user_data.get("name", "A patient")
+            appointment_id = str(appointment_data.get("_id", ""))
+            await send_appointment_booked_to_doctor(
+                doctor_id=doc_id,
+                appointment_id=appointment_id,
+                patient_name=patient_name,
+                slot_date=slot_date,
+                slot_time=slot_time
+            )
+        except Exception as e:
+            print(f"Notification error (book_appointment): {e}")
     except Exception as e:
         return {"success": False, "message": f"Booking failed: {str(e)}"}
     
@@ -377,6 +398,22 @@ async def cancel_user_appointment(user_id: str, appointment_id: str) -> dict:
         except Exception as e:
             # Log error but don't fail the request (cancellation is the priority)
             print(f"Error releasing doctor slot: {e}")
+    
+    # Notify the doctor about the patient's cancellation
+    try:
+        from ..notification_service import send_appointment_cancelled_by_patient
+        patient_name = appt.get("userData", {}).get("name", "A patient")
+        slot_date_val = appt.get("slotDate", "")
+        slot_time_val = appt.get("slotTime", "")
+        await send_appointment_cancelled_by_patient(
+            doctor_id=doc_id,
+            appointment_id=appointment_id,
+            patient_name=patient_name,
+            slot_date=slot_date_val,
+            slot_time=slot_time_val
+        )
+    except Exception as e:
+        print(f"Notification error (cancel_user_appointment): {e}")
     
     return {"success": True, "message": "Appointment Cancelled"}
 

@@ -195,6 +195,20 @@ async def mark_notification_read(notif_id: str, user_id: str = Depends(get_curre
     return {"success": True}
 
 
+@router.post("/notifications/read-all")
+async def mark_all_notifications_read(user_id: str = Depends(get_current_user)):
+    """Mark all notifications as read."""
+    from ...services.notification_service import mark_all_as_read
+    return await mark_all_as_read(user_id)
+
+
+@router.delete("/notifications/{notif_id}")
+async def delete_notification(notif_id: str, user_id: str = Depends(get_current_user)):
+    """Delete a notification."""
+    from ...services.notification_service import delete_notification
+    return await delete_notification(user_id, notif_id)
+
+
 # ==================== NOTIFICATION PREFERENCES ====================
 
 @router.get("/notification-preferences")

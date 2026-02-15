@@ -64,6 +64,16 @@ export const markNotificationRead = async (notifId: string): Promise<ApiResponse
     return response.data;
 };
 
+export const markAllNotificationsRead = async (): Promise<ApiResponse> => {
+    const response = await api.post("/api/user/notifications/read-all");
+    return response.data;
+};
+
+export const deleteNotification = async (notifId: string): Promise<ApiResponse> => {
+    const response = await api.delete(`/api/user/notifications/${notifId}`);
+    return response.data;
+};
+
 // Doctor APIs
 export const requestReportAccess = async (
     userId: string,

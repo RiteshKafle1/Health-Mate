@@ -290,6 +290,35 @@ async def check_missed_appointments():
                     )
                     missed_count += 1
                     
+                    # Notify both parties about the missed appointment
+                    try:
+                        user_id = appt.get("userId")
+                        doc_id = appt.get("docId")
+                        doctor_name = appt.get("docData", {}).get("name", "the doctor")
+                        patient_name = appt.get("userData", {}).get("name", "a patient")
+                        appt_id = str(appt["_id"])
+                        
+                        # Notify patient
+                        await notification_service.send_appointment_missed(
+                            user_id=user_id,
+                            appointment_id=appt_id,
+                            other_party_name=doctor_name,
+                            slot_date=slot_date,
+                            slot_time=slot_time,
+                            is_doctor=False
+                        )
+                        # Notify doctor
+                        await notification_service.send_appointment_missed(
+                            user_id=doc_id,
+                            appointment_id=appt_id,
+                            other_party_name=patient_name,
+                            slot_date=slot_date,
+                            slot_time=slot_time,
+                            is_doctor=True
+                        )
+                    except Exception as e:
+                        print(f"[Scheduler] Notification error (missed appt): {e}")
+                    
             except Exception as e:
                 print(f"[Scheduler] Error parsing date for appt {appt['_id']}: {e}")
                 continue

@@ -133,10 +133,14 @@ async def chat_stream(request: ChatRequest, user_id: str = Depends(get_current_u
     
     Returns tokens as they are generated for real-time display.
     Uses text/event-stream content type.
+    Now includes non-medical rejection and proper RAG retrieval.
     """
+    import re
     from ...healthmate_clinician.chatbot_manager import get_chatbot_manager
     from ...healthmate_clinician.tools.llm_client import stream_llm_response
     from ...healthmate_clinician.tools.vector_store import get_vectorstore_instance
+    from ...healthmate_clinician.agents.planner_agent import NON_MEDICAL_REGEX, MEDICAL_KEYWORDS
+    from ...healthmate_clinician.agents.rejection_agent import REJECTION_MESSAGE
     
     session_id = get_or_create_session(user_id, request.session_id)
     
@@ -152,50 +156,91 @@ async def chat_stream(request: ChatRequest, user_id: str = Depends(get_current_u
         """Generate SSE stream of LLM response tokens."""
         manager = get_chatbot_manager()
         
+        # Ensure chatbot is initialized (loads vectorstore)
+        if not manager._initialized:
+            print("[STREAM] Chatbot not initialized, initializing now...")
+            manager.initialize()
+        
         # First, send session info
         yield f"data: {json.dumps({'type': 'session', 'session_id': session_id})}\n\n"
         
         # Save user message
         manager.database.save_message(session_id, user_id, 'user', message)
         
-        # Try to get context from RAG
+        # --- NON-MEDICAL REJECTION CHECK ---
+        # Ported from PlannerAgent's keyword-based filtering
+        question_lower = message.lower()
+        words = set(re.findall(r'\w+', question_lower))
+        is_medical = bool(words & MEDICAL_KEYWORDS)
+        is_non_medical = bool(NON_MEDICAL_REGEX.search(question_lower))
+        
+        if not is_medical and is_non_medical:
+            # Reject non-medical query
+            print(f"[STREAM] REJECTED non-medical query: '{message[:50]}...'")
+            source = "System Message"
+            yield f"data: {json.dumps({'type': 'source', 'source': source})}\n\n"
+            
+            # Stream the rejection message token by token (for consistent UX)
+            for word in REJECTION_MESSAGE.split(' '):
+                yield f"data: {json.dumps({'type': 'token', 'content': word + ' '})}\n\n"
+            
+            # Save rejection response
+            manager.database.save_message(session_id, user_id, 'assistant', REJECTION_MESSAGE, source)
+            
+            yield f"data: {json.dumps({'type': 'done', 'source': source})}\n\n"
+            yield "data: [DONE]\n\n"
+            return
+        
+        # --- RAG RETRIEVAL ---
         context = ""
         source = "AI Knowledge"
         
         try:
             vectorstore = get_vectorstore_instance()
+            print(f"[STREAM RAG] Vectorstore available: {vectorstore is not None}")
             if vectorstore:
                 results = vectorstore.similarity_search_with_score(message, k=3)
+                print(f"[STREAM RAG] Got {len(results)} results for query: '{message[:50]}...'")
                 relevant_docs = []
                 for doc, distance in results:
                     similarity = 1 - distance if distance <= 1 else 0
+                    above = "PASS" if similarity >= 0.55 else "FAIL"
+                    print(f"[STREAM RAG] [{above}] Score={similarity:.3f}, Distance={distance:.3f}, Content='{doc.page_content[:80]}...'")
                     if similarity >= 0.55:
                         relevant_docs.append(doc)
                 
                 if relevant_docs:
                     context = "\n\n".join([doc.page_content[:1000] for doc in relevant_docs[:2]])
                     source = "Medical Database"
+                    print(f"[STREAM RAG] SOURCE = Medical Database ({len(relevant_docs)} relevant docs)")
+                else:
+                    print(f"[STREAM RAG] SOURCE = AI Knowledge (no docs above 0.55 threshold)")
+            else:
+                print(f"[STREAM RAG] SOURCE = AI Knowledge (no vectorstore)")
         except Exception as e:
-            print(f"RAG error in streaming: {e}")
+            print(f"[STREAM RAG] ERROR: {e}")
+            import traceback
+            traceback.print_exc()
         
         # Send source info
         yield f"data: {json.dumps({'type': 'source', 'source': source})}\n\n"
         
-        # Build prompt - matches ExecutorAgent's MEDICAL_PROMPT_TEMPLATE with follow-up question strategy
-        prompt = f"""You are HealthMate Clinician, a medical Q&A assistant using the Follow-up Question Strategy.
+        # Build prompt - matches ExecutorAgent's approach with follow-up limit
+        prompt = f"""You are HealthMate Clinician, a medical Q&A assistant.
+
+CRITICAL RULE: Your PRIMARY job is to ANSWER the question directly. Do NOT ask follow-up questions unless the question is truly impossible to answer. Always prefer giving a direct, helpful answer.
 
 BEHAVIOR RULES:
 
-1. CLARIFICATION (if needed):
-   - If the question is ambiguous, ask up to TWO targeted follow-up questions
-   - Each question should clarify the user's intent
-   - Do not ask more than two questions at once
-
-2. ANSWERING:
-   - After clarification (or if question is clear), provide a concise, evidence-based answer
-   - Use the ANSWER format below
+1. ANSWERING (DEFAULT - do this in most cases):
+   - Provide a concise, evidence-based answer
    - Include safety caveats and when to seek urgent care
    - Encourage consulting healthcare professionals for diagnosis/treatment
+   - Even with limited information, provide the best possible answer
+
+2. CLARIFICATION (only if absolutely necessary):
+   - Only if the question is truly impossible to answer, ask up to TWO targeted follow-up questions
+   - Do not ask more than two questions at once
 
 3. SAFETY AND TONE:
    - Use non-judgmental, empathetic language
@@ -217,7 +262,7 @@ SUMMARY
 WHAT TO DO NOW
 [Practical steps: when to seek care, home care tips, what to monitor]
 
-RED FLAGS
+URGENT WARNINGS
 [Urgent warning signs and actions - call emergency if present]
 
 POSSIBLE CONSIDERATIONS
@@ -230,7 +275,7 @@ PATIENT'S CURRENT QUESTION: {message}
 REFERENCE INFORMATION:
 {context if context else "No specific reference available."}
 
-YOUR RESPONSE (follow the rules above):"""
+YOUR RESPONSE (ANSWER the question directly - do NOT ask follow-up questions unless absolutely necessary):"""
         
         # Stream the response
         full_response = ""

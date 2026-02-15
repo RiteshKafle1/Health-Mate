@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 
@@ -50,93 +51,95 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/doctors" element={<Doctors />} />
+          <NotificationProvider>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/doctors" element={<Doctors />} />
 
-            {/* User Routes */}
-            <Route
-              element={
-                <ProtectedRoute allowedRoles={['user']}>
-                  <DashboardLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="/user/dashboard" element={<UserDashboard />} />
-              <Route path="/user/profile" element={<UserProfile />} />
-              <Route path="/user/doctors" element={<Doctors />} />
-              <Route path="/user/book/:doctorId" element={<BookAppointment />} />
-              <Route path="/user/appointments" element={<UserAppointments />} />
-              <Route path="/user/medications" element={<Medications />} />
-              <Route path="/user/analytics" element={<Analytics />} />
-              <Route path="/user/reports" element={<Reports />} />
-              <Route path="/user/reports/analysis/:reportId" element={<LabAnalysisPage />} />
-              <Route path="/user/chatbot" element={<Chatbot />} />
-            </Route>
+              {/* User Routes */}
+              <Route
+                element={
+                  <ProtectedRoute allowedRoles={['user']}>
+                    <DashboardLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="/user/dashboard" element={<UserDashboard />} />
+                <Route path="/user/profile" element={<UserProfile />} />
+                <Route path="/user/doctors" element={<Doctors />} />
+                <Route path="/user/book/:doctorId" element={<BookAppointment />} />
+                <Route path="/user/appointments" element={<UserAppointments />} />
+                <Route path="/user/medications" element={<Medications />} />
+                <Route path="/user/analytics" element={<Analytics />} />
+                <Route path="/user/reports" element={<Reports />} />
+                <Route path="/user/reports/analysis/:reportId" element={<LabAnalysisPage />} />
+                <Route path="/user/chatbot" element={<Chatbot />} />
+              </Route>
 
-            {/* Doctor Routes */}
-            <Route
-              element={
-                <ProtectedRoute allowedRoles={['doctor']}>
-                  <DashboardLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
-              <Route path="/doctor/profile" element={<DoctorProfile />} />
-              <Route path="/doctor/appointments" element={<DoctorAppointments />} />
-              <Route path="/doctor/availability" element={<Availability />} />
-              <Route path="/doctor/patient-reports" element={<PatientReports />} />
-            </Route>
+              {/* Doctor Routes */}
+              <Route
+                element={
+                  <ProtectedRoute allowedRoles={['doctor']}>
+                    <DashboardLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+                <Route path="/doctor/profile" element={<DoctorProfile />} />
+                <Route path="/doctor/appointments" element={<DoctorAppointments />} />
+                <Route path="/doctor/availability" element={<Availability />} />
+                <Route path="/doctor/patient-reports" element={<PatientReports />} />
+              </Route>
 
-            {/* Admin Routes */}
-            <Route
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <DashboardLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/add-doctor" element={<AddDoctor />} />
-              <Route path="/admin/doctors" element={<AllDoctors />} />
-              <Route path="/admin/doctor-availability" element={<DoctorAvailability />} />
-              <Route path="/admin/patients" element={<AllPatients />} />
-              <Route path="/admin/appointments" element={<AdminAppointments />} />
-            </Route>
+              {/* Admin Routes */}
+              <Route
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <DashboardLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                <Route path="/admin/add-doctor" element={<AddDoctor />} />
+                <Route path="/admin/doctors" element={<AllDoctors />} />
+                <Route path="/admin/doctor-availability" element={<DoctorAvailability />} />
+                <Route path="/admin/patients" element={<AllPatients />} />
+                <Route path="/admin/appointments" element={<AdminAppointments />} />
+              </Route>
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </Routes>
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
 
-          {/* Toast Notifications */}
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#1e293b',
-                color: '#f8fafc',
-                border: '1px solid #334155',
-                borderRadius: '12px',
-              },
-              success: {
-                iconTheme: {
-                  primary: '#10b981',
-                  secondary: '#f8fafc',
+            {/* Toast Notifications */}
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: '#1e293b',
+                  color: '#f8fafc',
+                  border: '1px solid #334155',
+                  borderRadius: '12px',
                 },
-              },
-              error: {
-                iconTheme: {
-                  primary: '#ef4444',
-                  secondary: '#f8fafc',
+                success: {
+                  iconTheme: {
+                    primary: '#10b981',
+                    secondary: '#f8fafc',
+                  },
                 },
-              },
-            }}
-          />
+                error: {
+                  iconTheme: {
+                    primary: '#ef4444',
+                    secondary: '#f8fafc',
+                  },
+                },
+              }}
+            />
+          </NotificationProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

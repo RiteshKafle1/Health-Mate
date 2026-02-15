@@ -37,7 +37,6 @@ async def cancel_doctor_appointment(doc_id: str, appointment_id: str) -> dict:
     """Cancel a doctor's appointment."""
     appointments = get_appointments_collection()
     doctors = get_doctors_collection()
-    from ...core.database import get_notifications_collection
     import time
     
     try:
@@ -71,22 +70,18 @@ async def cancel_doctor_appointment(doc_id: str, appointment_id: str) -> dict:
                 {"$set": {"slots_booked": slots_booked}}
             )
             
-    # Send notification to patient
-    notifications = get_notifications_collection()
+    # Send real-time notification to patient via unified pipeline
     doctor_name = appt.get("docData", {}).get("name", "The doctor")
-    
-    notification_doc = {
-        "user_id": appt["userId"],
-        "type": "appointment_cancelled",
-        "message": f"Dr. {doctor_name} has cancelled your appointment for {slot_date} at {slot_time}",
-        "data": {
-            "appointment_id": appointment_id,
-            "doctor_id": doc_id
-        },
-        "read": False,
-        "created_at": int(time.time() * 1000)
-    }
-    await notifications.insert_one(notification_doc)
+    try:
+        from ..notification_service import send_appointment_status_update
+        await send_appointment_status_update(
+            user_id=appt["userId"],
+            appointment_id=appointment_id,
+            status="cancelled",
+            doctor_name=doctor_name
+        )
+    except Exception as e:
+        print(f"Notification error (cancel): {e}")
     
     return {"success": True, "message": "Appointment Cancelled"}
 
@@ -116,13 +111,25 @@ async def complete_doctor_appointment(doc_id: str, appointment_id: str) -> dict:
         {"$set": {"isCompleted": True, "status": "completed"}}
     )
     
+    # Notify the patient that their appointment was completed
+    doctor_name = appt.get("docData", {}).get("name", "your doctor")
+    try:
+        from ..notification_service import send_appointment_status_update
+        await send_appointment_status_update(
+            user_id=appt["userId"],
+            appointment_id=appointment_id,
+            status="completed",
+            doctor_name=doctor_name
+        )
+    except Exception as e:
+        print(f"Notification error (complete): {e}")
+    
     return {"success": True, "message": "Appointment Completed"}
 
 
 async def accept_doctor_appointment(doc_id: str, appointment_id: str) -> dict:
     """Doctor accepts a pending appointment."""
     appointments = get_appointments_collection()
-    from ...core.database import get_notifications_collection, get_users_collection
     import time
     
     try:
@@ -147,26 +154,22 @@ async def accept_doctor_appointment(doc_id: str, appointment_id: str) -> dict:
         {"$set": {"status": "accepted"}}
     )
     
-    # Send notification to patient
-    notifications = get_notifications_collection()
+    # Send real-time notification to patient via unified pipeline
     doctor_name = appt.get("docData", {}).get("name", "Your doctor")
     slot_date = appt.get("slotDate", "")
     slot_time = appt.get("slotTime", "")
     
-    notification_doc = {
-        "user_id": appt["userId"],
-        "type": "appointment_accepted",
-        "message": f"Dr. {doctor_name} has confirmed your appointment for {slot_date} at {slot_time}",
-        "data": {
-            "appointment_id": appointment_id,
-            "doctor_id": doc_id,
-            "slot_date": slot_date,
-            "slot_time": slot_time
-        },
-        "read": False,
-        "created_at": int(time.time() * 1000)
-    }
-    await notifications.insert_one(notification_doc)
+    try:
+        from ..notification_service import send_appointment_accepted
+        await send_appointment_accepted(
+            user_id=appt["userId"],
+            appointment_id=appointment_id,
+            doctor_name=doctor_name,
+            slot_date=slot_date,
+            slot_time=slot_time
+        )
+    except Exception as e:
+        print(f"Notification error (accept): {e}")
     
     return {"success": True, "message": "Appointment accepted successfully"}
 
@@ -175,7 +178,6 @@ async def reject_doctor_appointment(doc_id: str, appointment_id: str, reason: st
     """Doctor rejects a pending appointment."""
     appointments = get_appointments_collection()
     doctors = get_doctors_collection()
-    from ...core.database import get_notifications_collection
     import time
     
     try:
@@ -218,27 +220,18 @@ async def reject_doctor_appointment(doc_id: str, appointment_id: str, reason: st
                 {"$set": {"slots_booked": slots_booked}}
             )
     
-    # Send notification to patient
-    notifications = get_notifications_collection()
+    # Send real-time notification to patient via unified pipeline
     doctor_name = appt.get("docData", {}).get("name", "The doctor")
-    
-    message = f"Dr. {doctor_name} was unable to accept your appointment request"
-    if reason:
-        message += f". Reason: {reason}"
-    
-    notification_doc = {
-        "user_id": appt["userId"],
-        "type": "appointment_rejected",
-        "message": message,
-        "data": {
-            "appointment_id": appointment_id,
-            "doctor_id": doc_id,
-            "reason": reason
-        },
-        "read": False,
-        "created_at": int(time.time() * 1000)
-    }
-    await notifications.insert_one(notification_doc)
+    try:
+        from ..notification_service import send_appointment_rejected
+        await send_appointment_rejected(
+            user_id=appt["userId"],
+            appointment_id=appointment_id,
+            doctor_name=doctor_name,
+            reason=reason
+        )
+    except Exception as e:
+        print(f"Notification error (reject): {e}")
     
     return {"success": True, "message": "Appointment rejected"}
 

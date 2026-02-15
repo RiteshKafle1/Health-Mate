@@ -202,6 +202,18 @@ async def process_interpretation_background(
                 result=response_data
             )
 
+            # Trigger notification
+            try:
+                from ..services.notification_service import send_lab_report_ready
+                report_type = patient_context.get("report_type", "Lab Report")
+                await send_lab_report_ready(
+                    user_id=user_id,
+                    report_id=report_id,
+                    report_type=report_type
+                )
+            except Exception as e:
+                logger.error(f"Failed to send notification for job {job_id}: {e}")
+
             logger.info(f"Job {job_id} completed successfully")
 
     except Exception as e:

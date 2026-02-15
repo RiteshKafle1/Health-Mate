@@ -725,6 +725,19 @@ async def mark_dose_taken(user_id: str, medication_id: str, time_slot: str, take
         pass
     # === END HISTORY LOGGING ===
     
+    # === OUT-OF-STOCK ALERT ===
+    if taken and current_stock is not None and current_stock <= 0:
+        try:
+            from ..notification_service import send_out_of_stock_alert
+            await send_out_of_stock_alert(
+                user_id=user_id,
+                medication_id=medication_id,
+                medication_name=current_med.get("name", "medication")
+            )
+        except Exception as e:
+            print(f"Notification error (out_of_stock): {e}")
+    # === END OUT-OF-STOCK ALERT ===
+    
     # Fetch and return updated medication
     updated = await get_medication(user_id, medication_id)
     if updated["success"]:

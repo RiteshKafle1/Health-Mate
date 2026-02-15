@@ -46,6 +46,26 @@ async def verify_razorpay_payment(razorpay_order_id: str) -> dict:
                 {"_id": ObjectId(receipt)},
                 {"$set": {"payment": True}}
             )
+            
+            # Get appointment to send notification
+            appt = await appointments.find_one({"_id": ObjectId(receipt)})
+            if appt:
+                try:
+                    from ..notification_service import send_payment_success
+                    user_id = appt.get("userId")
+                    # Amount is in paise, convert to rupees
+                    amount = float(order_info.get("amount", 0)) / 100
+                    doctor_name = appt.get("docData", {}).get("name", "the doctor")
+                    
+                    await send_payment_success(
+                        user_id=user_id,
+                        appointment_id=receipt,
+                        amount=amount,
+                        doctor_name=doctor_name
+                    )
+                except Exception as e:
+                    print(f"Error sending payment success notification: {e}")
+            
             return {"success": True, "message": "Payment Successful"}
         else:
             return {"success": False, "message": "Payment Failed"}

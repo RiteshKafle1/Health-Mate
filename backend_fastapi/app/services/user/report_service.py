@@ -76,6 +76,17 @@ async def upload_report(
     result = await reports.insert_one(report_doc)
     report_doc["_id"] = str(result.inserted_id)
     
+    # Send upload confirmation notification
+    try:
+        from ..notification_service import send_lab_report_uploaded
+        await send_lab_report_uploaded(
+            user_id=user_id,
+            report_id=report_doc["_id"],
+            report_type=report_type
+        )
+    except Exception as e:
+        print(f"Notification error (upload_report): {e}")
+    
     return {
         "success": True, 
         "message": "Report uploaded successfully",
@@ -309,21 +320,17 @@ async def request_report_access(doctor_id: str, user_id: str, appointment_id: st
     result = await requests.insert_one(request_doc)
     request_id = str(result.inserted_id)
     
-    # Create notification for user
-    notification_doc = {
-        "user_id": user_id,
-        "type": "report_access_request",
-        "message": f"Dr. {doctor_name} is requesting access to view your lab reports",
-        "data": {
-            "request_id": request_id,
-            "doctor_id": doctor_id,
-            "doctor_name": doctor_name
-        },
-        "read": False,
-        "created_at": int(time.time() * 1000)
-    }
-    
-    await notifications.insert_one(notification_doc)
+    # Send real-time notification to patient via unified pipeline
+    try:
+        from ..notification_service import send_report_access_request
+        await send_report_access_request(
+            user_id=user_id,
+            request_id=request_id,
+            doctor_id=doctor_id,
+            doctor_name=doctor_name
+        )
+    except Exception as e:
+        print(f"Notification error (report_access_request): {e}")
     
     return {
         "success": True, 
@@ -385,6 +392,20 @@ async def approve_access_request(user_id: str, request_id: str) -> dict:
         {"$set": {"status": "approved", "resolved_at": int(time.time() * 1000)}}
     )
     
+    # Notify the doctor that access was approved
+    try:
+        from ..notification_service import send_report_access_approved
+        users = get_users_collection()
+        user = await users.find_one({"_id": ObjectId(user_id)})
+        patient_name = user.get("name", "A patient") if user else "A patient"
+        await send_report_access_approved(
+            doctor_id=req["doctor_id"],
+            patient_name=patient_name,
+            request_id=request_id
+        )
+    except Exception as e:
+        print(f"Notification error (approve_access): {e}")
+    
     return {"success": True, "message": "Access approved. Doctor can now view your reports."}
 
 
@@ -410,6 +431,20 @@ async def deny_access_request(user_id: str, request_id: str) -> dict:
         {"_id": ObjectId(request_id)},
         {"$set": {"status": "denied", "resolved_at": int(time.time() * 1000)}}
     )
+    
+    # Notify the doctor that access was denied
+    try:
+        from ..notification_service import send_report_access_denied
+        users = get_users_collection()
+        user = await users.find_one({"_id": ObjectId(user_id)})
+        patient_name = user.get("name", "A patient") if user else "A patient"
+        await send_report_access_denied(
+            doctor_id=req["doctor_id"],
+            patient_name=patient_name,
+            request_id=request_id
+        )
+    except Exception as e:
+        print(f"Notification error (deny_access): {e}")
     
     return {"success": True, "message": "Access request denied."}
 

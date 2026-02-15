@@ -176,6 +176,23 @@ async def cancel_appointment_admin(appointment_id: str) -> dict:
                 {"$set": {"slots_booked": slots_booked}}
             )
     
+    # Notify user via admin service
+    try:
+        from ..notification_service import send_appointment_cancelled_by_admin
+        doctor_name = doctor.get("name", "the doctor") if doctor else "the doctor"
+        user_id = appt.get("userId")
+        appointment_id_str = str(appt.get("_id"))
+        
+        await send_appointment_cancelled_by_admin(
+            user_id=user_id,
+            appointment_id=appointment_id_str,
+            doctor_name=doctor_name,
+            slot_date=slot_date,
+            slot_time=slot_time
+        )
+    except Exception as e:
+        print(f"Error sending admin cancellation notification: {e}")
+
     return {"success": True, "message": "Appointment Cancelled"}
 
 

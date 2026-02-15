@@ -11,15 +11,35 @@ import time
 
 # Notification Types Enum
 NOTIFICATION_TYPES = {
+    # Profile
     "profile_incomplete": "Profile Completion",
+    "welcome": "Welcome",
+    # Medication
     "medication_reminder": "Medication Reminder",
     "medication_low_stock": "Low Stock Alert",
+    "medication_missed": "Missed Dose",
+    "medication_out_of_stock": "Out of Stock",
+    # Appointment
     "appointment_confirmed": "Appointment Confirmed",
     "appointment_reminder": "Appointment Reminder",
     "appointment_completed": "Appointment Completed",
     "appointment_cancelled": "Appointment Cancelled",
+    "appointment_accepted": "Appointment Accepted",
+    "appointment_rejected": "Appointment Rejected",
+    "appointment_booked": "New Appointment Booked",
+
+    "appointment_user_cancelled": "Patient Cancelled",
+    "appointment_admin_cancelled": "Admin Cancelled",
+    "appointment_missed": "Appointment Missed",
+    "payment_success": "Payment Successful",
+    # Health
     "health_checkin": "Health Check-in",
-    "report_access_request": "Report Access Request"
+    # Reports
+    "report_access_request": "Report Access Request",
+    "report_access_approved": "Access Approved",
+    "report_access_denied": "Access Denied",
+    "lab_report_uploaded": "Lab Report Uploaded",
+    "lab_report_ready": "Lab Results Ready",
 }
 
 # Default notification preferences
@@ -64,6 +84,7 @@ async def create_notification(
     notification_data = {
         "user_id": user_id,
         "type": notification_type,
+        "title": NOTIFICATION_TYPES.get(notification_type, "Notification"),
         "message": message,
         "data": data or {},
         "priority": priority,
@@ -75,6 +96,22 @@ async def create_notification(
     
     result = await notifications.insert_one(notification_data)
     notification_data["_id"] = str(result.inserted_id)
+    notification_data["id"] = str(result.inserted_id)
+    
+    # === REAL-TIME DELIVERY ===
+    # Cache in Redis for quick access
+    try:
+        from ..redis.notification_cache import cache_notification
+        await cache_notification(user_id, notification_data)
+    except Exception as e:
+        print(f"Redis cache warning: {e}")
+    
+    # Emit via Socket.IO for instant delivery
+    try:
+        from ..sockets import emit_to_user
+        await emit_to_user(user_id, "new_notification", notification_data)
+    except Exception as e:
+        print(f"Socket emit warning: {e}")
     
     return {
         "success": True,
@@ -111,6 +148,39 @@ async def get_user_notifications(user_id: str, unread_only: bool = False, limit:
     }
 
 
+async def create_multi_role_notification(notifications_list: List[Dict]) -> List[Dict]:
+    """
+    Create specific notifications for multiple users/roles from a single event.
+    
+    Args:
+        notifications_list: List of dicts, each containing:
+            - user_id: Target user ID
+            - type: Notification type
+            - message: Message for this user
+            - data: Optional data
+            - priority: Optional priority
+            
+    Returns:
+        List of created notification results
+    """
+    results = []
+    for n in notifications_list:
+        try:
+            res = await create_notification(
+                user_id=n["user_id"],
+                notification_type=n["type"],
+                message=n["message"],
+                data=n.get("data"),
+                priority=n.get("priority", "medium"),
+                action_url=n.get("action_url")
+            )
+            results.append(res)
+        except Exception as e:
+            print(f"Error creating notification for {n.get('user_id')}: {e}")
+    
+    return results
+
+
 async def mark_as_read(notification_id: str) -> dict:
     """Mark a notification as read."""
     notifications = get_notifications_collection()
@@ -121,6 +191,36 @@ async def mark_as_read(notification_id: str) -> dict:
     )
     
     return {"success": result.modified_count > 0}
+
+
+async def mark_all_as_read(user_id: str) -> dict:
+    """Mark all notifications for a user as read."""
+    notifications = get_notifications_collection()
+    
+    result = await notifications.update_many(
+        {"user_id": user_id, "read": False},
+        {"$set": {"read": True}}
+    )
+    
+    return {
+        "success": True, 
+        "modified_count": result.modified_count
+    }
+
+
+async def delete_notification(user_id: str, notification_id: str) -> dict:
+    """Delete a notification."""
+    notifications = get_notifications_collection()
+    
+    result = await notifications.delete_one({
+        "_id": ObjectId(notification_id),
+        "user_id": user_id
+    })
+    
+    if result.deleted_count == 0:
+        return {"success": False, "message": "Notification not found"}
+        
+    return {"success": True}
 
 
 # ==================== PROFILE COMPLETION ====================
@@ -453,6 +553,215 @@ async def send_health_checkin(user_id: str) -> dict:
         data={},
         priority="low",
         action_url="/health-survey"
+    )
+
+
+# ==================== APPOINTMENT ACCEPT / REJECT ====================
+
+async def send_appointment_accepted(user_id: str, appointment_id: str, doctor_name: str, slot_date: str, slot_time: str) -> dict:
+    """Notify user that doctor accepted their appointment."""
+    message = f"✅ Dr. {doctor_name} has confirmed your appointment for {slot_date} at {slot_time}"
+    return await create_notification(
+        user_id=user_id,
+        notification_type="appointment_accepted",
+        message=message,
+        data={"appointment_id": appointment_id, "doctor_name": doctor_name, "slot_date": slot_date, "slot_time": slot_time},
+        priority="high",
+        action_url="/appointments"
+    )
+
+
+async def send_appointment_rejected(user_id: str, appointment_id: str, doctor_name: str, reason: str = None) -> dict:
+    """Notify user that doctor rejected their appointment."""
+    message = f"❌ Dr. {doctor_name} was unable to accept your appointment request"
+    if reason:
+        message += f". Reason: {reason}"
+    return await create_notification(
+        user_id=user_id,
+        notification_type="appointment_rejected",
+        message=message,
+        data={"appointment_id": appointment_id, "doctor_name": doctor_name, "reason": reason},
+        priority="high",
+        action_url="/appointments"
+    )
+
+
+async def send_appointment_booked_to_doctor(doctor_id: str, appointment_id: str, patient_name: str, slot_date: str, slot_time: str) -> dict:
+    """Notify doctor that a patient booked an appointment."""
+    message = f"📋 New appointment request from {patient_name} for {slot_date} at {slot_time}"
+    return await create_notification(
+        user_id=doctor_id,
+        notification_type="appointment_booked",
+        message=message,
+        data={"appointment_id": appointment_id, "patient_name": patient_name, "slot_date": slot_date, "slot_time": slot_time},
+        priority="high",
+        action_url="/doctor/appointments"
+    )
+
+
+async def send_appointment_cancelled_by_patient(doctor_id: str, appointment_id: str, patient_name: str, slot_date: str, slot_time: str) -> dict:
+    """Notify doctor that a patient cancelled their appointment."""
+    message = f"🚫 {patient_name} cancelled their appointment for {slot_date} at {slot_time}"
+    return await create_notification(
+        user_id=doctor_id,
+        notification_type="appointment_user_cancelled",
+        message=message,
+        data={"appointment_id": appointment_id, "patient_name": patient_name, "slot_date": slot_date, "slot_time": slot_time},
+        priority="medium",
+        action_url="/doctor/appointments"
+    )
+
+async def send_appointment_cancelled_by_admin(user_id: str, appointment_id: str, doctor_name: str, slot_date: str, slot_time: str) -> dict:
+    """Notify user that admin cancelled their appointment."""
+    message = f"🚫 Your appointment with Dr. {doctor_name} on {slot_date} at {slot_time} has been cancelled by admin"
+    return await create_notification(
+        user_id=user_id,
+        notification_type="appointment_admin_cancelled",
+        message=message,
+        data={"appointment_id": appointment_id, "doctor_name": doctor_name, "slot_date": slot_date, "slot_time": slot_time},
+        priority="high",
+        action_url="/appointments"
+    )
+
+async def send_payment_success(user_id: str, appointment_id: str, amount: float, doctor_name: str) -> dict:
+    """Notify user that payment was successful."""
+    message = f"💰 Payment of ₹{amount} for appointment with Dr. {doctor_name} was successful"
+    return await create_notification(
+        user_id=user_id,
+        notification_type="payment_success",
+        message=message,
+        data={"appointment_id": appointment_id, "amount": amount, "doctor_name": doctor_name},
+        priority="medium",
+        action_url=f"/appointments"
+    )
+
+async def send_appointment_missed(user_id: str, appointment_id: str, other_party_name: str, slot_date: str, slot_time: str, is_doctor: bool = False) -> dict:
+    """Notify user or doctor that an appointment was missed."""
+    if is_doctor:
+        message = f"⏰ Appointment with {other_party_name} on {slot_date} at {slot_time} was missed"
+        action_url = "/doctor/appointments"
+    else:
+        message = f"⏰ Your appointment with Dr. {other_party_name} on {slot_date} at {slot_time} was missed"
+        action_url = "/appointments"
+    return await create_notification(
+        user_id=user_id,
+        notification_type="appointment_missed",
+        message=message,
+        data={"appointment_id": appointment_id, "slot_date": slot_date, "slot_time": slot_time},
+        priority="medium",
+        action_url=action_url
+    )
+
+
+# ==================== REPORT ACCESS NOTIFICATIONS ====================
+
+async def send_report_access_request(user_id: str, request_id: str, doctor_id: str, doctor_name: str) -> dict:
+    """Notify user that a doctor is requesting report access."""
+    message = f"🔒 Dr. {doctor_name} is requesting access to view your lab reports"
+    return await create_notification(
+        user_id=user_id,
+        notification_type="report_access_request",
+        message=message,
+        data={"request_id": request_id, "doctor_id": doctor_id, "doctor_name": doctor_name},
+        priority="high",
+        action_url="/reports"
+    )
+
+
+async def send_report_access_approved(doctor_id: str, patient_name: str, request_id: str) -> dict:
+    """Notify doctor that patient approved report access."""
+    message = f"✅ {patient_name} has approved your request to view their lab reports"
+    return await create_notification(
+        user_id=doctor_id,
+        notification_type="report_access_approved",
+        message=message,
+        data={"request_id": request_id, "patient_name": patient_name},
+        priority="high",
+        action_url="/doctor/patient-reports"
+    )
+
+
+async def send_report_access_denied(doctor_id: str, patient_name: str, request_id: str) -> dict:
+    """Notify doctor that patient denied report access."""
+    message = f"❌ {patient_name} has denied your request to view their lab reports"
+    return await create_notification(
+        user_id=doctor_id,
+        notification_type="report_access_denied",
+        message=message,
+        data={"request_id": request_id, "patient_name": patient_name},
+        priority="medium",
+        action_url="/doctor/patient-reports"
+    )
+
+
+# ==================== MEDICATION ALERTS ====================
+
+async def send_missed_dose_alert(user_id: str, medication_id: str, medication_name: str, time_slot: str) -> dict:
+    """Send alert when a scheduled dose was missed."""
+    message = f"⚠️ You missed your {medication_name} dose at {time_slot}. Take it as soon as possible."
+    return await create_notification(
+        user_id=user_id,
+        notification_type="medication_missed",
+        message=message,
+        data={"medication_id": medication_id, "medication_name": medication_name, "time_slot": time_slot},
+        priority="high",
+        action_url="/medications"
+    )
+
+
+async def send_out_of_stock_alert(user_id: str, medication_id: str, medication_name: str) -> dict:
+    """Send alert when a medication is completely out of stock."""
+    message = f"🚨 {medication_name} is completely out of stock! Please refill immediately."
+    return await create_notification(
+        user_id=user_id,
+        notification_type="medication_out_of_stock",
+        message=message,
+        data={"medication_id": medication_id, "medication_name": medication_name},
+        priority="urgent",
+        action_url="/medications"
+    )
+
+
+# ==================== LAB REPORT NOTIFICATIONS ====================
+
+async def send_lab_report_uploaded(user_id: str, report_id: str, report_type: str) -> dict:
+    """Notify user that their lab report was uploaded successfully."""
+    message = f"📄 Your {report_type} lab report has been uploaded successfully"
+    return await create_notification(
+        user_id=user_id,
+        notification_type="lab_report_uploaded",
+        message=message,
+        data={"report_id": report_id, "report_type": report_type},
+        priority="low",
+        action_url=f"/reports"
+    )
+
+
+async def send_lab_report_ready(user_id: str, report_id: str, report_type: str) -> dict:
+    """Notify user that their lab report interpretation is ready."""
+    message = f"🔬 Your {report_type} lab report analysis is ready! View your detailed results."
+    return await create_notification(
+        user_id=user_id,
+        notification_type="lab_report_ready",
+        message=message,
+        data={"report_id": report_id, "report_type": report_type},
+        priority="high",
+        action_url=f"/reports/analysis/{report_id}"
+    )
+
+
+# ==================== WELCOME NOTIFICATION ====================
+
+async def send_welcome_notification(user_id: str, user_name: str) -> dict:
+    """Send welcome notification to newly registered user."""
+    message = f"👋 Welcome to Health-Mate, {user_name}! Complete your profile to get personalized health recommendations."
+    return await create_notification(
+        user_id=user_id,
+        notification_type="welcome",
+        message=message,
+        data={"user_name": user_name},
+        priority="medium",
+        action_url="/profile"
     )
 
 

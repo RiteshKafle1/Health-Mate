@@ -2,20 +2,30 @@
 from ..core.state import AgentState
 from ..tools.llm_client import get_llm
 
-MEDICAL_PROMPT_TEMPLATE = """You are HealthMate Clinician, a medical Q&A assistant using the Follow-up Question Strategy.
+# Max number of conversation exchanges before forcing a direct answer
+MAX_FOLLOW_UP_EXCHANGES = 5
+
+MEDICAL_PROMPT_TEMPLATE = """You are HealthMate Clinician, a medical Q&A assistant.
+
+CRITICAL RULES FOR FOLLOW-UP QUESTIONS:
+- You have had {exchange_count} conversation exchanges so far (max allowed: {max_exchanges}).
+- {follow_up_instruction}
+- Your PRIMARY job is to ANSWER the question, not to keep asking more questions.
+- ALWAYS prefer giving a direct answer over asking follow-up questions.
+- Only ask a follow-up if the question is truly impossible to answer without more info.
 
 BEHAVIOR RULES:
 
-1. CLARIFICATION (if needed):
-   - If the question is ambiguous, ask up to TWO targeted follow-up questions
-   - Each question should clarify the user's intent
-   - Do not ask more than two questions at once
-
-2. ANSWERING:
-   - After clarification (or if question is clear), provide a concise, evidence-based answer
-   - Use the ANSWER format below
+1. ANSWERING (DEFAULT - do this in most cases):
+   - Provide a concise, evidence-based answer using the ANSWER format below
    - Include safety caveats and when to seek urgent care
    - Encourage consulting healthcare professionals for diagnosis/treatment
+   - Even with limited information, provide the best possible answer
+
+2. CLARIFICATION (only if absolutely necessary AND under the exchange limit):
+   - Only if the question is truly impossible to answer, ask up to TWO targeted follow-up questions
+   - Each question should clarify the user's intent
+   - Do not ask more than two questions at once
 
 3. SAFETY AND TONE:
    - Use non-judgmental, empathetic language
@@ -37,7 +47,7 @@ SUMMARY
 WHAT TO DO NOW
 [Practical steps: when to seek care, home care tips, what to monitor]
 
-RED FLAGS
+URGENT WARNINGS
 [Urgent warning signs and actions - call emergency if present]
 
 POSSIBLE CONSIDERATIONS
@@ -53,11 +63,28 @@ PATIENT'S CURRENT QUESTION: {question}
 REFERENCE INFORMATION:
 {content}
 
-YOUR RESPONSE (follow the rules above):"""
+YOUR RESPONSE (ANSWER the question directly - do NOT ask follow-up questions unless absolutely necessary):"""
+
+
+def _count_exchanges(conversation_history: list) -> int:
+    """Count the number of user message exchanges in conversation history."""
+    return sum(1 for item in conversation_history if item.get('role') == 'user')
+
+
+def _get_follow_up_instruction(exchange_count: int, max_exchanges: int) -> str:
+    """Get the appropriate instruction based on exchange count."""
+    if exchange_count >= max_exchanges:
+        return "You have REACHED the maximum number of exchanges. You MUST provide a FINAL DIRECT ANSWER now. Do NOT ask any more follow-up questions under any circumstances."
+    elif exchange_count >= max_exchanges - 1:
+        return "You are at the LAST allowed exchange. Provide a DIRECT ANSWER now. Do NOT ask follow-up questions."
+    elif exchange_count >= 2:
+        return f"You have already asked enough follow-up questions. Provide a DIRECT ANSWER now. You have {max_exchanges - exchange_count} exchanges remaining."
+    else:
+        return f"You may ask follow-up questions if the question is truly ambiguous, but prefer giving a direct answer. You have {max_exchanges - exchange_count} exchanges remaining."
 
 
 def ExecutorAgent(state: AgentState) -> AgentState:
-    """Generate the final medical response with follow-up question capability."""
+    """Generate the final medical response with limited follow-up question capability."""
     llm = get_llm()
     
     if not llm:
@@ -68,9 +95,14 @@ def ExecutorAgent(state: AgentState) -> AgentState:
     question = state["question"]
     source_info = state.get("source", "Unknown")
     
+    # Count conversation exchanges to enforce follow-up limit
+    conversation_history = state.get("conversation_history", [])
+    exchange_count = _count_exchanges(conversation_history)
+    follow_up_instruction = _get_follow_up_instruction(exchange_count, MAX_FOLLOW_UP_EXCHANGES)
+    
     # Build conversation context
     history_context = ""
-    for item in state.get("conversation_history", [])[-4:]:
+    for item in conversation_history[-4:]:
         role = item.get('role', '')
         content = item.get('content', '')
         if role == 'user':
@@ -84,6 +116,9 @@ def ExecutorAgent(state: AgentState) -> AgentState:
         content = "\n\n".join([doc.page_content[:1000] for doc in state["documents"][:2]])
         
         prompt = MEDICAL_PROMPT_TEMPLATE.format(
+            exchange_count=exchange_count,
+            max_exchanges=MAX_FOLLOW_UP_EXCHANGES,
+            follow_up_instruction=follow_up_instruction,
             source=source_info,
             history=history_context if history_context else "This is the start of the conversation.",
             question=question,
@@ -99,7 +134,7 @@ def ExecutorAgent(state: AgentState) -> AgentState:
         state["conversation_history"].append({'role': 'user', 'content': question})
         state["conversation_history"].append({'role': 'assistant', 'content': answer, 'source': source_info})
         
-        print(f"Executor: Generated response from {source_info}")
+        print(f"Executor: Generated response from {source_info} (exchange {exchange_count + 1}/{MAX_FOLLOW_UP_EXCHANGES})")
         return state
 
     # If LLM was successful (final fallback path)
@@ -107,11 +142,33 @@ def ExecutorAgent(state: AgentState) -> AgentState:
         answer = state["generation"]
         state["conversation_history"].append({'role': 'user', 'content': question})
         state["conversation_history"].append({'role': 'assistant', 'content': answer, 'source': source_info})
-        print(f"Executor: Using LLM response")
+        print(f"Executor: Using LLM response (exchange {exchange_count + 1}/{MAX_FOLLOW_UP_EXCHANGES})")
         return state
 
-    # Ultimate fallback
-    fallback_response = """Hello. I'm here to help with medical questions.
+    # Ultimate fallback - provide a helpful answer instead of asking more questions
+    if exchange_count >= MAX_FOLLOW_UP_EXCHANGES:
+        fallback_response = """Based on the information you've provided, here is my assessment:
+
+SUMMARY
+Your symptoms suggest a condition that should be evaluated by a healthcare professional for proper diagnosis and treatment.
+
+WHAT TO DO NOW
+1. Schedule an appointment with your primary care physician
+2. Keep track of your symptoms, noting any changes or new developments
+3. Stay hydrated and get adequate rest
+
+URGENT WARNINGS - Seek Immediate Care If:
+- Severe or sudden worsening of symptoms
+- Difficulty breathing or chest pain
+- High fever that doesn't respond to medication
+- Loss of consciousness or confusion
+
+POSSIBLE CONSIDERATIONS
+Discuss your complete symptom history with your doctor for an accurate diagnosis. They may recommend tests or imaging to determine the cause.
+
+Remember: I provide general health information only. Please consult a healthcare professional for personalized medical advice."""
+    else:
+        fallback_response = """Hello. I'm here to help with medical questions.
 
 To better understand your concern, could you tell me:
 1. What specific symptoms are you experiencing?
@@ -125,5 +182,5 @@ This will help me provide more relevant information. Remember, I provide general
     state["conversation_history"].append({'role': 'user', 'content': question})
     state["conversation_history"].append({'role': 'assistant', 'content': fallback_response, 'source': 'System Message'})
     
-    print("Executor: Using fallback response")
+    print(f"Executor: Using fallback response (exchange {exchange_count + 1}/{MAX_FOLLOW_UP_EXCHANGES})")
     return state

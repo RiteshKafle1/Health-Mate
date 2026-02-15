@@ -22,7 +22,7 @@ export function Chatbot() {
     const [sessions, setSessions] = useState<ChatSession[]>([]);
     const [showSidebar, setShowSidebar] = useState(false);
     const [symptomCheckerMode, setSymptomCheckerMode] = useState(false);
-    const [useStreaming, setUseStreaming] = useState(true); // Enable streaming by default
+    const [useStreaming, setUseStreaming] = useState(false); // Disabled streaming - use full LangGraph pipeline
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {

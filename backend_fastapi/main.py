@@ -30,6 +30,9 @@ from app.services.shared.chatbot_service import init_chatbot_service
 from app.healthmate_assist.chatbot_manager import initialize_assist
 from app.services import scheduler_service
 
+# Socket.IO for real-time notifications
+from app.sockets import sio, socket_app
+
 
 app = FastAPI(
     title="Appointy API",
@@ -64,6 +67,7 @@ async def startup_event():
         print(f"❌ Failed to start notification scheduler: {e}")
         # Continue startup even if scheduler fails
     
+    print(f"🔌 Socket.IO server started")
     print(f"Server started on PORT:{settings.PORT}")
 
 
@@ -107,11 +111,19 @@ app.include_router(lab_router)  # AI-powered lab report interpretation
 app.include_router(enrich_router, prefix="/api")  # On-demand biomarker enrichment
 app.include_router(ocr_router, prefix="/api/lab")  # OCR text extraction from lab reports
 
+# Test notification router (development only)
+from app.routers.test_notification import test_notification_router
+app.include_router(test_notification_router)
+
+# Mount Socket.IO for real-time notifications
+app.mount("/socket.io", socket_app)
+
 
 @app.get("/")
 async def root():
     """Health check endpoint."""
     return "API Working"
+
 
 
 @app.get("/test-db")

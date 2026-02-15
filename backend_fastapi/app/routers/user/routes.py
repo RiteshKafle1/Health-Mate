@@ -128,6 +128,12 @@ async def cancel_appointment(data: AppointmentCancel, user_id: str = Depends(get
     return await user_service.cancel_user_appointment(user_id, data.appointmentId)
 
 
+@router.delete("/appointments/{appointment_id}")
+async def delete_appointment(appointment_id: str, user_id: str = Depends(get_current_user)):
+    """Delete (hide) an appointment from history."""
+    return await user_service.delete_user_appointment(user_id, appointment_id)
+
+
 # ==================== PAYMENTS (Disabled - Free Service) ====================
 # Payment endpoints removed as the service is now free
 # If payment functionality is needed in the future, re-add PaymentRequest

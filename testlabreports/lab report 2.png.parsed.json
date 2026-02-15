@@ -1,0 +1,173 @@
+{
+  "patient_info": {
+    "age": 30,
+    "sex": "male"
+  },
+  "extracted_values": [
+    {
+      "name": "RBC",
+      "value": 5.17,
+      "unit": "10^6/uL",
+      "reference_range": {
+        "raw": "4.5 - 5.5",
+        "low": 4.5,
+        "high": 5.5,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Haemoglobin",
+      "value": 13.8,
+      "unit": "g/dL",
+      "reference_range": {
+        "raw": "13 - 17",
+        "low": 13.0,
+        "high": 17.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Hematocrit",
+      "value": 41.5,
+      "unit": "%",
+      "reference_range": {
+        "raw": "40 - 50",
+        "low": 40.0,
+        "high": 50.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "MCV",
+      "value": 80.3,
+      "unit": "L",
+      "reference_range": {
+        "raw": "83 - 101",
+        "low": 83.0,
+        "high": 101.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "MCH",
+      "value": 26.7,
+      "unit": "L",
+      "reference_range": {
+        "raw": "27 - 32",
+        "low": 27.0,
+        "high": 32.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "MCHC",
+      "value": 33.3,
+      "unit": "g/dL",
+      "reference_range": {
+        "raw": "31.5 - 34.5",
+        "low": 31.5,
+        "high": 34.5,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Red Cell Distribution Width",
+      "value": 12.2,
+      "unit": "%",
+      "reference_range": {
+        "raw": "11.6 - 14",
+        "low": 11.6,
+        "high": 14.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Total WBC Count",
+      "value": 6.71,
+      "unit": "10^3/uL",
+      "reference_range": {
+        "raw": "4 - 10",
+        "low": 4.0,
+        "high": 10.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Neutrophils",
+      "value": 53.1,
+      "unit": "%",
+      "reference_range": {
+        "raw": "40 - 80",
+        "low": 40.0,
+        "high": 80.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Lymphocytes",
+      "value": 35.0,
+      "unit": "%",
+      "reference_range": {
+        "raw": "20 - 40",
+        "low": 20.0,
+        "high": 40.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Eosinophils",
+      "value": 1.9,
+      "unit": "%",
+      "reference_range": {
+        "raw": "1 - 6",
+        "low": 1.0,
+        "high": 6.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Monocytes",
+      "value": 9.4,
+      "unit": "%",
+      "reference_range": {
+        "raw": "2 - 10",
+        "low": 2.0,
+        "high": 10.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Basophils",
+      "value": 0.6,
+      "unit": "%",
+      "reference_range": {
+        "raw": "&#x3C; 2",
+        "low": null,
+        "high": null,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Platelet",
+      "value": 265.0,
+      "unit": "10^3/uL",
+      "reference_range": {
+        "raw": "150 - 410",
+        "low": 150.0,
+        "high": 410.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Mean Platelet Volume",
+      "value": 10.1,
+      "unit": "fL",
+      "reference_range": {
+        "raw": "7.6 - 10.8",
+        "low": 7.6,
+        "high": 10.8,
+        "unit": ""
+      }
+    }
+  ]
+}

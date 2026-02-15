@@ -90,8 +90,8 @@ async def rate_limit_login(request: Request) -> None:
     
     is_allowed = await RateLimiter.check_rate_limit(
         key=key,
-        max_attempts=5,
-        window_seconds=900  # 15 minutes
+        max_attempts=10,
+        window_seconds=20  # 15 minutes
     )
     
     if not is_allowed:
@@ -181,11 +181,11 @@ class AccountLockout:
             
             # Progressive lockout duration
             if failed_attempts >= 10:
-                lockout_seconds = 86400  # 24 hours
+                lockout_seconds = 20  # 24 hours
             elif failed_attempts >= 7:
-                lockout_seconds = 3600  # 1 hour
+                lockout_seconds = 30 # 1 hour
             elif failed_attempts >= 5:
-                lockout_seconds = 900  # 15 minutes
+                lockout_seconds = 9  # 15 minutes
             else:
                 lockout_seconds = None
             

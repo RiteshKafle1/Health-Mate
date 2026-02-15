@@ -299,7 +299,7 @@ export function Chatbot() {
                             >
                                 <Zap className="w-4 h-4" />
                             </button>
-                            {/* Symptom Checker Toggle */}
+                            {/* Symptom Checker Toggle - HIDDEN FOR DEMO
                             <button
                                 onClick={() => setSymptomCheckerMode(!symptomCheckerMode)}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-medium text-sm shadow-sm ${symptomCheckerMode
@@ -310,6 +310,7 @@ export function Chatbot() {
                                 <Activity className="w-4 h-4" />
                                 Symptom Checker
                             </button>
+                            */}
                             <button
                                 onClick={handleNewChat}
                                 className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white font-medium hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/20 transition-all text-sm shadow-md"

@@ -20,13 +20,13 @@ import { Chatbot } from './pages/user/Chatbot';
 import { Medications } from './pages/user/Medications';
 import { Analytics } from './pages/user/Analytics';
 import { Reports } from './pages/user/Reports';
+import { LabAnalysisPage } from './pages/user/LabAnalysisPage';
 
 // Doctor Pages
 import { DoctorDashboard } from './pages/doctor/Dashboard';
 import { DoctorProfile } from './pages/doctor/Profile';
 import { DoctorAppointments } from './pages/doctor/Appointments';
 import { Availability } from './pages/doctor/Availability';
-import { Chatbot as DoctorChatbot } from './pages/doctor/Chatbot';
 import { PatientReports } from './pages/doctor/PatientReports';
 
 // Admin Pages
@@ -36,7 +36,6 @@ import { AllDoctors } from './pages/admin/AllDoctors';
 import { AllPatients } from './pages/admin/AllPatients';
 import { AdminAppointments } from './pages/admin/Appointments';
 import { DoctorAvailability } from './pages/admin/DoctorAvailability';
-import { Chatbot as AdminChatbot } from './pages/admin/Chatbot';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,6 +59,7 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/doctors" element={<Doctors />} />
 
+<<<<<<< HEAD
               {/* User Routes */}
               <Route
                 element={
@@ -111,6 +111,58 @@ function App() {
                 <Route path="/admin/appointments" element={<AdminAppointments />} />
                 <Route path="/admin/chatbot" element={<AdminChatbot />} />
               </Route>
+=======
+            {/* User Routes */}
+            <Route
+              element={
+                <ProtectedRoute allowedRoles={['user']}>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/user/dashboard" element={<UserDashboard />} />
+              <Route path="/user/profile" element={<UserProfile />} />
+              <Route path="/user/doctors" element={<Doctors />} />
+              <Route path="/user/book/:doctorId" element={<BookAppointment />} />
+              <Route path="/user/appointments" element={<UserAppointments />} />
+              <Route path="/user/medications" element={<Medications />} />
+              <Route path="/user/analytics" element={<Analytics />} />
+              <Route path="/user/reports" element={<Reports />} />
+              <Route path="/user/reports/analysis/:reportId" element={<LabAnalysisPage />} />
+              <Route path="/user/chatbot" element={<Chatbot />} />
+            </Route>
+
+            {/* Doctor Routes */}
+            <Route
+              element={
+                <ProtectedRoute allowedRoles={['doctor']}>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+              <Route path="/doctor/profile" element={<DoctorProfile />} />
+              <Route path="/doctor/appointments" element={<DoctorAppointments />} />
+              <Route path="/doctor/availability" element={<Availability />} />
+              <Route path="/doctor/patient-reports" element={<PatientReports />} />
+            </Route>
+
+            {/* Admin Routes */}
+            <Route
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/add-doctor" element={<AddDoctor />} />
+              <Route path="/admin/doctors" element={<AllDoctors />} />
+              <Route path="/admin/doctor-availability" element={<DoctorAvailability />} />
+              <Route path="/admin/patients" element={<AllPatients />} />
+              <Route path="/admin/appointments" element={<AdminAppointments />} />
+            </Route>
+>>>>>>> prashish
 
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/login" replace />} />

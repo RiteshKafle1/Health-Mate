@@ -1,10 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Upload, FileText, Trash2, Loader2, Download,
     Image, Video, File, Calendar, X, Filter, Eye
 } from 'lucide-react';
 import { ReportViewerModal } from '../../components/ReportViewerModal';
+<<<<<<< HEAD
 import toast from '../../utils/soundToast';
+=======
+import { LabInterpretButton } from '../../components/LabInterpretButton';
+import toast from 'react-hot-toast';
+>>>>>>> prashish
 import { Button } from '../../components/ui/Button';
 import {
     uploadReport, getMyReports, deleteReport,
@@ -13,10 +19,12 @@ import {
 import type { Report } from '../../api/reports';
 
 export function Reports() {
+    const navigate = useNavigate();
     const [reports, setReports] = useState<Report[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [deleteModalReport, setDeleteModalReport] = useState<Report | null>(null);
 
     // Upload form state
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -107,16 +115,21 @@ export function Reports() {
         }
     };
 
-    const handleDelete = async (reportId: string, e: React.MouseEvent) => {
+    const handleDelete = (report: Report, e: React.MouseEvent) => {
         e.stopPropagation(); // Prevent card click
-        if (!confirm('Are you sure you want to delete this report?')) return;
+        setDeleteModalReport(report);
+    };
 
+    const confirmDelete = async () => {
+        if (!deleteModalReport) return;
+        const reportId = deleteModalReport.id;
         setDeletingId(reportId);
         try {
             const response = await deleteReport(reportId);
             if (response.success) {
                 toast.success('Report deleted');
                 setReports(reports.filter(r => r.id !== reportId));
+                setDeleteModalReport(null);
             } else {
                 toast.error(response.message || 'Delete failed');
             }
@@ -384,7 +397,7 @@ export function Reports() {
                                                 <Download size={16} />
                                             </a>
                                             <button
-                                                onClick={(e) => handleDelete(report.id, e)}
+                                                onClick={(e) => handleDelete(report, e)}
                                                 disabled={deletingId === report.id}
                                                 className="p-2 bg-white text-red-500 hover:bg-red-500 hover:text-white rounded-lg shadow-sm transition-colors"
                                                 title="Delete"
@@ -419,6 +432,18 @@ export function Reports() {
                                         )}
                                     </div>
 
+                                    {/* AI Interpret Button for Lab Reports */}
+                                    {/* AI Interpret Button for Lab Reports - Available for all image/PDF files */}
+                                    {(report.file_type.startsWith('image/') || report.file_type === 'application/pdf') && (
+                                        <div className="mb-3 z-20 relative">
+                                            <LabInterpretButton
+                                                reportId={report.id}
+                                                className="w-full justify-center text-sm"
+                                                isInterpreted={report.is_interpreted}
+                                            />
+                                        </div>
+                                    )}
+
                                     <div className="pt-4 mt-auto border-t border-[#A9B5DF]/30 flex items-center justify-between text-xs font-medium text-[#2D336B]/50">
                                         <span className="flex items-center gap-1.5">
                                             <Calendar size={12} />
@@ -432,10 +457,24 @@ export function Reports() {
 
                                     {/* Clickable overlay for the card */}
                                     <button
-                                        onClick={() => setViewingReport(report)}
+                                        onClick={() => {
+                                            if (report.interpretation_status === 'pending' || report.interpretation_status === 'processing') {
+                                                navigate(`/user/reports/analysis/${report.id}`);
+                                            } else {
+                                                setViewingReport(report);
+                                            }
+                                        }}
                                         className="absolute inset-x-0 bottom-0 top-20 z-10 cursor-pointer"
                                         aria-label={`View ${report.original_name}`}
                                     />
+
+                                    {/* Processing Badge */}
+                                    {(report.interpretation_status === 'pending' || report.interpretation_status === 'processing') && (
+                                        <div className="absolute top-4 right-4 z-30 bg-[#7886C7] text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center shadow-lg animate-pulse">
+                                            <Loader2 size={12} className="animate-spin mr-1.5" />
+                                            {report.interpretation_status === 'pending' ? 'Queued' : 'Analyzing...'}
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -451,6 +490,55 @@ export function Reports() {
                 fileName={viewingReport?.original_name || ''}
                 fileType={viewingReport?.file_type || ''}
             />
+
+            {/* Delete Confirmation Modal */}
+            {deleteModalReport && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setDeleteModalReport(null)}>
+                    <div
+                        className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-[90%] mx-4 animate-fadeIn"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Icon */}
+                        <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-5">
+                            <Trash2 size={26} className="text-red-500" />
+                        </div>
+
+                        {/* Title */}
+                        <h3 className="text-xl font-bold text-[#2D336B] text-center mb-2">Delete Report?</h3>
+
+                        {/* Message */}
+                        <p className="text-[#2D336B]/70 text-center mb-8 text-sm leading-relaxed">
+                            Do you really want to delete{' '}
+                            <span className="font-semibold text-[#2D336B]">"{deleteModalReport.original_name}"</span>?
+                            This action cannot be undone.
+                        </p>
+
+                        {/* Buttons */}
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setDeleteModalReport(null)}
+                                className="flex-1 px-5 py-3 rounded-xl font-semibold text-white bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 transition-all duration-200 hover:shadow-lg hover:shadow-emerald-500/25 hover:-translate-y-0.5"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                disabled={deletingId === deleteModalReport.id}
+                                className="flex-1 px-5 py-3 rounded-xl font-semibold text-white bg-red-500 hover:bg-red-600 active:bg-red-700 transition-all duration-200 hover:shadow-lg hover:shadow-red-500/25 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                            >
+                                {deletingId === deleteModalReport.id ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <Loader2 size={16} className="animate-spin" />
+                                        Deleting...
+                                    </span>
+                                ) : (
+                                    'Delete'
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

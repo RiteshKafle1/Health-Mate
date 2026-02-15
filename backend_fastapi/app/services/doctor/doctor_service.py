@@ -36,18 +36,57 @@ async def get_doctor_appointments(doc_id: str) -> dict:
 async def cancel_doctor_appointment(doc_id: str, appointment_id: str) -> dict:
     """Cancel a doctor's appointment."""
     appointments = get_appointments_collection()
+    doctors = get_doctors_collection()
+    from ...core.database import get_notifications_collection
+    import time
     
-    appt = await appointments.find_one({"_id": ObjectId(appointment_id)})
+    try:
+        appt = await appointments.find_one({"_id": ObjectId(appointment_id)})
+    except Exception:
+        return {"success": False, "message": "Invalid appointment ID"}
+        
     if not appt:
         return {"success": False, "message": "Appointment not found"}
     
     if appt["docId"] != doc_id:
         return {"success": False, "message": "Invalid doctor or appointment"}
     
+    # Update status
     await appointments.update_one(
         {"_id": ObjectId(appointment_id)},
-        {"$set": {"cancelled": True}}
+        {"$set": {"cancelled": True, "status": "cancelled"}}
     )
+    
+    # Release the slot
+    slot_date = appt.get("slotDate")
+    slot_time = appt.get("slotTime")
+    
+    doctor = await doctors.find_one({"_id": ObjectId(doc_id)})
+    if doctor:
+        slots_booked = doctor.get("slots_booked", {})
+        if slot_date in slots_booked and slot_time in slots_booked[slot_date]:
+            slots_booked[slot_date].remove(slot_time)
+            await doctors.update_one(
+                {"_id": ObjectId(doc_id)},
+                {"$set": {"slots_booked": slots_booked}}
+            )
+            
+    # Send notification to patient
+    notifications = get_notifications_collection()
+    doctor_name = appt.get("docData", {}).get("name", "The doctor")
+    
+    notification_doc = {
+        "user_id": appt["userId"],
+        "type": "appointment_cancelled",
+        "message": f"Dr. {doctor_name} has cancelled your appointment for {slot_date} at {slot_time}",
+        "data": {
+            "appointment_id": appointment_id,
+            "doctor_id": doc_id
+        },
+        "read": False,
+        "created_at": int(time.time() * 1000)
+    }
+    await notifications.insert_one(notification_doc)
     
     return {"success": True, "message": "Appointment Cancelled"}
 

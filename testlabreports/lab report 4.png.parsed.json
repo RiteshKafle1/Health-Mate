@@ -1,0 +1,151 @@
+{
+  "patient_info": {
+    "age": 37,
+    "sex": "male"
+  },
+  "extracted_values": [
+    {
+      "name": "Blood Sugar Fasting",
+      "value": 302.0,
+      "unit": "mg/dl",
+      "reference_range": {
+        "raw": "60-110",
+        "low": 60.0,
+        "high": 110.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Blood Urea",
+      "value": 33.0,
+      "unit": "mg/dl",
+      "reference_range": {
+        "raw": "8-45",
+        "low": 8.0,
+        "high": 45.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Sodium (Na+)",
+      "value": 135.2,
+      "unit": "mEq/L",
+      "reference_range": {
+        "raw": "135-146",
+        "low": 135.0,
+        "high": 146.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Potassium (K+)",
+      "value": 4.3,
+      "unit": "mEq/L",
+      "reference_range": {
+        "raw": "3.5-5.2",
+        "low": 3.5,
+        "high": 5.2,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Lipid Profile",
+      "value": 109.0,
+      "unit": "mg/dl",
+      "reference_range": {
+        "raw": "-",
+        "low": null,
+        "high": null,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Total Cholesterol",
+      "value": 204.0,
+      "unit": "mg/dl",
+      "reference_range": {
+        "raw": "-",
+        "low": null,
+        "high": null,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Hemoglobin",
+      "value": 15.1,
+      "unit": "gm/dl",
+      "reference_range": {
+        "raw": "14.0-18.0",
+        "low": 14.0,
+        "high": 18.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Total Leucocyte Count",
+      "value": 6.0,
+      "unit": ",100",
+      "reference_range": {
+        "raw": "4000-11000",
+        "low": 4000.0,
+        "high": 11000.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Differential Leucocyte Count",
+      "value": 44.0,
+      "unit": "%",
+      "reference_range": {
+        "raw": "40-75",
+        "low": 40.0,
+        "high": 75.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Neutrophil",
+      "value": 46.0,
+      "unit": "%",
+      "reference_range": {
+        "raw": "20-45",
+        "low": 20.0,
+        "high": 45.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Monocyte",
+      "value": 8.0,
+      "unit": "%",
+      "reference_range": {
+        "raw": "1-10",
+        "low": 1.0,
+        "high": 10.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Eosinophil",
+      "value": 2.0,
+      "unit": "%",
+      "reference_range": {
+        "raw": "0-6",
+        "low": 0.0,
+        "high": 6.0,
+        "unit": ""
+      }
+    },
+    {
+      "name": "Basophil",
+      "value": 0.0,
+      "unit": "%",
+      "reference_range": {
+        "raw": "0-1",
+        "low": 0.0,
+        "high": 1.0,
+        "unit": ""
+      }
+    }
+  ]
+}

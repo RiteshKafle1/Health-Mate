@@ -10,6 +10,9 @@ export interface Report {
     report_type: string;
     file_size: number;
     uploaded_at: number;
+    is_interpreted?: boolean;
+    interpretation_status?: "pending" | "processing" | "completed" | "failed";
+    current_job_id?: string;
 }
 
 export interface ReportsResponse extends ApiResponse {

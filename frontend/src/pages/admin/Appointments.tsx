@@ -5,7 +5,7 @@ import type { Appointment } from '../../types';
 import { Calendar, Clock, User, Stethoscope, X, Loader2, AlertCircle, Filter, Check, LayoutGrid, ChevronDown } from 'lucide-react';
 import toast from '../../utils/soundToast';
 
-type FilterType = 'all' | 'pending' | 'completed' | 'cancelled' | 'today';
+type FilterType = 'all' | 'pending' | 'completed' | 'cancelled' | 'today' | 'missed';
 
 export function AdminAppointments() {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -61,6 +61,9 @@ export function AdminAppointments() {
 
                 result = appointments.filter((a) => a.slotDate === dateString || a.slotDate === dateStringPad);
                 break;
+            case 'missed':
+                result = appointments.filter((a) => a.status === 'missed');
+                break;
         }
 
         setFilteredAppointments(result);
@@ -104,6 +107,16 @@ export function AdminAppointments() {
             );
         }
 
+        if (apt.status === 'missed') {
+            return (
+                <div className="flex items-center gap-1.5 text-xs font-medium text-dark-400 bg-dark-700/50 px-2.5 py-1 rounded-lg border border-dark-600 w-fit">
+                    <AlertCircle size={12} />
+                    Missed
+                </div>
+            );
+        }
+
+        // Pending State - Using Amber/Reddish standard as requested
         // Pending State - Using Amber/Reddish standard as requested
         return (
             <div className="flex items-center gap-1.5 text-xs font-medium text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20 w-fit">
@@ -141,6 +154,7 @@ export function AdminAppointments() {
                             <option value="all">All Status</option>
                             <option value="today">Today</option>
                             <option value="pending">Pending</option>
+                            <option value="missed">Missed</option>
                             <option value="completed">Completed</option>
                             <option value="cancelled">Cancelled</option>
                         </select>
@@ -163,7 +177,7 @@ export function AdminAppointments() {
 
                 <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-500 ease-in-out">
                     <div className="overflow-hidden">
-                        <div className="p-4 pt-0 grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="p-4 pt-0 grid grid-cols-2 md:grid-cols-5 gap-4">
                             {/* Total */}
                             <div className="bg-dark-900/50 rounded-xl p-3 text-center border border-dark-700/50">
                                 <p className="text-2xl font-bold text-dark-50">{appointments.length}</p>
@@ -189,6 +203,13 @@ export function AdminAppointments() {
                                     {appointments.filter((a) => a.cancelled).length}
                                 </p>
                                 <p className="text-xs text-dark-400 mt-1">Cancelled</p>
+                            </div>
+                            {/* Missed */}
+                            <div className="bg-dark-900/50 rounded-xl p-3 text-center border border-dark-700/50 hidden md:block">
+                                <p className="text-2xl font-bold text-dark-400">
+                                    {appointments.filter((a) => a.status === 'missed').length}
+                                </p>
+                                <p className="text-xs text-dark-400 mt-1">Missed</p>
                             </div>
                         </div>
                     </div>

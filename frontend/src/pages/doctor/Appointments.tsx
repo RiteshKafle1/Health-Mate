@@ -22,6 +22,8 @@ export function DoctorAppointments() {
     const [requestedPatientIds, setRequestedPatientIds] = useState<Set<string>>(new Set());
     const [requestingId, setRequestingId] = useState<string | null>(null);
     const [rejectModalOpen, setRejectModalOpen] = useState<string | null>(null);
+    const [cancelModalOpen, setCancelModalOpen] = useState<string | null>(null);
+    const [completeModalOpen, setCompleteModalOpen] = useState<string | null>(null);
     const [rejectReason, setRejectReason] = useState('');
 
     const fetchAppointments = async () => {
@@ -113,8 +115,13 @@ export function DoctorAppointments() {
         }
     };
 
-    const handleComplete = async (appointmentId: string) => {
-        if (!confirm('Mark this appointment as completed?')) return;
+    const handleCompleteClick = (appointmentId: string) => {
+        setCompleteModalOpen(appointmentId);
+    };
+
+    const confirmComplete = async () => {
+        if (!completeModalOpen) return;
+        const appointmentId = completeModalOpen;
 
         setProcessingId(appointmentId);
 
@@ -122,6 +129,7 @@ export function DoctorAppointments() {
             const response = await completeDoctorAppointment(appointmentId);
             if (response.success) {
                 toast.success('Appointment marked as completed');
+                setCompleteModalOpen(null);
                 fetchAppointments();
             } else {
                 toast.error(response.message || 'Failed to complete appointment');
@@ -133,8 +141,13 @@ export function DoctorAppointments() {
         }
     };
 
-    const handleCancel = async (appointmentId: string) => {
-        if (!confirm('Are you sure you want to cancel this appointment?')) return;
+    const handleCancelClick = (appointmentId: string) => {
+        setCancelModalOpen(appointmentId);
+    };
+
+    const confirmCancel = async () => {
+        if (!cancelModalOpen) return;
+        const appointmentId = cancelModalOpen;
 
         setProcessingId(appointmentId);
 
@@ -142,6 +155,7 @@ export function DoctorAppointments() {
             const response = await cancelDoctorAppointment(appointmentId);
             if (response.success) {
                 toast.success('Appointment cancelled');
+                setCancelModalOpen(null);
                 fetchAppointments();
             } else {
                 toast.error(response.message || 'Failed to cancel appointment');
@@ -342,9 +356,9 @@ export function DoctorAppointments() {
                                         {status === 'accepted' && (
                                             <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-dark-700">
                                                 <button
-                                                    onClick={() => handleComplete(apt._id)}
+                                                    onClick={() => handleCompleteClick(apt._id)}
                                                     disabled={processingId === apt._id}
-                                                    className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-xl flex items-center gap-2 text-sm hover:bg-emerald-500/30 transition-colors"
+                                                    className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-xl flex items-center gap-2 text-sm hover:bg-emerald-500 hover:text-white transition-all duration-300"
                                                 >
                                                     {processingId === apt._id ? (
                                                         <Loader2 className="animate-spin" size={16} />
@@ -354,9 +368,9 @@ export function DoctorAppointments() {
                                                     Complete
                                                 </button>
                                                 <button
-                                                    onClick={() => handleCancel(apt._id)}
+                                                    onClick={() => handleCancelClick(apt._id)}
                                                     disabled={processingId === apt._id}
-                                                    className="btn-danger flex items-center gap-2 text-sm"
+                                                    className="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl flex items-center gap-2 text-sm hover:bg-red-500 hover:text-white transition-all duration-300"
                                                 >
                                                     <X size={16} />
                                                     Cancel
@@ -418,33 +432,38 @@ export function DoctorAppointments() {
 
             {/* Reject Modal */}
             {rejectModalOpen && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-dark-800 rounded-2xl p-6 w-full max-w-md mx-4 border border-dark-700">
-                        <h3 className="text-lg font-semibold text-dark-100 mb-4">Decline Appointment</h3>
-                        <p className="text-sm text-dark-400 mb-4">
-                            Optionally provide a reason for declining this appointment. The patient will be notified.
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-dark-800 rounded-2xl p-6 w-full max-w-md border border-dark-700 shadow-2xl transform transition-all scale-100 opacity-100">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-3 bg-red-500/10 rounded-xl text-red-500">
+                                <XCircle size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold text-dark-50">Decline Appointment</h3>
+                        </div>
+                        <p className="text-dark-400 mb-4 text-sm leading-relaxed">
+                            Are you sure you want to decline this appointment? You can optionally provide a reason for the patient.
                         </p>
                         <textarea
                             value={rejectReason}
                             onChange={(e) => setRejectReason(e.target.value)}
-                            placeholder="Reason (optional)"
-                            className="w-full p-3 rounded-xl bg-dark-700 border border-dark-600 text-dark-100 text-sm resize-none focus:border-primary focus:outline-none"
+                            placeholder="Reason for declining (optional)..."
+                            className="w-full p-3 rounded-xl bg-dark-900/50 border border-dark-600 text-dark-100 text-sm resize-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 outline-none transition-all placeholder:text-dark-500 mb-6"
                             rows={3}
                         />
-                        <div className="flex gap-3 mt-4">
+                        <div className="flex gap-3">
                             <button
                                 onClick={() => {
                                     setRejectModalOpen(null);
                                     setRejectReason('');
                                 }}
-                                className="flex-1 px-4 py-2 text-sm font-medium text-dark-300 hover:text-dark-100 bg-dark-700 rounded-xl transition-colors"
+                                className="flex-1 px-4 py-2.5 text-sm font-medium text-dark-300 hover:text-dark-100 bg-dark-700 hover:bg-dark-600 rounded-xl transition-all"
                             >
-                                Cancel
+                                Keep Appointment
                             </button>
                             <button
                                 onClick={() => handleReject(rejectModalOpen)}
                                 disabled={processingId === rejectModalOpen}
-                                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl transition-colors flex items-center justify-center gap-2"
+                                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-red-500/20"
                             >
                                 {processingId === rejectModalOpen ? (
                                     <Loader2 className="animate-spin" size={16} />
@@ -452,6 +471,80 @@ export function DoctorAppointments() {
                                     <XCircle size={16} />
                                 )}
                                 Decline
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Cancel Confirmation Modal */}
+            {cancelModalOpen && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-dark-800 rounded-2xl p-6 w-full max-w-md border border-dark-700 shadow-2xl animation-fade-in text-center">
+                        <div className="mx-auto w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-4">
+                            <AlertCircle size={32} className="text-red-500" />
+                        </div>
+
+                        <h3 className="text-xl font-bold text-dark-50 mb-2">Cancel Appointment?</h3>
+                        <p className="text-dark-400 text-sm mb-6 leading-relaxed">
+                            Are you sure you want to cancel this appointment? This action cannot be undone and the patient will be notified.
+                        </p>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setCancelModalOpen(null)}
+                                className="flex-1 px-4 py-2.5 text-sm font-medium text-dark-300 hover:text-dark-100 bg-dark-700 hover:bg-dark-600 rounded-xl transition-all"
+                            >
+                                No, Keep It
+                            </button>
+                            <button
+                                onClick={confirmCancel}
+                                disabled={processingId === cancelModalOpen}
+                                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-red-500/20"
+                            >
+                                {processingId === cancelModalOpen ? (
+                                    <Loader2 className="animate-spin" size={16} />
+                                ) : (
+                                    <X size={16} />
+                                )}
+                                Yes, Cancel It
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Complete Confirmation Modal */}
+            {completeModalOpen && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-dark-800 rounded-2xl p-6 w-full max-w-md border border-dark-700 shadow-2xl animation-fade-in text-center">
+                        <div className="mx-auto w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4">
+                            <CheckCircle size={32} className="text-emerald-500" />
+                        </div>
+
+                        <h3 className="text-xl font-bold text-dark-50 mb-2">Complete Appointment?</h3>
+                        <p className="text-dark-400 text-sm mb-6 leading-relaxed">
+                            Have you finished the consultation? This will mark the appointment as completed and update the patient's history.
+                        </p>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setCompleteModalOpen(null)}
+                                className="flex-1 px-4 py-2.5 text-sm font-medium text-dark-300 hover:text-dark-100 bg-dark-700 hover:bg-dark-600 rounded-xl transition-all"
+                            >
+                                Not Yet
+                            </button>
+                            <button
+                                onClick={confirmComplete}
+                                disabled={processingId === completeModalOpen}
+                                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
+                            >
+                                {processingId === completeModalOpen ? (
+                                    <Loader2 className="animate-spin" size={16} />
+                                ) : (
+                                    <Check size={16} />
+                                )}
+                                Complete It
                             </button>
                         </div>
                     </div>

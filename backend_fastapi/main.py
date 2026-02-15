@@ -1,5 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import warnings
+
+# Suppress Google Generative AI deprecation warning
+warnings.filterwarnings("ignore", message=".*All support for the `google.generativeai` package has ended.*")
+
 
 from app.core.database import connect_to_mongo, close_mongo_connection
 from app.core.redis import connect_to_redis, close_redis_connection
@@ -8,8 +13,8 @@ from app.core.config import settings
 
 # Import routers from new domain-based structure
 from app.routers.shared import auth_router
-from app.routers.admin import admin_router, admin_chatbot_router
-from app.routers.doctor import doctor_router, doctor_chatbot_router
+from app.routers.admin import admin_router
+from app.routers.doctor import doctor_router
 from app.routers.user import (
     user_router,
     user_chatbot_router,
@@ -17,6 +22,9 @@ from app.routers.user import (
     dose_router,
     healthmate_assist_router
 )
+
+# Lab Report Interpretation module
+from app.lab_interpreter import lab_router, enrich_router, ocr_router
 
 from app.services.shared.chatbot_service import init_chatbot_service
 from app.healthmate_assist.chatbot_manager import initialize_assist
@@ -88,11 +96,9 @@ app.include_router(auth_router)  # Authentication endpoints (real-time validatio
 
 # Include routers - Admin
 app.include_router(admin_router)  # Admin management
-app.include_router(admin_chatbot_router)  # MediGenius chatbot for Admin
 
 # Include routers - Doctor
 app.include_router(doctor_router)  # Doctor management
-app.include_router(doctor_chatbot_router)  # MediGenius chatbot for Doctors
 
 # Include routers - User
 app.include_router(user_router)  # User management
@@ -101,12 +107,19 @@ app.include_router(medication_router)  # Medication management
 app.include_router(dose_router)  # Dose scheduling and tracking
 app.include_router(healthmate_assist_router)  # HealthMate Assist chatbot
 
+<<<<<<< HEAD
 # Test notification router (development only)
 from app.routers.test_notification import test_notification_router
 app.include_router(test_notification_router)
 
 # Mount Socket.IO for real-time notifications
 app.mount("/socket.io", socket_app)
+=======
+# Include routers - Lab Interpretation
+app.include_router(lab_router)  # AI-powered lab report interpretation
+app.include_router(enrich_router, prefix="/api")  # On-demand biomarker enrichment
+app.include_router(ocr_router, prefix="/api/lab")  # OCR text extraction from lab reports
+>>>>>>> prashish
 
 
 @app.get("/")

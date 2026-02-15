@@ -1,0 +1,2638 @@
+{
+  "lab report 1.png": {
+    "1": {
+      "passed": true,
+      "markdown_length": 1965,
+      "has_tables": true,
+      "errors": [],
+      "extraction_time_s": 8.64,
+      "has_numeric_data": true
+    },
+    "2": {
+      "passed": true,
+      "extracted_count": 23,
+      "expected_count": 19,
+      "matched_biomarkers": [
+        {
+          "name": "SODIUM",
+          "extracted_name": "Sodium",
+          "value_match": true,
+          "unit_extracted": "L",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "POTASSIUM",
+          "extracted_name": "Potassium",
+          "value_match": true,
+          "unit_extracted": "H",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "CHLORIDE",
+          "extracted_name": "Chloride",
+          "value_match": true,
+          "unit_extracted": "MMOL/L",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "TOTAL CO2",
+          "extracted_name": "Total CO2",
+          "value_match": true,
+          "unit_extracted": "MMOL/L",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "GLUCOSE",
+          "extracted_name": "Glucose",
+          "value_match": true,
+          "unit_extracted": "H",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "BUN",
+          "extracted_name": "BUN",
+          "value_match": true,
+          "unit_extracted": "H",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "CREATININE",
+          "extracted_name": "Creatinine",
+          "value_match": true,
+          "unit_extracted": "MG/DL",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "CALCIUM",
+          "extracted_name": "Calcium",
+          "value_match": true,
+          "unit_extracted": "8.7-10.2",
+          "ref_range_parsed": false
+        },
+        {
+          "name": "TOTAL BILI",
+          "extracted_name": "Total CO2",
+          "value_match": false,
+          "unit_extracted": "MMOL/L",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "TOTAL PROT",
+          "extracted_name": "Total CO2",
+          "value_match": false,
+          "unit_extracted": "MMOL/L",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "ALBUMIN",
+          "extracted_name": "Albumin",
+          "value_match": true,
+          "unit_extracted": "L",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "MAGNESIUM",
+          "extracted_name": "Magnesium",
+          "value_match": true,
+          "unit_extracted": "MG/DL",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "CHOLESTERO",
+          "extracted_name": "Cholesterol",
+          "value_match": true,
+          "unit_extracted": "MG/DL",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "TRIGLYCERI",
+          "extracted_name": "Triglycerides",
+          "value_match": true,
+          "unit_extracted": "MG/DL",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "HDL CHOL",
+          "extracted_name": "HDL Cholesterol",
+          "value_match": true,
+          "unit_extracted": "MG/DL",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "LDL CHOL",
+          "extracted_name": "VLDL Cholesterol",
+          "value_match": false,
+          "unit_extracted": "MG/DL",
+          "ref_range_parsed": true
+        }
+      ],
+      "missing_biomarkers": [
+        "ALK PHOS",
+        "GOT(AST)",
+        "GPT(ALT)"
+      ],
+      "extra_biomarkers": [
+        "calc osmolality",
+        "b/c ratio",
+        "alkaline phosphatase",
+        "got (ast)",
+        "gpt (alt)",
+        "risk ratio"
+      ],
+      "value_mismatches": [
+        "TOTAL BILI: expected=0.35, got=25.4",
+        "TOTAL PROT: expected=7.5, got=25.4",
+        "LDL CHOL: expected=83, got=12.0"
+      ],
+      "ref_range_parsed": 15,
+      "ref_range_failed": 1,
+      "patient_info": {},
+      "errors": [],
+      "match_rate": 84.2
+    },
+    "3": {
+      "passed": true,
+      "total": 23,
+      "matched_to_db": 20,
+      "unmatched": [
+        "Calc Osmolality",
+        "B/C Ratio",
+        "Risk Ratio"
+      ],
+      "matched_details": [
+        {
+          "extracted_name": "Sodium",
+          "matched_id": "sodium",
+          "canonical_name": "Sodium",
+          "category": "electrolytes",
+          "ref_unit": "mEq/L",
+          "has_critical_values": true,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "134.0 L",
+            "to": "134.0 L",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "Potassium",
+          "matched_id": "potassium",
+          "canonical_name": "Potassium",
+          "category": "electrolytes",
+          "ref_unit": "mEq/L",
+          "has_critical_values": true,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "4.9 H",
+            "to": "4.9 H",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "Chloride",
+          "matched_id": "chloride",
+          "canonical_name": "Chloride",
+          "category": "electrolytes",
+          "ref_unit": "mEq/L",
+          "has_critical_values": false,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "102.0 MMOL/L",
+            "to": "102.0 mEq/L",
+            "converted": true
+          }
+        },
+        {
+          "extracted_name": "Total CO2",
+          "matched_id": "bicarbonate",
+          "canonical_name": "Bicarbonate",
+          "category": "electrolytes",
+          "ref_unit": "mEq/L",
+          "has_critical_values": false,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "25.4 MMOL/L",
+            "to": "25.4 mEq/L",
+            "converted": true
+          }
+        },
+        {
+          "extracted_name": "Glucose",
+          "matched_id": "glucose_fasting",
+          "canonical_name": "Glucose, Fasting",
+          "category": "blood_chemistry",
+          "ref_unit": "mg/dL",
+          "has_critical_values": true,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "151.0 H",
+            "to": "151.0 H",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "BUN",
+          "matched_id": "bun",
+          "canonical_name": "Blood Urea Nitrogen",
+          "category": "blood_chemistry",
+          "ref_unit": "mg/dL",
+          "has_critical_values": false,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "30.0 H",
+            "to": "30.0 H",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "Creatinine",
+          "matched_id": "creatinine",
+          "canonical_name": "Creatinine",
+          "category": "blood_chemistry",
+          "ref_unit": "mg/dL",
+          "has_critical_values": true,
+          "ref_ranges_count": 2
+        },
+        {
+          "extracted_name": "Calcium",
+          "matched_id": "calcium",
+          "canonical_name": "Calcium",
+          "category": "electrolytes",
+          "ref_unit": "mg/dL",
+          "has_critical_values": true,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "8.9 8.7-10.2",
+            "to": "8.9 8.7-10.2",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "Total Bilirubin",
+          "matched_id": "bilirubin_total",
+          "canonical_name": "Bilirubin, Total",
+          "category": "liver_function",
+          "ref_unit": "mg/dL",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Total Protein",
+          "matched_id": "total_protein",
+          "canonical_name": "Total Protein",
+          "category": "blood_chemistry",
+          "ref_unit": "g/dL",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Albumin",
+          "matched_id": "albumin",
+          "canonical_name": "Albumin",
+          "category": "blood_chemistry",
+          "ref_unit": "g/dL",
+          "has_critical_values": false,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "3.0 L",
+            "to": "3.0 L",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "Alkaline Phosphatase",
+          "matched_id": "alp",
+          "canonical_name": "Alkaline Phosphatase",
+          "category": "liver_function",
+          "ref_unit": "U/L",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "GOT (AST)",
+          "matched_id": "ast",
+          "canonical_name": "Aspartate Aminotransferase",
+          "category": "liver_function",
+          "ref_unit": "U/L",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "GPT (ALT)",
+          "matched_id": "alt",
+          "canonical_name": "Alanine Aminotransferase",
+          "category": "liver_function",
+          "ref_unit": "U/L",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Magnesium",
+          "matched_id": "magnesium",
+          "canonical_name": "Magnesium",
+          "category": "electrolytes",
+          "ref_unit": "mg/dL",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Cholesterol",
+          "matched_id": "cholesterol_total",
+          "canonical_name": "Cholesterol, Total",
+          "category": "lipid_panel",
+          "ref_unit": "mg/dL",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Triglycerides",
+          "matched_id": "triglycerides",
+          "canonical_name": "Triglycerides",
+          "category": "lipid_panel",
+          "ref_unit": "mg/dL",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "HDL Cholesterol",
+          "matched_id": "hdl",
+          "canonical_name": "HDL Cholesterol",
+          "category": "lipid_panel",
+          "ref_unit": "mg/dL",
+          "has_critical_values": false,
+          "ref_ranges_count": 2
+        },
+        {
+          "extracted_name": "VLDL Cholesterol",
+          "matched_id": "vldl",
+          "canonical_name": "VLDL Cholesterol",
+          "category": "lipid_panel",
+          "ref_unit": "mg/dL",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "LDL Cholesterol",
+          "matched_id": "ldl",
+          "canonical_name": "LDL Cholesterol",
+          "category": "lipid_panel",
+          "ref_unit": "mg/dL",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        }
+      ],
+      "unit_conversion_tested": 8,
+      "unit_conversion_success": 2,
+      "errors": [],
+      "match_rate": 87.0
+    },
+    "4": {
+      "passed": true,
+      "model_loaded": true,
+      "total_tested": 5,
+      "status_correct": 5,
+      "status_wrong": 0,
+      "interpretations": [
+        {
+          "name": "Sodium",
+          "value": 134.0,
+          "unit": "L",
+          "qwen_status": "low",
+          "reference_range": "136.0-146.0 L",
+          "reference_range_source": "report",
+          "interpretation_length": 410,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 134.0 L\n- **Reference Range (Unknown Patient):** 136.0-146.0 L\n- **Status:** Low\n\n**Comparison:** 134.0 L is below the lower limit of 136.0 L.\n\n**Interpretation:**\nLow. Hyp...",
+          "status_accuracy": "CORRECT (abnormal)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": true
+        },
+        {
+          "name": "Potassium",
+          "value": 4.9,
+          "unit": "H",
+          "qwen_status": "high",
+          "reference_range": "3.8-4.8 H",
+          "reference_range_source": "report",
+          "interpretation_length": 405,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 4.9 H\n- **Reference Range (Unknown):** 3.8-4.8 H\n- **Status:** High\n\n**Comparison:** 4.9 H is above the upper limit of 4.8 H.\n\n**Interpretation:**\nHigh. Hyperkalemia; risk ...",
+          "status_accuracy": "CORRECT (abnormal)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": true
+        },
+        {
+          "name": "Chloride",
+          "value": 102.0,
+          "unit": "MMOL/L",
+          "qwen_status": "normal",
+          "reference_range": "98.0-108.0 MMOL/L",
+          "reference_range_source": "report",
+          "interpretation_length": 311,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 102.0 MMOL/L\n- **Reference Range (Unknown Patient):** 98.0-108.0 MMOL/L\n- **Status:** Normal\n\n**Comparison:** 102.0 MMOL/L is within the reference range of 98.0-108.0 MMOL/...",
+          "status_accuracy": "CORRECT (normal)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": false
+        },
+        {
+          "name": "Total CO2",
+          "value": 25.4,
+          "unit": "MMOL/L",
+          "qwen_status": "normal",
+          "reference_range": "24.0-32.0 MMOL/L",
+          "reference_range_source": "report",
+          "interpretation_length": 307,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 25.4 MMOL/L\n- **Reference Range (Unknown Patient):** 24.0-32.0 MMOL/L\n- **Status:** Normal\n\n**Comparison:** 25.4 MMOL/L is within the reference range of 24.0-32.0 MMOL/L.\n\n...",
+          "status_accuracy": "CORRECT (normal)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": false
+        },
+        {
+          "name": "Glucose",
+          "value": 151.0,
+          "unit": "H",
+          "qwen_status": "high",
+          "reference_range": "70.0-110.0 H",
+          "reference_range_source": "report",
+          "interpretation_length": 435,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 151.0 H\n- **Reference Range (Fasting):** 70.0-110.0 H\n- **Status:** High\n\n**Comparison:** 151.0 H is above the upper limit of 110.0 H.\n\n**Interpretation:**\nHigh. Elevated f...",
+          "status_accuracy": "CORRECT (abnormal)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": true
+        }
+      ],
+      "errors": [],
+      "accuracy": 100.0
+    },
+    "5": {
+      "passed": true,
+      "total": 23,
+      "has_reference_ranges": 20,
+      "has_critical_values": 5,
+      "has_synonyms": 20,
+      "has_category": 20,
+      "has_interpretation_text": 20,
+      "enrichment_details": [
+        {
+          "name": "Sodium",
+          "matched_id": "sodium",
+          "canonical_name": "Sodium",
+          "category": "electrolytes",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": true,
+          "reference_unit": "mEq/L",
+          "first_range": {
+            "low": 136.0,
+            "high": 145.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true,
+          "critical_low": 120.0,
+          "critical_high": 160.0
+        },
+        {
+          "name": "Potassium",
+          "matched_id": "potassium",
+          "canonical_name": "Potassium",
+          "category": "electrolytes",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": true,
+          "reference_unit": "mEq/L",
+          "first_range": {
+            "low": 3.5,
+            "high": 5.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true,
+          "critical_low": 2.5,
+          "critical_high": 6.5
+        },
+        {
+          "name": "Chloride",
+          "matched_id": "chloride",
+          "canonical_name": "Chloride",
+          "category": "electrolytes",
+          "synonyms_count": 4,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "mEq/L",
+          "first_range": {
+            "low": 98.0,
+            "high": 106.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Total CO2",
+          "matched_id": "bicarbonate",
+          "canonical_name": "Bicarbonate",
+          "category": "electrolytes",
+          "synonyms_count": 8,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "mEq/L",
+          "first_range": {
+            "low": 23.0,
+            "high": 28.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Glucose",
+          "matched_id": "glucose_fasting",
+          "canonical_name": "Glucose, Fasting",
+          "category": "blood_chemistry",
+          "synonyms_count": 12,
+          "reference_ranges_count": 1,
+          "has_critical_values": true,
+          "reference_unit": "mg/dL",
+          "first_range": {
+            "low": 70.0,
+            "high": 99.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true,
+          "critical_low": 40.0,
+          "critical_high": 400.0
+        },
+        {
+          "name": "BUN",
+          "matched_id": "bun",
+          "canonical_name": "Blood Urea Nitrogen",
+          "category": "blood_chemistry",
+          "synonyms_count": 8,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "mg/dL",
+          "first_range": {
+            "low": 8.0,
+            "high": 20.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Creatinine",
+          "matched_id": "creatinine",
+          "canonical_name": "Creatinine",
+          "category": "blood_chemistry",
+          "synonyms_count": 6,
+          "reference_ranges_count": 2,
+          "has_critical_values": true,
+          "reference_unit": "mg/dL",
+          "first_range": {
+            "low": 0.5,
+            "high": 1.1,
+            "conditions": {
+              "sex": "female"
+            }
+          },
+          "has_interpretation_text": true,
+          "critical_low": null,
+          "critical_high": 10.0
+        },
+        {
+          "name": "Calcium",
+          "matched_id": "calcium",
+          "canonical_name": "Calcium",
+          "category": "electrolytes",
+          "synonyms_count": 5,
+          "reference_ranges_count": 1,
+          "has_critical_values": true,
+          "reference_unit": "mg/dL",
+          "first_range": {
+            "low": 8.6,
+            "high": 10.2,
+            "conditions": {}
+          },
+          "has_interpretation_text": true,
+          "critical_low": 6.0,
+          "critical_high": 13.0
+        },
+        {
+          "name": "Total Bilirubin",
+          "matched_id": "bilirubin_total",
+          "canonical_name": "Bilirubin, Total",
+          "category": "liver_function",
+          "synonyms_count": 5,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "mg/dL",
+          "first_range": {
+            "low": 0.3,
+            "high": 1.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Total Protein",
+          "matched_id": "total_protein",
+          "canonical_name": "Total Protein",
+          "category": "blood_chemistry",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "g/dL",
+          "first_range": {
+            "low": 5.5,
+            "high": 9.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Albumin",
+          "matched_id": "albumin",
+          "canonical_name": "Albumin",
+          "category": "blood_chemistry",
+          "synonyms_count": 3,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "g/dL",
+          "first_range": {
+            "low": 3.5,
+            "high": 5.5,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Alkaline Phosphatase",
+          "matched_id": "alp",
+          "canonical_name": "Alkaline Phosphatase",
+          "category": "liver_function",
+          "synonyms_count": 7,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "U/L",
+          "first_range": {
+            "low": 30.0,
+            "high": 120.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "GOT (AST)",
+          "matched_id": "ast",
+          "canonical_name": "Aspartate Aminotransferase",
+          "category": "liver_function",
+          "synonyms_count": 10,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "U/L",
+          "first_range": {
+            "low": 10.0,
+            "high": 40.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "GPT (ALT)",
+          "matched_id": "alt",
+          "canonical_name": "Alanine Aminotransferase",
+          "category": "liver_function",
+          "synonyms_count": 10,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "U/L",
+          "first_range": {
+            "low": 10.0,
+            "high": 40.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Magnesium",
+          "matched_id": "magnesium",
+          "canonical_name": "Magnesium",
+          "category": "electrolytes",
+          "synonyms_count": 5,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "mg/dL",
+          "first_range": {
+            "low": 1.6,
+            "high": 2.6,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Cholesterol",
+          "matched_id": "cholesterol_total",
+          "canonical_name": "Cholesterol, Total",
+          "category": "lipid_panel",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "mg/dL",
+          "first_range": {
+            "low": null,
+            "high": 200.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Triglycerides",
+          "matched_id": "triglycerides",
+          "canonical_name": "Triglycerides",
+          "category": "lipid_panel",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "mg/dL",
+          "first_range": {
+            "low": null,
+            "high": 150.0,
+            "conditions": {
+              "state": "fasting"
+            }
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "HDL Cholesterol",
+          "matched_id": "hdl",
+          "canonical_name": "HDL Cholesterol",
+          "category": "lipid_panel",
+          "synonyms_count": 9,
+          "reference_ranges_count": 2,
+          "has_critical_values": false,
+          "reference_unit": "mg/dL",
+          "first_range": {
+            "low": 40.0,
+            "high": null,
+            "conditions": {
+              "sex": "male"
+            }
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "VLDL Cholesterol",
+          "matched_id": "vldl",
+          "canonical_name": "VLDL Cholesterol",
+          "category": "lipid_panel",
+          "synonyms_count": 7,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "mg/dL",
+          "first_range": {
+            "low": null,
+            "high": 30.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "LDL Cholesterol",
+          "matched_id": "ldl",
+          "canonical_name": "LDL Cholesterol",
+          "category": "lipid_panel",
+          "synonyms_count": 9,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "mg/dL",
+          "first_range": {
+            "low": null,
+            "high": 100.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        }
+      ],
+      "missing_in_db": [
+        "Calc Osmolality",
+        "B/C Ratio",
+        "Risk Ratio"
+      ],
+      "errors": [],
+      "ref_range_coverage": 100.0,
+      "critical_value_coverage": 25.0,
+      "synonym_coverage": 100.0
+    }
+  },
+  "lab report 2.png": {
+    "1": {
+      "passed": true,
+      "markdown_length": 1556,
+      "has_tables": true,
+      "errors": [],
+      "extraction_time_s": 12.74,
+      "has_numeric_data": true
+    },
+    "2": {
+      "passed": true,
+      "extracted_count": 15,
+      "expected_count": 15,
+      "matched_biomarkers": [
+        {
+          "name": "RBC",
+          "extracted_name": "RBC",
+          "value_match": true,
+          "unit_extracted": "10^6/uL",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Haemoglobin",
+          "extracted_name": "Haemoglobin",
+          "value_match": true,
+          "unit_extracted": "g/dL",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Hematocrit",
+          "extracted_name": "Hematocrit",
+          "value_match": true,
+          "unit_extracted": "%",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "MCV",
+          "extracted_name": "MCV",
+          "value_match": true,
+          "unit_extracted": "L",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "MCH",
+          "extracted_name": "MCH",
+          "value_match": true,
+          "unit_extracted": "L",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "MCHC",
+          "extracted_name": "MCH",
+          "value_match": false,
+          "unit_extracted": "L",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Red Cell Distribution Width",
+          "extracted_name": "Red Cell Distribution Width",
+          "value_match": true,
+          "unit_extracted": "%",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Total WBC Count",
+          "extracted_name": "Total WBC Count",
+          "value_match": true,
+          "unit_extracted": "10^3/uL",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Neutrophils",
+          "extracted_name": "Neutrophils",
+          "value_match": true,
+          "unit_extracted": "%",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Lymphocytes",
+          "extracted_name": "Lymphocytes",
+          "value_match": true,
+          "unit_extracted": "%",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Eosinophils",
+          "extracted_name": "Eosinophils",
+          "value_match": true,
+          "unit_extracted": "%",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Monocytes",
+          "extracted_name": "Monocytes",
+          "value_match": true,
+          "unit_extracted": "%",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Basophils",
+          "extracted_name": "Basophils",
+          "value_match": true,
+          "unit_extracted": "%",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Platelet",
+          "extracted_name": "Platelet",
+          "value_match": true,
+          "unit_extracted": "10^3/uL",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Mean Platelet Volume",
+          "extracted_name": "Platelet",
+          "value_match": false,
+          "unit_extracted": "10^3/uL",
+          "ref_range_parsed": true
+        }
+      ],
+      "missing_biomarkers": [],
+      "extra_biomarkers": [],
+      "value_mismatches": [
+        "MCHC: expected=33.3, got=26.7",
+        "Mean Platelet Volume: expected=10.1, got=265.0"
+      ],
+      "ref_range_parsed": 15,
+      "ref_range_failed": 0,
+      "patient_info": {
+        "age": 30,
+        "sex": "male"
+      },
+      "errors": [],
+      "patient_info_matches": [
+        "sex",
+        "age"
+      ],
+      "match_rate": 100.0
+    },
+    "3": {
+      "passed": true,
+      "total": 15,
+      "matched_to_db": 15,
+      "unmatched": [],
+      "matched_details": [
+        {
+          "extracted_name": "RBC",
+          "matched_id": "rbc_count",
+          "canonical_name": "Red Blood Cell Count",
+          "category": "hematology",
+          "ref_unit": "million/\u03bcL",
+          "has_critical_values": false,
+          "ref_ranges_count": 2,
+          "unit_conversion": {
+            "from": "5.17 10^6/uL",
+            "to": "5.17 10^6/uL",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "Haemoglobin",
+          "matched_id": "hemoglobin",
+          "canonical_name": "Hemoglobin",
+          "category": "hematology",
+          "ref_unit": "g/dL",
+          "has_critical_values": true,
+          "ref_ranges_count": 2
+        },
+        {
+          "extracted_name": "Hematocrit",
+          "matched_id": "hematocrit",
+          "canonical_name": "Hematocrit",
+          "category": "hematology",
+          "ref_unit": "%",
+          "has_critical_values": true,
+          "ref_ranges_count": 2
+        },
+        {
+          "extracted_name": "MCV",
+          "matched_id": "mcv",
+          "canonical_name": "Mean Corpuscular Volume",
+          "category": "hematology",
+          "ref_unit": "fL",
+          "has_critical_values": false,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "80.3 L",
+            "to": "80.3 L",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "MCH",
+          "matched_id": "mch",
+          "canonical_name": "Mean Corpuscular Hemoglobin",
+          "category": "hematology",
+          "ref_unit": "pg",
+          "has_critical_values": false,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "26.7 L",
+            "to": "26.7 L",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "MCHC",
+          "matched_id": "mchc",
+          "canonical_name": "Mean Corpuscular Hemoglobin Concentration",
+          "category": "hematology",
+          "ref_unit": "g/dL",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Red Cell Distribution Width",
+          "matched_id": "rdw",
+          "canonical_name": "Red Cell Distribution Width",
+          "category": "hematology",
+          "ref_unit": "%",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Total WBC Count",
+          "matched_id": "wbc_count",
+          "canonical_name": "White Blood Cell Count",
+          "category": "hematology",
+          "ref_unit": "\u00d710\u00b3/\u03bcL",
+          "has_critical_values": true,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "6.71 10^3/uL",
+            "to": "6.71 10^3/uL",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "Neutrophils",
+          "matched_id": "neutrophils",
+          "canonical_name": "Neutrophils",
+          "category": "Hematology",
+          "ref_unit": "%",
+          "has_critical_values": true,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Lymphocytes",
+          "matched_id": "lymphocytes",
+          "canonical_name": "Lymphocytes",
+          "category": "Hematology",
+          "ref_unit": "%",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Eosinophils",
+          "matched_id": "eosinophils",
+          "canonical_name": "Eosinophils",
+          "category": "Hematology",
+          "ref_unit": "%",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Monocytes",
+          "matched_id": "monocytes",
+          "canonical_name": "Monocytes",
+          "category": "Hematology",
+          "ref_unit": "%",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Basophils",
+          "matched_id": "basophils",
+          "canonical_name": "Basophils",
+          "category": "Hematology",
+          "ref_unit": "%",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Platelet",
+          "matched_id": "platelet_count",
+          "canonical_name": "Platelet Count",
+          "category": "hematology",
+          "ref_unit": "\u00d710\u00b3/\u03bcL",
+          "has_critical_values": true,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "265.0 10^3/uL",
+            "to": "265.0 10^3/uL",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "Mean Platelet Volume",
+          "matched_id": "mpv",
+          "canonical_name": "Mean Platelet Volume",
+          "category": "Hematology",
+          "ref_unit": "fL",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        }
+      ],
+      "unit_conversion_tested": 5,
+      "unit_conversion_success": 0,
+      "errors": [],
+      "match_rate": 100.0
+    },
+    "4": {
+      "passed": true,
+      "model_loaded": true,
+      "total_tested": 5,
+      "status_correct": 5,
+      "status_wrong": 0,
+      "interpretations": [
+        {
+          "name": "RBC",
+          "value": 5.17,
+          "unit": "10^6/uL",
+          "qwen_status": "normal",
+          "reference_range": "4.5-5.5 10^6/uL",
+          "reference_range_source": "report",
+          "interpretation_length": 296,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 5.17 10^6/uL\n- **Reference Range (Male):** 4.5-5.5 10^6/uL\n- **Status:** Normal\n\n**Comparison:** 5.17 10^6/uL is within the reference range of 4.5-5.5 10^6/uL.\n\n**Interpret...",
+          "status_accuracy": "CORRECT (normal)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": false
+        },
+        {
+          "name": "Haemoglobin",
+          "value": 13.8,
+          "unit": "g/dL",
+          "qwen_status": "normal",
+          "reference_range": "13.0-17.0 g/dL",
+          "reference_range_source": "report",
+          "interpretation_length": 289,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 13.8 g/dL\n- **Reference Range (Male):** 13.0-17.0 g/dL\n- **Status:** Normal\n\n**Comparison:** 13.8 g/dL is within the reference range of 13.0-17.0 g/dL.\n\n**Interpretation:**...",
+          "status_accuracy": "CORRECT (normal)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": false
+        },
+        {
+          "name": "Hematocrit",
+          "value": 41.5,
+          "unit": "%",
+          "qwen_status": "normal",
+          "reference_range": "40.0-50.0 %",
+          "reference_range_source": "report",
+          "interpretation_length": 276,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 41.5 %\n- **Reference Range (Male):** 40.0-50.0 %\n- **Status:** Normal\n\n**Comparison:** 41.5 % is within the reference range of 40.0-50.0 %.\n\n**Interpretation:**\nWithin norm...",
+          "status_accuracy": "CORRECT (normal)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": false
+        },
+        {
+          "name": "MCV",
+          "value": 80.3,
+          "unit": "L",
+          "qwen_status": "low",
+          "reference_range": "83.0-101.0 L",
+          "reference_range_source": "report",
+          "interpretation_length": 416,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 80.3 L\n- **Reference Range (Male):** 83.0-101.0 L\n- **Status:** Low\n\n**Comparison:** 80.3 L is below the lower limit of 83.0 L.\n\n**Interpretation:**\nLow. Low MCV (microcyto...",
+          "status_accuracy": "CORRECT (abnormal)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": true
+        },
+        {
+          "name": "MCH",
+          "value": 26.7,
+          "unit": "L",
+          "qwen_status": "low",
+          "reference_range": "27.0-32.0 L",
+          "reference_range_source": "report",
+          "interpretation_length": 386,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 26.7 L\n- **Reference Range (Male):** 27.0-32.0 L\n- **Status:** Low\n\n**Comparison:** 26.7 L is below the lower limit of 27.0 L.\n\n**Interpretation:**\nLow. Hypochromia; sugges...",
+          "status_accuracy": "CORRECT (abnormal)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": true
+        }
+      ],
+      "errors": [],
+      "accuracy": 100.0
+    },
+    "5": {
+      "passed": true,
+      "total": 15,
+      "has_reference_ranges": 15,
+      "has_critical_values": 5,
+      "has_synonyms": 15,
+      "has_category": 15,
+      "has_interpretation_text": 15,
+      "enrichment_details": [
+        {
+          "name": "RBC",
+          "matched_id": "rbc_count",
+          "canonical_name": "Red Blood Cell Count",
+          "category": "hematology",
+          "synonyms_count": 7,
+          "reference_ranges_count": 2,
+          "has_critical_values": false,
+          "reference_unit": "million/\u03bcL",
+          "first_range": {
+            "low": 4.2,
+            "high": 5.9,
+            "conditions": {
+              "sex": "female"
+            }
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Haemoglobin",
+          "matched_id": "hemoglobin",
+          "canonical_name": "Hemoglobin",
+          "category": "hematology",
+          "synonyms_count": 5,
+          "reference_ranges_count": 2,
+          "has_critical_values": true,
+          "reference_unit": "g/dL",
+          "first_range": {
+            "low": 12.0,
+            "high": 16.0,
+            "conditions": {
+              "sex": "female"
+            }
+          },
+          "has_interpretation_text": true,
+          "critical_low": 7.0,
+          "critical_high": 20.0
+        },
+        {
+          "name": "Hematocrit",
+          "matched_id": "hematocrit",
+          "canonical_name": "Hematocrit",
+          "category": "hematology",
+          "synonyms_count": 7,
+          "reference_ranges_count": 2,
+          "has_critical_values": true,
+          "reference_unit": "%",
+          "first_range": {
+            "low": 37.0,
+            "high": 47.0,
+            "conditions": {
+              "sex": "female"
+            }
+          },
+          "has_interpretation_text": true,
+          "critical_low": 20.0,
+          "critical_high": 60.0
+        },
+        {
+          "name": "MCV",
+          "matched_id": "mcv",
+          "canonical_name": "Mean Corpuscular Volume",
+          "category": "hematology",
+          "synonyms_count": 4,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "fL",
+          "first_range": {
+            "low": 80.0,
+            "high": 98.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "MCH",
+          "matched_id": "mch",
+          "canonical_name": "Mean Corpuscular Hemoglobin",
+          "category": "hematology",
+          "synonyms_count": 5,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "pg",
+          "first_range": {
+            "low": 28.0,
+            "high": 32.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "MCHC",
+          "matched_id": "mchc",
+          "canonical_name": "Mean Corpuscular Hemoglobin Concentration",
+          "category": "hematology",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "g/dL",
+          "first_range": {
+            "low": 33.0,
+            "high": 36.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Red Cell Distribution Width",
+          "matched_id": "rdw",
+          "canonical_name": "Red Cell Distribution Width",
+          "category": "hematology",
+          "synonyms_count": 5,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "%",
+          "first_range": {
+            "low": 9.0,
+            "high": 14.5,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Total WBC Count",
+          "matched_id": "wbc_count",
+          "canonical_name": "White Blood Cell Count",
+          "category": "hematology",
+          "synonyms_count": 10,
+          "reference_ranges_count": 1,
+          "has_critical_values": true,
+          "reference_unit": "\u00d710\u00b3/\u03bcL",
+          "first_range": {
+            "low": 4.0,
+            "high": 11.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true,
+          "critical_low": 2.0,
+          "critical_high": 30.0
+        },
+        {
+          "name": "Neutrophils",
+          "matched_id": "neutrophils",
+          "canonical_name": "Neutrophils",
+          "category": "Hematology",
+          "synonyms_count": 13,
+          "reference_ranges_count": 1,
+          "has_critical_values": true,
+          "reference_unit": "%",
+          "first_range": {
+            "low": 40.0,
+            "high": 70.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true,
+          "critical_low": 1.0,
+          "critical_high": null
+        },
+        {
+          "name": "Lymphocytes",
+          "matched_id": "lymphocytes",
+          "canonical_name": "Lymphocytes",
+          "category": "Hematology",
+          "synonyms_count": 9,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "%",
+          "first_range": {
+            "low": 20.0,
+            "high": 40.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Eosinophils",
+          "matched_id": "eosinophils",
+          "canonical_name": "Eosinophils",
+          "category": "Hematology",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "%",
+          "first_range": {
+            "low": 1.0,
+            "high": 4.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Monocytes",
+          "matched_id": "monocytes",
+          "canonical_name": "Monocytes",
+          "category": "Hematology",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "%",
+          "first_range": {
+            "low": 2.0,
+            "high": 8.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Basophils",
+          "matched_id": "basophils",
+          "canonical_name": "Basophils",
+          "category": "Hematology",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "%",
+          "first_range": {
+            "low": 0.0,
+            "high": 1.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Platelet",
+          "matched_id": "platelet_count",
+          "canonical_name": "Platelet Count",
+          "category": "hematology",
+          "synonyms_count": 7,
+          "reference_ranges_count": 1,
+          "has_critical_values": true,
+          "reference_unit": "\u00d710\u00b3/\u03bcL",
+          "first_range": {
+            "low": 150.0,
+            "high": 450.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true,
+          "critical_low": 50.0,
+          "critical_high": 1000.0
+        },
+        {
+          "name": "Mean Platelet Volume",
+          "matched_id": "mpv",
+          "canonical_name": "Mean Platelet Volume",
+          "category": "Hematology",
+          "synonyms_count": 3,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "fL",
+          "first_range": {
+            "low": 7.5,
+            "high": 11.5,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        }
+      ],
+      "missing_in_db": [],
+      "errors": [],
+      "ref_range_coverage": 100.0,
+      "critical_value_coverage": 33.3,
+      "synonym_coverage": 100.0
+    }
+  },
+  "lab report 3.png": {
+    "1": {
+      "passed": true,
+      "markdown_length": 1521,
+      "has_tables": true,
+      "errors": [],
+      "extraction_time_s": 8.46,
+      "has_numeric_data": true
+    },
+    "2": {
+      "passed": true,
+      "extracted_count": 13,
+      "expected_count": 10,
+      "matched_biomarkers": [
+        {
+          "name": "HEMOGLOBIN",
+          "extracted_name": "HEMOGLOBIN",
+          "value_match": true,
+          "unit_extracted": "g/dl",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "TOTAL LEUKOCYTE COUNT",
+          "extracted_name": "TOTAL LEUKOCYTE COUNT",
+          "value_match": false,
+          "unit_extracted": ",100",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "NEUTROPHILS",
+          "extracted_name": "NEUTROPHILS",
+          "value_match": true,
+          "unit_extracted": "2",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "LYMPHOCYTE",
+          "extracted_name": "LYMPHOCYTE",
+          "value_match": true,
+          "unit_extracted": "20 - 40",
+          "ref_range_parsed": false
+        },
+        {
+          "name": "EOSINOPHILS",
+          "extracted_name": "EOSINOPHILS",
+          "value_match": true,
+          "unit_extracted": "1 - 6",
+          "ref_range_parsed": false
+        },
+        {
+          "name": "MONOCYTES",
+          "extracted_name": "MONOCYTES",
+          "value_match": true,
+          "unit_extracted": "2 - 10",
+          "ref_range_parsed": false
+        },
+        {
+          "name": "BASOPHILS",
+          "extracted_name": "BASOPHILS",
+          "value_match": false,
+          "unit_extracted": "C; 2",
+          "ref_range_parsed": false
+        },
+        {
+          "name": "PLATELET COUNT",
+          "extracted_name": "TOTAL LEUKOCYTE COUNT",
+          "value_match": false,
+          "unit_extracted": ",100",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "MCH",
+          "extracted_name": "MEAN CELL HAEMOGLOBIN, MCH",
+          "value_match": true,
+          "unit_extracted": "Pg",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "MCHC",
+          "extracted_name": "MEAN CELL HAEMOGLOBIN CON, MCHC H",
+          "value_match": true,
+          "unit_extracted": "%",
+          "ref_range_parsed": true
+        }
+      ],
+      "missing_biomarkers": [],
+      "extra_biomarkers": [
+        "total rbc count",
+        "hematocrit value, hct",
+        "mean corpuscular volume, mcv"
+      ],
+      "value_mismatches": [
+        "TOTAL LEUKOCYTE COUNT: expected=5100, got=5.0",
+        "BASOPHILS: expected=1, got=3.0",
+        "PLATELET COUNT: expected=3.5, got=5.0"
+      ],
+      "ref_range_parsed": 6,
+      "ref_range_failed": 4,
+      "patient_info": {},
+      "errors": [],
+      "match_rate": 100.0
+    },
+    "3": {
+      "passed": true,
+      "total": 13,
+      "matched_to_db": 13,
+      "unmatched": [],
+      "matched_details": [
+        {
+          "extracted_name": "HEMOGLOBIN",
+          "matched_id": "hemoglobin",
+          "canonical_name": "Hemoglobin",
+          "category": "hematology",
+          "ref_unit": "g/dL",
+          "has_critical_values": true,
+          "ref_ranges_count": 2
+        },
+        {
+          "extracted_name": "TOTAL LEUKOCYTE COUNT",
+          "matched_id": "wbc_count",
+          "canonical_name": "White Blood Cell Count",
+          "category": "hematology",
+          "ref_unit": "\u00d710\u00b3/\u03bcL",
+          "has_critical_values": true,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "5.0 ,100",
+            "to": "5.0 ,100",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "NEUTROPHILS",
+          "matched_id": "neutrophils",
+          "canonical_name": "Neutrophils",
+          "category": "Hematology",
+          "ref_unit": "%",
+          "has_critical_values": true,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "79.0 2",
+            "to": "79.0 2",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "LYMPHOCYTE",
+          "matched_id": "lymphocytes",
+          "canonical_name": "Lymphocytes",
+          "category": "Hematology",
+          "ref_unit": "%",
+          "has_critical_values": false,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "18.0 20 - 40",
+            "to": "18.0 20 - 40",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "EOSINOPHILS",
+          "matched_id": "eosinophils",
+          "canonical_name": "Eosinophils",
+          "category": "Hematology",
+          "ref_unit": "%",
+          "has_critical_values": false,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "1.0 1 - 6",
+            "to": "1.0 1 - 6",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "MONOCYTES",
+          "matched_id": "monocytes",
+          "canonical_name": "Monocytes",
+          "category": "Hematology",
+          "ref_unit": "%",
+          "has_critical_values": false,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "1.0 2 - 10",
+            "to": "1.0 2 - 10",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "BASOPHILS",
+          "matched_id": "basophils",
+          "canonical_name": "Basophils",
+          "category": "Hematology",
+          "ref_unit": "%",
+          "has_critical_values": false,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "3.0 C; 2",
+            "to": "3.0 C; 2",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "PLATELET COUNT",
+          "matched_id": "platelet_count",
+          "canonical_name": "Platelet Count",
+          "category": "hematology",
+          "ref_unit": "\u00d710\u00b3/\u03bcL",
+          "has_critical_values": true,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "3.5 lakhs/cumm",
+            "to": "3.5 lakhs/cumm",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "TOTAL RBC COUNT",
+          "matched_id": "rbc_count",
+          "canonical_name": "Red Blood Cell Count",
+          "category": "hematology",
+          "ref_unit": "million/\u03bcL",
+          "has_critical_values": false,
+          "ref_ranges_count": 2,
+          "unit_conversion": {
+            "from": "5.0 million/cumm",
+            "to": "5.0 million/cumm",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "HEMATOCRIT VALUE, HCT",
+          "matched_id": "hematocrit",
+          "canonical_name": "Hematocrit",
+          "category": "hematology",
+          "ref_unit": "%",
+          "has_critical_values": true,
+          "ref_ranges_count": 2
+        },
+        {
+          "extracted_name": "MEAN CORPUSCULAR VOLUME, MCV",
+          "matched_id": "mcv",
+          "canonical_name": "Mean Corpuscular Volume",
+          "category": "hematology",
+          "ref_unit": "fL",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "MEAN CELL HAEMOGLOBIN, MCH",
+          "matched_id": "mch",
+          "canonical_name": "Mean Corpuscular Hemoglobin",
+          "category": "hematology",
+          "ref_unit": "pg",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "MEAN CELL HAEMOGLOBIN CON, MCHC H",
+          "matched_id": "mchc",
+          "canonical_name": "Mean Corpuscular Hemoglobin Concentration",
+          "category": "hematology",
+          "ref_unit": "g/dL",
+          "has_critical_values": false,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "35.7 %",
+            "to": "35.7 %",
+            "converted": false
+          }
+        }
+      ],
+      "unit_conversion_tested": 9,
+      "unit_conversion_success": 0,
+      "errors": [],
+      "match_rate": 100.0
+    },
+    "4": {
+      "passed": true,
+      "model_loaded": true,
+      "total_tested": 5,
+      "status_correct": 5,
+      "status_wrong": 0,
+      "interpretations": [
+        {
+          "name": "HEMOGLOBIN",
+          "value": 15.0,
+          "unit": "g/dl",
+          "qwen_status": "normal",
+          "reference_range": "13.0-17.0 g/dl",
+          "reference_range_source": "report",
+          "interpretation_length": 289,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 15.0 g/dl\n- **Reference Range (Male):** 13.0-17.0 g/dl\n- **Status:** Normal\n\n**Comparison:** 15.0 g/dl is within the reference range of 13.0-17.0 g/dl.\n\n**Interpretation:**...",
+          "status_accuracy": "CORRECT (normal)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": false
+        },
+        {
+          "name": "TOTAL LEUKOCYTE COUNT",
+          "value": 5.0,
+          "unit": ",100",
+          "qwen_status": "low",
+          "reference_range": "800.0-10.0 800",
+          "reference_range_source": "report",
+          "interpretation_length": 448,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 5.0 \u00d710\u00b3/\u03bcL\n- **Reference Range (White Blood Cell Count):** 8.0-10.0 \u00d710\u00b3/\u03bcL\n- **Status:** Low\n\n**Comparison:** 5.0 \u00d710\u00b3/\u03bcL is below the lower limit of 8.0 \u00d710\u00b3/\u03bcL.\n\n**Inte...",
+          "status_accuracy": "POSSIBLY CORRECT (not in GT abnormals)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": true
+        },
+        {
+          "name": "NEUTROPHILS",
+          "value": 79.0,
+          "unit": "2",
+          "qwen_status": "normal",
+          "reference_range": "40.0-80.0 2",
+          "reference_range_source": "report",
+          "interpretation_length": 276,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 79.0 2\n- **Reference Range (Male):** 40.0-80.0 2\n- **Status:** Normal\n\n**Comparison:** 79.0 2 is within the reference range of 40.0-80.0 2.\n\n**Interpretation:**\nWithin norm...",
+          "status_accuracy": "CORRECT (normal)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": false
+        },
+        {
+          "name": "LYMPHOCYTE",
+          "value": 18.0,
+          "unit": "20 - 40",
+          "qwen_status": "low",
+          "reference_range": "20.0-40.0 %",
+          "reference_range_source": "abim",
+          "interpretation_length": 381,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 18.0 %\n- **Reference Range (Male):** 20.0-40.0 %\n- **Status:** Low\n\n**Comparison:** 18.0 % is below the lower limit of 20.0 %.\n\n**Interpretation:**\nLow. Low lymphocyte perc...",
+          "status_accuracy": "CORRECT (abnormal)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": true
+        },
+        {
+          "name": "EOSINOPHILS",
+          "value": 1.0,
+          "unit": "1 - 6",
+          "qwen_status": "normal",
+          "reference_range": "1.0-4.0 %",
+          "reference_range_source": "abim",
+          "interpretation_length": 270,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 1.0 %\n- **Reference Range (Male):** 1.0-4.0 %\n- **Status:** Normal\n\n**Comparison:** 1.0 % is within the reference range of 1.0-4.0 %.\n\n**Interpretation:**\nWithin normal lim...",
+          "status_accuracy": "CORRECT (normal)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": false
+        }
+      ],
+      "errors": [],
+      "accuracy": 100.0
+    },
+    "5": {
+      "passed": true,
+      "total": 13,
+      "has_reference_ranges": 13,
+      "has_critical_values": 5,
+      "has_synonyms": 13,
+      "has_category": 13,
+      "has_interpretation_text": 13,
+      "enrichment_details": [
+        {
+          "name": "HEMOGLOBIN",
+          "matched_id": "hemoglobin",
+          "canonical_name": "Hemoglobin",
+          "category": "hematology",
+          "synonyms_count": 5,
+          "reference_ranges_count": 2,
+          "has_critical_values": true,
+          "reference_unit": "g/dL",
+          "first_range": {
+            "low": 12.0,
+            "high": 16.0,
+            "conditions": {
+              "sex": "female"
+            }
+          },
+          "has_interpretation_text": true,
+          "critical_low": 7.0,
+          "critical_high": 20.0
+        },
+        {
+          "name": "TOTAL LEUKOCYTE COUNT",
+          "matched_id": "wbc_count",
+          "canonical_name": "White Blood Cell Count",
+          "category": "hematology",
+          "synonyms_count": 10,
+          "reference_ranges_count": 1,
+          "has_critical_values": true,
+          "reference_unit": "\u00d710\u00b3/\u03bcL",
+          "first_range": {
+            "low": 4.0,
+            "high": 11.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true,
+          "critical_low": 2.0,
+          "critical_high": 30.0
+        },
+        {
+          "name": "NEUTROPHILS",
+          "matched_id": "neutrophils",
+          "canonical_name": "Neutrophils",
+          "category": "Hematology",
+          "synonyms_count": 13,
+          "reference_ranges_count": 1,
+          "has_critical_values": true,
+          "reference_unit": "%",
+          "first_range": {
+            "low": 40.0,
+            "high": 70.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true,
+          "critical_low": 1.0,
+          "critical_high": null
+        },
+        {
+          "name": "LYMPHOCYTE",
+          "matched_id": "lymphocytes",
+          "canonical_name": "Lymphocytes",
+          "category": "Hematology",
+          "synonyms_count": 9,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "%",
+          "first_range": {
+            "low": 20.0,
+            "high": 40.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "EOSINOPHILS",
+          "matched_id": "eosinophils",
+          "canonical_name": "Eosinophils",
+          "category": "Hematology",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "%",
+          "first_range": {
+            "low": 1.0,
+            "high": 4.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "MONOCYTES",
+          "matched_id": "monocytes",
+          "canonical_name": "Monocytes",
+          "category": "Hematology",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "%",
+          "first_range": {
+            "low": 2.0,
+            "high": 8.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "BASOPHILS",
+          "matched_id": "basophils",
+          "canonical_name": "Basophils",
+          "category": "Hematology",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "%",
+          "first_range": {
+            "low": 0.0,
+            "high": 1.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "PLATELET COUNT",
+          "matched_id": "platelet_count",
+          "canonical_name": "Platelet Count",
+          "category": "hematology",
+          "synonyms_count": 7,
+          "reference_ranges_count": 1,
+          "has_critical_values": true,
+          "reference_unit": "\u00d710\u00b3/\u03bcL",
+          "first_range": {
+            "low": 150.0,
+            "high": 450.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true,
+          "critical_low": 50.0,
+          "critical_high": 1000.0
+        },
+        {
+          "name": "TOTAL RBC COUNT",
+          "matched_id": "rbc_count",
+          "canonical_name": "Red Blood Cell Count",
+          "category": "hematology",
+          "synonyms_count": 7,
+          "reference_ranges_count": 2,
+          "has_critical_values": false,
+          "reference_unit": "million/\u03bcL",
+          "first_range": {
+            "low": 4.2,
+            "high": 5.9,
+            "conditions": {
+              "sex": "female"
+            }
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "HEMATOCRIT VALUE, HCT",
+          "matched_id": "hematocrit",
+          "canonical_name": "Hematocrit",
+          "category": "hematology",
+          "synonyms_count": 7,
+          "reference_ranges_count": 2,
+          "has_critical_values": true,
+          "reference_unit": "%",
+          "first_range": {
+            "low": 37.0,
+            "high": 47.0,
+            "conditions": {
+              "sex": "female"
+            }
+          },
+          "has_interpretation_text": true,
+          "critical_low": 20.0,
+          "critical_high": 60.0
+        },
+        {
+          "name": "MEAN CORPUSCULAR VOLUME, MCV",
+          "matched_id": "mcv",
+          "canonical_name": "Mean Corpuscular Volume",
+          "category": "hematology",
+          "synonyms_count": 4,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "fL",
+          "first_range": {
+            "low": 80.0,
+            "high": 98.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "MEAN CELL HAEMOGLOBIN, MCH",
+          "matched_id": "mch",
+          "canonical_name": "Mean Corpuscular Hemoglobin",
+          "category": "hematology",
+          "synonyms_count": 5,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "pg",
+          "first_range": {
+            "low": 28.0,
+            "high": 32.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "MEAN CELL HAEMOGLOBIN CON, MCHC H",
+          "matched_id": "mchc",
+          "canonical_name": "Mean Corpuscular Hemoglobin Concentration",
+          "category": "hematology",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "g/dL",
+          "first_range": {
+            "low": 33.0,
+            "high": 36.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        }
+      ],
+      "missing_in_db": [],
+      "errors": [],
+      "ref_range_coverage": 100.0,
+      "critical_value_coverage": 38.5,
+      "synonym_coverage": 100.0
+    }
+  },
+  "lab report 4.png": {
+    "1": {
+      "passed": true,
+      "markdown_length": 2402,
+      "has_tables": true,
+      "errors": [],
+      "extraction_time_s": 11.14,
+      "has_numeric_data": true
+    },
+    "2": {
+      "passed": true,
+      "extracted_count": 13,
+      "expected_count": 13,
+      "matched_biomarkers": [
+        {
+          "name": "Blood Sugar Fasting",
+          "extracted_name": "Blood Sugar Fasting",
+          "value_match": true,
+          "unit_extracted": "mg/dl",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Blood Urea",
+          "extracted_name": "Blood Sugar Fasting",
+          "value_match": false,
+          "unit_extracted": "mg/dl",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Sodium (Na+)",
+          "extracted_name": "Sodium (Na+)",
+          "value_match": true,
+          "unit_extracted": "mEq/L",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Potassium (K+)",
+          "extracted_name": "Potassium (K+)",
+          "value_match": true,
+          "unit_extracted": "mEq/L",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Total Cholesterol",
+          "extracted_name": "Total Cholesterol",
+          "value_match": true,
+          "unit_extracted": "mg/dl",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Hemoglobin",
+          "extracted_name": "Hemoglobin",
+          "value_match": true,
+          "unit_extracted": "gm/dl",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Total Leucocyte Count",
+          "extracted_name": "Total Leucocyte Count",
+          "value_match": false,
+          "unit_extracted": ",100",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Neutrophil",
+          "extracted_name": "Neutrophil",
+          "value_match": true,
+          "unit_extracted": "%",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Monocyte",
+          "extracted_name": "Monocyte",
+          "value_match": true,
+          "unit_extracted": "%",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Eosinophil",
+          "extracted_name": "Eosinophil",
+          "value_match": true,
+          "unit_extracted": "%",
+          "ref_range_parsed": true
+        },
+        {
+          "name": "Basophil",
+          "extracted_name": "Basophil",
+          "value_match": true,
+          "unit_extracted": "%",
+          "ref_range_parsed": true
+        }
+      ],
+      "missing_biomarkers": [
+        "Triglycerides",
+        "Lymphocyte"
+      ],
+      "extra_biomarkers": [
+        "lipid profile",
+        "differential leucocyte count"
+      ],
+      "value_mismatches": [
+        "Blood Urea: expected=33.0, got=302.0",
+        "Total Leucocyte Count: expected=6100, got=6.0"
+      ],
+      "ref_range_parsed": 11,
+      "ref_range_failed": 0,
+      "patient_info": {
+        "age": 37,
+        "sex": "male"
+      },
+      "errors": [],
+      "patient_info_matches": [
+        "sex",
+        "age"
+      ],
+      "match_rate": 84.6
+    },
+    "3": {
+      "passed": true,
+      "total": 13,
+      "matched_to_db": 12,
+      "unmatched": [
+        "Lipid Profile"
+      ],
+      "matched_details": [
+        {
+          "extracted_name": "Blood Sugar Fasting",
+          "matched_id": "glucose_fasting",
+          "canonical_name": "Glucose, Fasting",
+          "category": "blood_chemistry",
+          "ref_unit": "mg/dL",
+          "has_critical_values": true,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Blood Urea",
+          "matched_id": "bun",
+          "canonical_name": "Blood Urea Nitrogen",
+          "category": "blood_chemistry",
+          "ref_unit": "mg/dL",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Sodium (Na+)",
+          "matched_id": "sodium",
+          "canonical_name": "Sodium",
+          "category": "electrolytes",
+          "ref_unit": "mEq/L",
+          "has_critical_values": true,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Potassium (K+)",
+          "matched_id": "potassium",
+          "canonical_name": "Potassium",
+          "category": "electrolytes",
+          "ref_unit": "mEq/L",
+          "has_critical_values": true,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Total Cholesterol",
+          "matched_id": "cholesterol_total",
+          "canonical_name": "Cholesterol, Total",
+          "category": "lipid_panel",
+          "ref_unit": "mg/dL",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Hemoglobin",
+          "matched_id": "hemoglobin",
+          "canonical_name": "Hemoglobin",
+          "category": "hematology",
+          "ref_unit": "g/dL",
+          "has_critical_values": true,
+          "ref_ranges_count": 2,
+          "unit_conversion": {
+            "from": "15.1 gm/dl",
+            "to": "15.1 gm/dl",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "Total Leucocyte Count",
+          "matched_id": "wbc_count",
+          "canonical_name": "White Blood Cell Count",
+          "category": "hematology",
+          "ref_unit": "\u00d710\u00b3/\u03bcL",
+          "has_critical_values": true,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "6.0 ,100",
+            "to": "6.0 ,100",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "Differential Leucocyte Count",
+          "matched_id": "wbc_count",
+          "canonical_name": "White Blood Cell Count",
+          "category": "hematology",
+          "ref_unit": "\u00d710\u00b3/\u03bcL",
+          "has_critical_values": true,
+          "ref_ranges_count": 1,
+          "unit_conversion": {
+            "from": "44.0 %",
+            "to": "44.0 %",
+            "converted": false
+          }
+        },
+        {
+          "extracted_name": "Neutrophil",
+          "matched_id": "neutrophils",
+          "canonical_name": "Neutrophils",
+          "category": "Hematology",
+          "ref_unit": "%",
+          "has_critical_values": true,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Monocyte",
+          "matched_id": "monocytes",
+          "canonical_name": "Monocytes",
+          "category": "Hematology",
+          "ref_unit": "%",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Eosinophil",
+          "matched_id": "eosinophils",
+          "canonical_name": "Eosinophils",
+          "category": "Hematology",
+          "ref_unit": "%",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        },
+        {
+          "extracted_name": "Basophil",
+          "matched_id": "basophils",
+          "canonical_name": "Basophils",
+          "category": "Hematology",
+          "ref_unit": "%",
+          "has_critical_values": false,
+          "ref_ranges_count": 1
+        }
+      ],
+      "unit_conversion_tested": 3,
+      "unit_conversion_success": 0,
+      "errors": [],
+      "match_rate": 92.3
+    },
+    "4": {
+      "passed": true,
+      "model_loaded": true,
+      "total_tested": 4,
+      "status_correct": 4,
+      "status_wrong": 0,
+      "interpretations": [
+        {
+          "name": "Blood Sugar Fasting",
+          "value": 302.0,
+          "unit": "mg/dl",
+          "qwen_status": "high",
+          "reference_range": "60.0-110.0 mg/dl",
+          "reference_range_source": "report",
+          "interpretation_length": 463,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 302.0 mg/dl\n- **Reference Range (Fasting):** 60.0-110.0 mg/dl\n- **Status:** High\n\n**Comparison:** 302.0 mg/dl is above the upper limit of 110.0 mg/dl.\n\n**Interpretation:**\n...",
+          "status_accuracy": "CORRECT (abnormal)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": true
+        },
+        {
+          "name": "Blood Urea",
+          "value": 33.0,
+          "unit": "mg/dl",
+          "qwen_status": "normal",
+          "reference_range": "8.0-45.0 mg/dl",
+          "reference_range_source": "report",
+          "interpretation_length": 357,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 33.0 mg/dl\n- **Reference Range (Male):** 8.0-45.0 mg/dl\n- **Status:** Normal\n\n**Comparison:** 33.0 mg/dl is within the reference range of 8.0-45.0 mg/dl.\n\n**Interpretation:...",
+          "status_accuracy": "CORRECT (normal)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": false
+        },
+        {
+          "name": "Sodium (Na+)",
+          "value": 135.2,
+          "unit": "mEq/L",
+          "qwen_status": "normal",
+          "reference_range": "135.0-146.0 mEq/L",
+          "reference_range_source": "report",
+          "interpretation_length": 353,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 135.2 mEq/L\n- **Reference Range (Unknown Patient):** 135.0-146.0 mEq/L\n- **Status:** Normal\n\n**Comparison:** 135.2 mEq/L is within the reference range of 135.0-146.0 mEq/L....",
+          "status_accuracy": "CORRECT (normal)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": false
+        },
+        {
+          "name": "Potassium (K+)",
+          "value": 4.3,
+          "unit": "mEq/L",
+          "qwen_status": "normal",
+          "reference_range": "3.5-5.2 mEq/L",
+          "reference_range_source": "report",
+          "interpretation_length": 336,
+          "interpretation_preview": "**Analysis:**\n- **Result:** 4.3 mEq/L\n- **Reference Range (Unknown Patient):** 3.5-5.2 mEq/L\n- **Status:** Normal\n\n**Comparison:** 4.3 mEq/L is within the reference range of 3.5-5.2 mEq/L.\n\n**Interpre...",
+          "status_accuracy": "CORRECT (normal)",
+          "has_analysis_section": true,
+          "has_status_section": true,
+          "has_recommendations": false
+        }
+      ],
+      "errors": [],
+      "accuracy": 100.0
+    },
+    "5": {
+      "passed": true,
+      "total": 13,
+      "has_reference_ranges": 12,
+      "has_critical_values": 7,
+      "has_synonyms": 12,
+      "has_category": 12,
+      "has_interpretation_text": 12,
+      "enrichment_details": [
+        {
+          "name": "Blood Sugar Fasting",
+          "matched_id": "glucose_fasting",
+          "canonical_name": "Glucose, Fasting",
+          "category": "blood_chemistry",
+          "synonyms_count": 12,
+          "reference_ranges_count": 1,
+          "has_critical_values": true,
+          "reference_unit": "mg/dL",
+          "first_range": {
+            "low": 70.0,
+            "high": 99.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true,
+          "critical_low": 40.0,
+          "critical_high": 400.0
+        },
+        {
+          "name": "Blood Urea",
+          "matched_id": "bun",
+          "canonical_name": "Blood Urea Nitrogen",
+          "category": "blood_chemistry",
+          "synonyms_count": 8,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "mg/dL",
+          "first_range": {
+            "low": 8.0,
+            "high": 20.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Sodium (Na+)",
+          "matched_id": "sodium",
+          "canonical_name": "Sodium",
+          "category": "electrolytes",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": true,
+          "reference_unit": "mEq/L",
+          "first_range": {
+            "low": 136.0,
+            "high": 145.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true,
+          "critical_low": 120.0,
+          "critical_high": 160.0
+        },
+        {
+          "name": "Potassium (K+)",
+          "matched_id": "potassium",
+          "canonical_name": "Potassium",
+          "category": "electrolytes",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": true,
+          "reference_unit": "mEq/L",
+          "first_range": {
+            "low": 3.5,
+            "high": 5.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true,
+          "critical_low": 2.5,
+          "critical_high": 6.5
+        },
+        {
+          "name": "Total Cholesterol",
+          "matched_id": "cholesterol_total",
+          "canonical_name": "Cholesterol, Total",
+          "category": "lipid_panel",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "mg/dL",
+          "first_range": {
+            "low": null,
+            "high": 200.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Hemoglobin",
+          "matched_id": "hemoglobin",
+          "canonical_name": "Hemoglobin",
+          "category": "hematology",
+          "synonyms_count": 5,
+          "reference_ranges_count": 2,
+          "has_critical_values": true,
+          "reference_unit": "g/dL",
+          "first_range": {
+            "low": 12.0,
+            "high": 16.0,
+            "conditions": {
+              "sex": "female"
+            }
+          },
+          "has_interpretation_text": true,
+          "critical_low": 7.0,
+          "critical_high": 20.0
+        },
+        {
+          "name": "Total Leucocyte Count",
+          "matched_id": "wbc_count",
+          "canonical_name": "White Blood Cell Count",
+          "category": "hematology",
+          "synonyms_count": 10,
+          "reference_ranges_count": 1,
+          "has_critical_values": true,
+          "reference_unit": "\u00d710\u00b3/\u03bcL",
+          "first_range": {
+            "low": 4.0,
+            "high": 11.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true,
+          "critical_low": 2.0,
+          "critical_high": 30.0
+        },
+        {
+          "name": "Differential Leucocyte Count",
+          "matched_id": "wbc_count",
+          "canonical_name": "White Blood Cell Count",
+          "category": "hematology",
+          "synonyms_count": 10,
+          "reference_ranges_count": 1,
+          "has_critical_values": true,
+          "reference_unit": "\u00d710\u00b3/\u03bcL",
+          "first_range": {
+            "low": 4.0,
+            "high": 11.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true,
+          "critical_low": 2.0,
+          "critical_high": 30.0
+        },
+        {
+          "name": "Neutrophil",
+          "matched_id": "neutrophils",
+          "canonical_name": "Neutrophils",
+          "category": "Hematology",
+          "synonyms_count": 13,
+          "reference_ranges_count": 1,
+          "has_critical_values": true,
+          "reference_unit": "%",
+          "first_range": {
+            "low": 40.0,
+            "high": 70.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true,
+          "critical_low": 1.0,
+          "critical_high": null
+        },
+        {
+          "name": "Monocyte",
+          "matched_id": "monocytes",
+          "canonical_name": "Monocytes",
+          "category": "Hematology",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "%",
+          "first_range": {
+            "low": 2.0,
+            "high": 8.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Eosinophil",
+          "matched_id": "eosinophils",
+          "canonical_name": "Eosinophils",
+          "category": "Hematology",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "%",
+          "first_range": {
+            "low": 1.0,
+            "high": 4.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        },
+        {
+          "name": "Basophil",
+          "matched_id": "basophils",
+          "canonical_name": "Basophils",
+          "category": "Hematology",
+          "synonyms_count": 6,
+          "reference_ranges_count": 1,
+          "has_critical_values": false,
+          "reference_unit": "%",
+          "first_range": {
+            "low": 0.0,
+            "high": 1.0,
+            "conditions": {}
+          },
+          "has_interpretation_text": true
+        }
+      ],
+      "missing_in_db": [
+        "Lipid Profile"
+      ],
+      "errors": [],
+      "ref_range_coverage": 100.0,
+      "critical_value_coverage": 58.3,
+      "synonym_coverage": 100.0
+    }
+  }
+}

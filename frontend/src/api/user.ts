@@ -56,6 +56,13 @@ export const cancelUserAppointment = async (
   return response.data;
 };
 
+export const deleteUserAppointment = async (
+  appointmentId: string
+): Promise<ApiResponse> => {
+  const response = await api.delete(`/api/user/appointments/${appointmentId}`);
+  return response.data;
+};
+
 // Payments
 export const createRazorpayOrder = async (
   appointmentId: string

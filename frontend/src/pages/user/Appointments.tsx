@@ -1,13 +1,20 @@
 import { useEffect, useState } from 'react';
-import { getUserAppointments, cancelUserAppointment } from '../../api/user';
+import { getUserAppointments, cancelUserAppointment, deleteUserAppointment } from '../../api/user';
 import type { Appointment, AppointmentStatus } from '../../types';
+<<<<<<< HEAD
 import { Calendar, Clock, X, Check, Loader2, AlertCircle, Stethoscope, HourglassIcon, XCircle } from 'lucide-react';
 import toast from '../../utils/soundToast';
+=======
+import { Calendar, Clock, X, Check, Loader2, AlertCircle, Stethoscope, HourglassIcon, XCircle, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
+>>>>>>> prashish
 
 export function UserAppointments() {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [processingId, setProcessingId] = useState<string | null>(null);
+    const [cancelModalOpen, setCancelModalOpen] = useState<string | null>(null);
+    const [deleteModalOpen, setDeleteModalOpen] = useState<string | null>(null);
 
     const fetchAppointments = async () => {
         try {
@@ -28,8 +35,17 @@ export function UserAppointments() {
         fetchAppointments();
     }, []);
 
-    const handleCancel = async (appointmentId: string) => {
-        if (!confirm('Are you sure you want to cancel this appointment?')) return;
+    const handleCancelClick = (appointmentId: string) => {
+        setCancelModalOpen(appointmentId);
+    };
+
+    const handleDeleteClick = (appointmentId: string) => {
+        setDeleteModalOpen(appointmentId);
+    };
+
+    const confirmCancel = async () => {
+        if (!cancelModalOpen) return;
+        const appointmentId = cancelModalOpen;
 
         setProcessingId(appointmentId);
 
@@ -37,12 +53,35 @@ export function UserAppointments() {
             const response = await cancelUserAppointment(appointmentId);
             if (response.success) {
                 toast.success('Appointment cancelled successfully');
+                setCancelModalOpen(null);
                 fetchAppointments();
             } else {
                 toast.error(response.message || 'Failed to cancel appointment');
             }
         } catch (error: any) {
             toast.error(error.response?.data?.detail?.message || 'Failed to cancel appointment');
+        } finally {
+            setProcessingId(null);
+        }
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteModalOpen) return;
+        const appointmentId = deleteModalOpen;
+
+        setProcessingId(appointmentId);
+
+        try {
+            const response = await deleteUserAppointment(appointmentId);
+            if (response.success) {
+                toast.success('Appointment removed from history');
+                setDeleteModalOpen(null);
+                fetchAppointments();
+            } else {
+                toast.error(response.message || 'Failed to delete appointment');
+            }
+        } catch (error: any) {
+            toast.error(error.response?.data?.detail?.message || 'Failed to delete appointment');
         } finally {
             setProcessingId(null);
         }
@@ -134,7 +173,7 @@ export function UserAppointments() {
                         const visitCount = getPreviousVisitCount(apt.docId, apt._id);
 
                         return (
-                            <div key={apt._id} className="bg-white dark:bg-dark-800 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                            <div key={apt._id} className="relative group bg-white dark:bg-dark-800 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
                                 <div className="flex flex-col md:flex-row gap-6">
                                     {/* Doctor Image */}
                                     <div className="w-full md:w-28 h-28 rounded-2xl overflow-hidden bg-emerald-50 dark:bg-dark-700 flex-shrink-0 shadow-md">
@@ -190,15 +229,11 @@ export function UserAppointments() {
                                                     </p>
                                                 )}
                                                 <button
-                                                    onClick={() => handleCancel(apt._id)}
+                                                    onClick={() => handleCancelClick(apt._id)}
                                                     disabled={processingId === apt._id}
                                                     className="bg-red-50 text-red-600 border-2 border-red-500 hover:bg-red-500 hover:text-white px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 text-sm font-semibold shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
-                                                    {processingId === apt._id ? (
-                                                        <Loader2 className="animate-spin" size={16} />
-                                                    ) : (
-                                                        <X size={16} />
-                                                    )}
+                                                    <X size={16} />
                                                     Cancel Appointment
                                                 </button>
                                             </div>
@@ -229,6 +264,19 @@ export function UserAppointments() {
                                                 )}
                                             </div>
                                         )}
+
+                                        {/* Delete Button for inactive appointments */}
+                                        {(getAppointmentStatus(apt) === 'completed' || getAppointmentStatus(apt) === 'cancelled' || getAppointmentStatus(apt) === 'rejected') && (
+                                            <div className="flex justify-end mt-4 pt-4 border-t border-dashed border-gray-100 dark:border-dark-700/50">
+                                                <button
+                                                    onClick={() => handleDeleteClick(apt._id)}
+                                                    className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all"
+                                                >
+                                                    <Trash2 size={14} />
+                                                    <span>Remove from History</span>
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -236,6 +284,83 @@ export function UserAppointments() {
                     })}
                 </div>
             )}
-        </div>
+
+
+            {/* Cancel Confirmation Modal */}
+            {
+                cancelModalOpen && (
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-white dark:bg-dark-800 rounded-2xl p-6 w-full max-w-md border border-gray-200 dark:border-dark-700 shadow-2xl animation-fade-in text-center">
+                            <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-500/10 rounded-full flex items-center justify-center mb-4">
+                                <AlertCircle size={32} className="text-red-500" />
+                            </div>
+
+                            <h3 className="text-xl font-bold text-dark-800 dark:text-dark-50 mb-2">Cancel Appointment?</h3>
+                            <p className="text-gray-500 dark:text-dark-400 text-sm mb-6 leading-relaxed">
+                                Are you sure you want to cancel this appointment? This action cannot be undone.
+                            </p>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setCancelModalOpen(null)}
+                                    className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-dark-300 hover:text-dark-900 dark:hover:text-dark-100 bg-gray-100 dark:bg-dark-700 hover:bg-gray-200 dark:hover:bg-dark-600 rounded-xl transition-all"
+                                >
+                                    No, Keep It
+                                </button>
+                                <button
+                                    onClick={confirmCancel}
+                                    disabled={processingId === cancelModalOpen}
+                                    className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-red-500/20"
+                                >
+                                    {processingId === cancelModalOpen ? (
+                                        <Loader2 className="animate-spin" size={16} />
+                                    ) : (
+                                        <X size={16} />
+                                    )}
+                                    Yes, Cancel It
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Delete Confirmation Modal */}
+            {deleteModalOpen && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-dark-800 rounded-2xl p-6 w-full max-w-md border border-gray-200 dark:border-dark-700 shadow-2xl animation-fade-in text-center">
+                        <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-500/10 rounded-full flex items-center justify-center mb-4">
+                            <Trash2 size={32} className="text-red-500" />
+                        </div>
+
+                        <h3 className="text-xl font-bold text-dark-800 dark:text-dark-50 mb-2">Delete from History?</h3>
+                        <p className="text-gray-500 dark:text-dark-400 text-sm mb-6 leading-relaxed">
+                            This will hide the appointment from your list. This action cannot be undone.
+                        </p>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setDeleteModalOpen(null)}
+                                className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-dark-300 hover:text-dark-900 dark:hover:text-dark-100 bg-gray-100 dark:bg-dark-700 hover:bg-gray-200 dark:hover:bg-dark-600 rounded-xl transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                disabled={processingId === deleteModalOpen}
+                                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-red-500/20"
+                            >
+                                {processingId === deleteModalOpen ? (
+                                    <Loader2 className="animate-spin" size={16} />
+                                ) : (
+                                    <Trash2 size={16} />
+                                )}
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div >
     );
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { getDoctorDashboard, getDoctorProfile } from '../../api/doctor';
 import { useAuth } from '../../context/AuthContext';
 import type { Doctor, DashboardData, Appointment } from '../../types';
-import { Calendar, DollarSign, Users, Clock, CheckCircle, Loader2 } from 'lucide-react';
+import { Calendar, Users, Clock, Loader2, ArrowUpRight, Activity } from 'lucide-react';
 import { Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import toast from '../../utils/soundToast';
 
@@ -56,95 +56,127 @@ export function DoctorDashboard() {
     ];
 
     return (
-        <div className="space-y-8">
-            {/* Welcome Section */}
-            <div className="glass-card p-8">
-                <div className="flex flex-col md:flex-row md:items-center gap-6">
-                    <div className="w-20 h-20 rounded-2xl overflow-hidden bg-dark-700 flex-shrink-0">
-                        {profile?.image ? (
-                            <img src={profile.image} alt={profile.name} className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-500">
-                                <span className="text-2xl font-bold text-white">{profile?.name?.charAt(0) || 'D'}</span>
+        <div className="space-y-6">
+            {/* Premium Welcome Section */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-dark-800 to-dark-900 shadow-2xl">
+                {/* Background Decor */}
+                <div className="absolute top-0 right-0 w-96 h-96 bg-primary-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+
+                <div className="relative z-10 p-6 md:p-8">
+                    <div className="flex flex-col md:flex-row md:items-center gap-6">
+                        {/* Profile Image with Glow */}
+                        <div className="relative group">
+                            <div className="absolute -inset-0.5 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+                            <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-dark-800 ring-2 ring-dark-700/50 flex-shrink-0">
+                                {profile?.image ? (
+                                    <img src={profile.image} alt={profile.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-500 to-secondary-500 text-white text-2xl font-bold">
+                                        {profile?.name?.charAt(0) || 'D'}
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
-                    <div className="flex-1">
-                        <h1 className="text-2xl md:text-3xl font-bold text-dark-50">
-                            Welcome, Dr. {profile?.name || 'Doctor'}!
-                        </h1>
-                        <p className="text-dark-400 mt-1">
-                            {profile?.speciality} • {profile?.experience}
-                        </p>
-                    </div>
-                    <div className={`px-4 py-2 rounded-xl ${profile?.available
-                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                        : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                        }`}>
-                        {profile?.available ? 'Available' : 'Unavailable'}
+                        </div>
+
+                        <div className="flex-1 space-y-1">
+                            <h1 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-dark-300">
+                                Welcome back, Dr. {profile?.name || 'Doctor'}
+                            </h1>
+                            <div className="flex items-center gap-2 text-dark-400">
+                                <span className="bg-dark-700/50 px-2.5 py-0.5 rounded-lg text-xs border border-dark-600/50 backdrop-blur-sm">
+                                    {profile?.speciality || 'General Practitioner'}
+                                </span>
+                                <span className="text-dark-500">•</span>
+                                <span className="text-xs">{profile?.experience || '0 Years'} Experience</span>
+                            </div>
+                        </div>
+
+                        {/* Status Toggle Visual */}
+                        <div className={`flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-md border transition-all duration-300 ${profile?.available
+                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-lg shadow-emerald-500/10'
+                            : 'bg-red-500/10 border-red-500/20 text-red-400 shadow-lg shadow-red-500/10'
+                            }`}>
+                            <div className={`w-2.5 h-2.5 rounded-full ${profile?.available ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
+                            <span className="font-semibold tracking-wide text-xs">
+                                {profile?.available ? 'Accepting Patients' : 'Currently Unavailable'}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="stat-card">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 rounded-xl bg-emerald-500/20">
-                            <DollarSign className="text-emerald-400" size={24} />
-                        </div>
+            {/* Stats Grid - 3 Columns */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Appointments Card */}
+                <div className="group relative overflow-hidden rounded-2xl bg-dark-800/50 p-5 hover:bg-dark-800 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-1 cursor-default">
+                    <div className="flex items-start justify-between relative z-10">
                         <div>
-                            <p className="stat-value">₹{dashData?.earnings || 0}</p>
-                            <p className="stat-label">Total Earnings</p>
+                            <p className="text-dark-400 text-xs font-medium mb-1">Total Appointments</p>
+                            <h3 className="text-2xl font-bold text-dark-50">{dashData?.appointments || 0}</h3>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
+                            <Calendar size={20} />
                         </div>
                     </div>
+                    <div className="mt-3 flex items-center gap-2 text-[10px] text-blue-400/80 bg-blue-500/5 w-fit px-2 py-0.5 rounded-lg">
+                        <ArrowUpRight size={12} />
+                        <span>Scheduled Consultations</span>
+                    </div>
+                    {/* Glow Effect */}
+                    <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-all duration-500" />
                 </div>
 
-                <div className="stat-card">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 rounded-xl bg-blue-500/20">
-                            <Calendar className="text-blue-400" size={24} />
-                        </div>
+                {/* Patients Card */}
+                <div className="group relative overflow-hidden rounded-2xl bg-dark-800/50 p-5 hover:bg-dark-800 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1 cursor-default">
+                    <div className="flex items-start justify-between relative z-10">
                         <div>
-                            <p className="stat-value">{dashData?.appointments || 0}</p>
-                            <p className="stat-label">Appointments</p>
+                            <p className="text-dark-400 text-xs font-medium mb-1">Unique Patients</p>
+                            <h3 className="text-2xl font-bold text-dark-50">{dashData?.patients || 0}</h3>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-all duration-300">
+                            <Users size={20} />
                         </div>
                     </div>
-                </div>
-
-                <div className="stat-card">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 rounded-xl bg-purple-500/20">
-                            <Users className="text-purple-400" size={24} />
-                        </div>
-                        <div>
-                            <p className="stat-value">{dashData?.patients || 0}</p>
-                            <p className="stat-label">Patients</p>
-                        </div>
+                    <div className="mt-3 flex items-center gap-2 text-[10px] text-purple-400/80 bg-purple-500/5 w-fit px-2 py-0.5 rounded-lg">
+                        <Activity size={12} />
+                        <span>Active Patient Base</span>
                     </div>
+                    <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-purple-500/10 rounded-full blur-3xl group-hover:bg-purple-500/20 transition-all duration-500" />
                 </div>
 
-                <div className="stat-card">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 rounded-xl bg-amber-500/20">
-                            <Clock className="text-amber-400" size={24} />
-                        </div>
+                {/* Pending Card */}
+                <div className="group relative overflow-hidden rounded-2xl bg-dark-800/50 p-5 hover:bg-dark-800 transition-all duration-500 hover:shadow-2xl hover:shadow-amber-500/10 hover:-translate-y-1 cursor-default">
+                    <div className="flex items-start justify-between relative z-10">
                         <div>
-                            <p className="stat-value">
+                            <p className="text-dark-400 text-xs font-medium mb-1">Pending Requests</p>
+                            <h3 className="text-2xl font-bold text-amber-500">
                                 {dashData?.latestAppointments?.filter(a => !a.isCompleted && !a.cancelled).length || 0}
-                            </p>
-                            <p className="stat-label">Pending</p>
+                            </h3>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300">
+                            <Clock size={20} />
                         </div>
                     </div>
+                    <div className="mt-3 flex items-center gap-2 text-[10px] text-amber-400/80 bg-amber-500/5 w-fit px-2 py-0.5 rounded-lg">
+                        <Clock size={12} />
+                        <span>Action Required</span>
+                    </div>
+                    <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-amber-500/10 rounded-full blur-3xl group-hover:bg-amber-500/20 transition-all duration-500" />
                 </div>
             </div>
 
-            {/* Charts Section */}
+            {/* Charts & Lists Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Appointment Status Chart */}
-                <div className="glass-card p-6">
-                    <h2 className="text-lg font-semibold text-dark-100 mb-4">Appointment Status</h2>
-                    <div className="h-64">
+                <div className="glass-card p-4 shadow-xl hover:shadow-2xl transition-shadow duration-500 flex flex-col">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-base font-bold text-dark-100 flex items-center gap-2">
+                            <div className="w-1 h-4 bg-primary-500 rounded-full" />
+                            Status Overview
+                        </h2>
+                    </div>
+                    <div className="flex-1 min-h-[220px] relative">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
@@ -152,55 +184,110 @@ export function DoctorDashboard() {
                                     cx="50%"
                                     cy="50%"
                                     innerRadius={60}
-                                    outerRadius={100}
+                                    outerRadius={90}
                                     paddingAngle={5}
                                     dataKey="value"
-                                    label={({ name, value }) => `${name}: ${value}`}
+                                    stroke="none"
                                 >
                                     {appointmentStats.map((_entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        <Cell
+                                            key={`cell-${index}`}
+                                            fill={COLORS[index % COLORS.length]}
+                                            strokeWidth={0}
+                                        />
                                     ))}
                                 </Pie>
                                 <Tooltip
                                     contentStyle={{
-                                        background: '#1e293b',
-                                        border: '1px solid #334155',
-                                        borderRadius: '8px'
+                                        background: 'rgba(15, 23, 42, 0.9)',
+                                        border: '1px solid rgba(51, 65, 85, 0.5)',
+                                        borderRadius: '12px',
+                                        padding: '8px 12px',
+                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)'
                                     }}
+                                    itemStyle={{ color: '#e2e8f0', fontSize: '13px', fontWeight: 500 }}
                                 />
                             </PieChart>
                         </ResponsiveContainer>
+                        {/* Center Text Overlay */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span className="text-2xl font-bold text-dark-50">{dashData?.appointments || 0}</span>
+                            <span className="text-[10px] text-dark-400 uppercase tracking-wider">Total</span>
+                        </div>
+                    </div>
+                    {/* Legend */}
+                    <div className="flex justify-center gap-4 mt-2">
+                        {appointmentStats.map((entry, index) => (
+                            <div key={entry.name} className="flex items-center gap-1.5">
+                                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                                <span className="text-[10px] text-dark-300 font-medium">{entry.name}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
                 {/* Recent Appointments */}
-                <div className="glass-card p-6">
-                    <h2 className="text-lg font-semibold text-dark-100 mb-4">Recent Appointments</h2>
-                    <div className="space-y-3 max-h-64 overflow-y-auto scrollbar-thin">
+                <div className="glass-card p-0 shadow-xl hover:shadow-2xl transition-shadow duration-500 overflow-hidden flex flex-col">
+                    <div className="p-4 border-b border-dark-700/30">
+                        <h2 className="text-base font-bold text-dark-100 flex items-center gap-2">
+                            <div className="w-1 h-4 bg-secondary-500 rounded-full" />
+                            Recent Activity
+                        </h2>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto scrollbar-thin p-3 space-y-2 max-h-[280px]">
                         {dashData?.latestAppointments?.slice(0, 5).map((apt: Appointment) => (
-                            <div key={apt._id} className="flex items-center gap-3 p-3 rounded-lg bg-dark-700/50">
-                                <div className="w-10 h-10 rounded-lg bg-dark-600 flex items-center justify-center flex-shrink-0">
-                                    <span className="text-sm font-medium text-dark-300">
+                            <div
+                                key={apt._id}
+                                className="group flex items-center gap-4 p-4 rounded-xl bg-dark-800/30 hover:bg-dark-700/50 transition-all duration-300 cursor-default hover:shadow-lg"
+                            >
+                                <div className="relative">
+                                    <div className="w-12 h-12 rounded-xl bg-dark-700 flex items-center justify-center flex-shrink-0 text-dark-300 font-semibold group-hover:bg-dark-600 transition-colors">
                                         {apt.userData?.name?.charAt(0) || 'P'}
-                                    </span>
+                                    </div>
+                                    <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-dark-800 ${apt.isCompleted ? 'bg-emerald-500' : apt.cancelled ? 'bg-red-500' : 'bg-amber-500'
+                                        }`} />
                                 </div>
+
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-dark-200 truncate">{apt.userData?.name}</p>
-                                    <p className="text-xs text-dark-400">{apt.slotDate} • {apt.slotTime}</p>
+                                    <h4 className="font-medium text-dark-200 group-hover:text-dark-100 transition-colors truncate text-sm">
+                                        {apt.userData?.name}
+                                    </h4>
+                                    <div className="flex items-center gap-3 mt-1 text-[10px] text-dark-400">
+                                        <div className="flex items-center gap-1">
+                                            <Calendar size={12} />
+                                            <span>{apt.slotDate}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Clock size={12} />
+                                            <span>{apt.slotTime}</span>
+                                        </div>
+                                    </div>
                                 </div>
+
                                 <div>
                                     {apt.isCompleted ? (
-                                        <CheckCircle size={16} className="text-emerald-400" />
+                                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                            Done
+                                        </span>
                                     ) : apt.cancelled ? (
-                                        <span className="badge-danger text-xs">Cancelled</span>
+                                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">
+                                            Cancelled
+                                        </span>
                                     ) : (
-                                        <span className="badge-warning text-xs">Pending</span>
+                                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1">
+                                            <Clock size={10} /> Pending
+                                        </span>
                                     )}
                                 </div>
                             </div>
                         ))}
+
                         {(!dashData?.latestAppointments || dashData.latestAppointments.length === 0) && (
-                            <p className="text-center text-dark-400 py-4">No recent appointments</p>
+                            <div className="flex flex-col items-center justify-center py-12 text-center">
+                                <Calendar className="text-dark-600 mb-3" size={48} />
+                                <p className="text-dark-400">No recent appointments</p>
+                            </div>
                         )}
                     </div>
                 </div>
